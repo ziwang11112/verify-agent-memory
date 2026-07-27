@@ -1,0 +1,7 @@
+claim_id,family,population,source,contrast,metric,estimate,ci95_lower,ci95_upper,n,notes
+C4,mechanism_smoke,16 curated evaluation packets,public-source audit subset,global_dense,evidence_recall,1.0,,,16,mechanism_smoke_only;not_natural_corpus_estimate
+C4,mechanism_smoke,16 curated evaluation packets,public-source audit subset,global_dense,measured_contamination,0.11889880952380952,,,16,mechanism_smoke_only;not_natural_corpus_estimate
+C4,mechanism_smoke,16 curated evaluation packets,public-source audit subset,global_dense,wrong_scope_leakage,0.025,,,16,mechanism_smoke_only;not_natural_corpus_estimate
+C4,mechanism_smoke,16 curated evaluation packets,public-source audit subset,namespace_dense,evidence_recall,1.0,,,16,mechanism_smoke_only;not_natural_corpus_estimate
+C4,mechanism_smoke,16 curated evaluation packets,public-source audit subset,namespace_dense,measured_contamination,0.08244047619047619,,,16,mechanism_smoke_only;not_natural_corpus_estimate
+C4,mechanism_smoke,16 curated evaluation packets,public-source audit subset,namespace_dense,wrong_scope_leakage,0.0,,,16,mechanism_smoke_only;not_natural_corpus_estimate

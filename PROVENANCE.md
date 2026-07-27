@@ -33,9 +33,21 @@ The following identities were recorded in the frozen source audit:
 | RHELM | `https://github.com/microsoft/RHELM.git` | `726fc42ea0d5c11085c1a961ade10d702ba187d3` | `15bada413dc52f41177f5817563181243ed936d8` |
 | MemOps | `https://github.com/MemTensor/MemOps.git` | `0b85a27bba856c287405a36e53a39e59e424c4e9` | `f9d5cf4ac3c600eecccfec008db4d487f961b5af` |
 
-These identities do not establish redistribution permission. Phase 2 must inspect
-the license and notice requirements of each source before copying code, data, or
-derived records.
+These identities do not establish redistribution permission for incorporated data.
+The repository-level license audit is complete and recorded in
+`docs/LICENSE_AUDIT.md`. Raw benchmark data remain excluded.
+
+## Normalized Evidence
+
+Phase 2 reads eligible aggregate artifacts only through
+`git show a28093110325968c26906223e9eb0f1e078f6aad:<path>`. Every input is checked
+against `SOURCE_ARTIFACTS.yaml` before parsing. Each normalized CSV is bound to its
+source paths, source hashes, transformation script, and output hash in
+`evidence/manifests/`.
+
+The natural-evaluation importer additionally verifies the frozen execution
+manifest: nine selected arms cover all 3,767 queries in both 33,903 route rows and
+33,903 score rows, and provider, reader, judge, and paid-call counts are zero.
 
 ## Reader Executions
 

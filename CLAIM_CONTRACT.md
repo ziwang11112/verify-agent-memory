@@ -46,6 +46,9 @@ GateMem route bundle.
 | `gpt-4o-mini-2024-07-18` | 0.4286 | [0.3919, 0.4642] | -0.022532 | -0.052176 |
 | `gpt-4o-2024-08-06` | 0.5298 | [0.4915, 0.5665] | -0.025471 | -0.063268 |
 
+Table values are rounded for display; the YAML contract and normalized evidence
+retain source precision.
+
 The Brier and log-loss intervals are recorded in the YAML contract. Both models are
 OpenAI readers. The estimates are reported separately and are never pooled.
 
@@ -95,6 +98,9 @@ records across the full audit and 7-12 candidates per packet.
 | --- | ---: | ---: | ---: |
 | Global dense | 1.0000 | 0.0250 | 0.1189 |
 | Namespace dense | 1.0000 | 0.0000 | 0.0824 |
+
+Table values are rounded for display; the YAML contract and normalized evidence
+retain source precision.
 
 **Allowed:** The small candidate-pool smoke verifies that the scorer responds to a
 known scope constraint and detects recall loss from aggressive routing.

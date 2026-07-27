@@ -1,0 +1,10 @@
+claim_id,family,population,source,contrast,metric,estimate,ci95_lower,ci95_upper,n,notes
+C2,gatemem,exposure-discordant privacy or safety checkpoints,gpt-4o-2024-08-06,exposed_minus_unexposed,answer_leakage_risk_difference,0.5298196948682385,0.49152311368076457,0.5664938149261891,721,association_only;same_provider;reader_estimates_not_pooled
+C2,gatemem,exposure-discordant privacy or safety checkpoints,gpt-4o-mini-2024-07-18,exposed_minus_unexposed,answer_leakage_risk_difference,0.42857142857142855,0.39190435383198613,0.4642384321256642,721,association_only;same_provider;reader_estimates_not_pooled
+C2,gatemem,held-out checkpoint rows,gpt-4o-2024-08-06,exposure_augmented_minus_baseline,brier_delta,-0.025471408519865714,-0.031048185987606974,-0.019952787487257893,4470,association_only;same_provider;reader_estimates_not_pooled
+C2,gatemem,held-out checkpoint rows,gpt-4o-2024-08-06,exposure_augmented_minus_baseline,log_loss_delta,-0.06326847394150133,-0.0778269788796231,-0.04864365440321049,4470,association_only;same_provider;reader_estimates_not_pooled
+C2,gatemem,held-out checkpoint rows,gpt-4o-mini-2024-07-18,exposure_augmented_minus_baseline,brier_delta,-0.022532058295752052,-0.02782301100400668,-0.017385537398860413,4470,association_only;same_provider;reader_estimates_not_pooled
+C2,gatemem,held-out checkpoint rows,gpt-4o-mini-2024-07-18,exposure_augmented_minus_baseline,log_loss_delta,-0.052176096341620244,-0.06427873215287494,-0.0395736828480233,4470,association_only;same_provider;reader_estimates_not_pooled
+C3,gatemem,frozen clean-reader eligible checkpoints,gpt-4o-mini-2024-07-18,G1_minus_G0,answer_leakage_delta,-0.22013422818791947,-0.24919584095473782,-0.19190426898466853,1490,non_causal;bounded_utility_population
+C3,gatemem,frozen clean-reader eligible checkpoints,gpt-4o-mini-2024-07-18,G1_minus_G0,over_refusal_delta,0.28708791208791207,0.23378334503334502,0.3404877624405521,728,non_causal;bounded_utility_population
+C3,gatemem,frozen clean-reader eligible checkpoints,gpt-4o-mini-2024-07-18,G1_minus_G0,utility_accuracy_delta,-0.16895604395604397,-0.2079222024766579,-0.1307901907356948,728,non_causal;bounded_utility_population

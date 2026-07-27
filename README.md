@@ -29,10 +29,10 @@ usable(m, q, p, t)
     AND admissible(m, q, p, t)
 ```
 
-This repository is initially a claim-governance skeleton. It records the evidence
-contract, source provenance, migration boundary, and automated checks that must pass
-before any implementation or frozen aggregate is imported. It currently contains no
-benchmark payloads, model responses, embeddings, checkpoints, or provider runtime.
+This repository contains the claim contract, a small pure evaluation library, and
+hash-bound normalized aggregate evidence. It contains no benchmark payloads, raw
+prompts, model responses, embeddings, checkpoints, reviewer identities, or provider
+runtime.
 
 ## Current Scope
 
@@ -42,7 +42,43 @@ benchmark payloads, model responses, embeddings, checkpoints, or provider runtim
 - Separate a small mechanism smoke from the full public-source evaluation.
 - Treat released lifecycle and intent fields as an upper bound, not a deployable
   blind inference method.
-- Preserve source artifact identities before any deterministic normalization.
+- Preserve source artifact identities through deterministic normalization.
 
 See [CLAIM_CONTRACT.md](CLAIM_CONTRACT.md), [MIGRATION_ALLOWLIST.md](MIGRATION_ALLOWLIST.md),
 and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
+
+## Current Evidence
+
+- Separate reader estimates show a strong non-causal association between target
+  exposure and answer leakage.
+- Restricting exposure lowers leakage but also reduces bounded utility and increases
+  over-refusal.
+- Trusted released namespaces improve recall and feasible rate while reducing a
+  conservative contamination bound on the public-source evaluation.
+- The evaluated threshold and cluster routers do not establish incremental utility
+  beyond namespace support.
+- Released intent and lifecycle fields show upper-bound headroom, not deployable
+  blind inference performance.
+- Two-human agreement is strong on most audited axes, while the prohibited axis is
+  prevalence-limited and not reliable enough for a broad claim.
+
+The normalized values and their source receipts are documented in
+[evidence/README.md](evidence/README.md).
+
+## Verify
+
+```powershell
+uv sync --extra dev
+uv run --extra dev python -m pytest
+uv run --extra dev python -m ruff check .
+uv run --extra dev python -m ruff format --check .
+uv run --extra dev python scripts/check_claim_contract.py
+uv run --extra dev python scripts/verify_evidence.py
+```
+
+Regenerating normalized evidence additionally requires the frozen provenance archive
+at `../bomi-codex-starter`:
+
+```powershell
+uv run --extra dev python scripts/import_frozen_evidence.py
+```

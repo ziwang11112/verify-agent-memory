@@ -27,3 +27,5 @@ jobs:
         run: python -m pytest
       - name: Claim contract
         run: python scripts/check_claim_contract.py
+      - name: Normalized evidence
+        run: python scripts/verify_evidence.py

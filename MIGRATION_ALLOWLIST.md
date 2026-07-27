@@ -22,6 +22,9 @@ bomi/bench/stage3_natural_dev_analysis.py  # selected analysis logic only
 
 Required Phase 2 tests include complete method-by-query coverage, unresolved-label
 bounds, rejection of `NaN` and infinity, and query-intent-sensitive lifecycle cases.
+Because per-query route rows remain excluded, coverage is verified from the frozen
+execution manifest: nine selected arms times 3,767 queries must equal both 33,903
+route rows and 33,903 score rows.
 
 ## IMPORT_AS_FROZEN_AGGREGATE
 

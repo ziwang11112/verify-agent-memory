@@ -54,21 +54,21 @@ claims:
       reader_a:
         model: "gpt-4o-mini-2024-07-18"
         provider: "OpenAI"
-        risk_difference: 0.4286
+        risk_difference: 0.42857142857142855
         brier_delta: -0.022532058295752052
         log_loss_delta: -0.052176096341620244
       reader_b:
         model: "gpt-4o-2024-08-06"
         provider: "OpenAI"
-        risk_difference: 0.5298
+        risk_difference: 0.5298196948682385
         brier_delta: -0.025471408519865714
         log_loss_delta: -0.06326847394150133
       pooled_estimate: null
     confidence_intervals:
       - metric: "reader_a_risk_difference"
-        estimate: 0.4286
-        lower: 0.3919
-        upper: 0.4642
+        estimate: 0.42857142857142855
+        lower: 0.39190435383198613
+        upper: 0.4642384321256642
       - metric: "reader_a_brier_delta"
         estimate: -0.022532058295752052
         lower: -0.02782301100400668
@@ -78,9 +78,9 @@ claims:
         lower: -0.06427873215287494
         upper: -0.0395736828480233
       - metric: "reader_b_risk_difference"
-        estimate: 0.5298
-        lower: 0.4915
-        upper: 0.5665
+        estimate: 0.5298196948682385
+        lower: 0.49152311368076457
+        upper: 0.5664938149261891
       - metric: "reader_b_brier_delta"
         estimate: -0.025471408519865714
         lower: -0.031048185987606974
@@ -187,8 +187,8 @@ claims:
       namespace_dense_recall: 1.0
       global_dense_wrong_namespace_leakage: 0.025
       namespace_dense_wrong_namespace_leakage: 0.0
-      global_dense_measured_contamination: 0.1189
-      namespace_dense_measured_contamination: 0.0824
+      global_dense_measured_contamination: 0.11889880952380952
+      namespace_dense_measured_contamination: 0.08244047619047619
     confidence_intervals: []
     allowed_wording:
       - "The candidate-pool smoke validates metric behavior under known scope and recall changes."
