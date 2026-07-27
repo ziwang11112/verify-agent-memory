@@ -1,0 +1,55 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Credentials and local configuration
+.env
+.env.*
+*.pem
+*.key
+
+# Raw, private, and provider-derived material
+data/raw/
+data/private/
+evidence/raw/
+private/
+model_responses/
+responses/
+prompts/
+
+# Large generated runtime artifacts
+embeddings/
+checkpoints/
+routes/
+*.ckpt
+*.safetensors
+*.npy
+*.npz
+
+# Generated paper files
+paper/*.aux
+paper/*.bbl
+paper/*.bcf
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.pdf
+paper/*.run.xml
+paper/*.synctex.gz
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

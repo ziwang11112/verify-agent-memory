@@ -1,0 +1,451 @@
+schema_version: 1
+purpose: "Phase 2 source index only; no listed artifact is copied in Phase 1."
+method_label_mapping:
+  flat_dense: global_dense
+  namespace_dense: namespace_dense
+  ncr_threshold: threshold_router
+  ncr_a5: cluster_router
+  namespace_current_only: current_only_filter
+  namespace_source_intent_lifecycle: released_intent_lifecycle_upper_bound
+  flat_bm25_dense_rrf: hybrid_rrf
+
+artifacts:
+  - id: code_admissibility_metrics
+    category: PORT_AND_REFACTOR
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "bomi/eval/stage3_admissibility_metrics.py"
+    source_sha256: "85c42ed64497b48cbf4809af1ff31419b0aa8947b03ed7bfe3c7797df18893b2"
+    intended_normalized_destination: "src/verify_agent_memory/metrics.py"
+    transformation_required: "Rewrite under the new schema; remove historical names and audit all dependencies."
+    public_paper_label: "admissibility metrics"
+    contains_raw_text_or_private_content: false
+
+  - id: code_admissibility_runner
+    category: PORT_AND_REFACTOR
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "bomi/eval/stage3_admissibility_runner.py"
+    source_sha256: "192a681fb25b026f941e7f29d97b99e8e1616b9ac9e1e568a7b66d7784149cf9"
+    intended_normalized_destination: "src/verify_agent_memory/evaluation.py"
+    transformation_required: "Extract scorer orchestration only; remove retired arms, constants, and runtime coupling."
+    public_paper_label: "evaluation runner"
+    contains_raw_text_or_private_content: false
+
+  - id: code_human_agreement
+    category: PORT_AND_REFACTOR
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "bomi/eval/stage3_human_agreement.py"
+    source_sha256: "4354c3a24c12657c5e1d119e9bc7dce9e256e29644cdb44babea563106d0e29b"
+    intended_normalized_destination: "src/verify_agent_memory/agreement.py"
+    transformation_required: "Port pure agreement calculations after license and identifier review."
+    public_paper_label: "human agreement"
+    contains_raw_text_or_private_content: false
+
+  - id: code_memops_mapping
+    category: PORT_AND_REFACTOR
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "bomi/bench/stage3_memops_mapping.py"
+    source_sha256: "43649753b297badd5136d6d9cef1721686aca6ec42761591b01cbd9a6da9489a"
+    intended_normalized_destination: "src/verify_agent_memory/sources/memops.py"
+    transformation_required: "Rewrite as a source adapter after upstream license and schema review."
+    public_paper_label: "MemOps adapter"
+    contains_raw_text_or_private_content: false
+
+  - id: code_rhelm_resolution
+    category: PORT_AND_REFACTOR
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "bomi/bench/stage3_rhelm_evidence_resolution.py"
+    source_sha256: "22ac8bd2753d4ddc5d025199540dad02a8f9498fffaee80657148f97af082417"
+    intended_normalized_destination: "src/verify_agent_memory/sources/rhelm.py"
+    transformation_required: "Rewrite evidence resolution after upstream license and ambiguity review."
+    public_paper_label: "RHELM adapter"
+    contains_raw_text_or_private_content: false
+
+  - id: code_natural_corpus
+    category: PORT_AND_REFACTOR
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "bomi/bench/stage3_natural_corpus_admissibility.py"
+    source_sha256: "b08af8554909a35b88211ce1485b03f55608eb62e808f9a79ab7e90f571ff13b"
+    intended_normalized_destination: "src/verify_agent_memory/analysis/natural_corpus.py"
+    transformation_required: "Extract public-source construction logic and remove internal runtime dependencies."
+    public_paper_label: "public-source audit"
+    contains_raw_text_or_private_content: false
+
+  - id: code_natural_analysis
+    category: PORT_AND_REFACTOR
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "bomi/bench/stage3_natural_dev_analysis.py"
+    source_sha256: "f664ac7a87628ff5294203961e0c243dfa73b436196e602e0df5f3b842af60de"
+    intended_normalized_destination: "src/verify_agent_memory/analysis/bootstrap.py"
+    transformation_required: "Select pure bootstrap and table logic only; do not copy the module wholesale."
+    public_paper_label: "paired analysis"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_a_summary
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_clean_reader_replication/summary.md"
+    source_sha256: "bddfc5c1b039854a6ed2e0bf7225e2d4fe51b451d8b42d304cb85a22176a26a7"
+    intended_normalized_destination: "evidence/manifests/gatemem.json"
+    transformation_required: "Extract reader A status and aggregate values; omit internal governance prose."
+    public_paper_label: "GateMem reader A"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_a_pairs
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_clean_reader_replication/exposure_use_pairs.csv"
+    source_sha256: "e2d1099ebc4954010fec198cbddac7426d8e4bfea8e6d2ea55f34355bd6dbf5f"
+    intended_normalized_destination: "evidence/normalized/gatemem.csv"
+    transformation_required: "Audit identifiers and deterministically normalize reader and metric labels."
+    public_paper_label: "GateMem reader A"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_a_prediction
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_clean_reader_replication/incremental_prediction.csv"
+    source_sha256: "0aeb6e33454380f1df00d69860a4fcacb3d5423ca236ca23a73ed74e64f8b314"
+    intended_normalized_destination: "evidence/normalized/gatemem.csv"
+    transformation_required: "Normalize reader label and retain estimates, intervals, and bootstrap metadata."
+    public_paper_label: "GateMem reader A"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_a_tradeoff
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_clean_reader_replication/utility_and_refusal.csv"
+    source_sha256: "3ddfe726d28c4096aef7d945099a992771c0ffe750ba03d4ab989cb0a49cf5a0"
+    intended_normalized_destination: "evidence/normalized/gatemem.csv"
+    transformation_required: "Retain paired estimates and population sizes; normalize policy labels."
+    public_paper_label: "GateMem leakage-utility trade-off"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_a_arms
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_clean_reader_replication/arm_summary.csv"
+    source_sha256: "bc744f9e08500354fb4fdeb66ebda564e6a9dd4ec044d8db68d9d1ae0d75d2d4"
+    intended_normalized_destination: "evidence/normalized/gatemem.csv"
+    transformation_required: "Normalize arm labels without changing source values."
+    public_paper_label: "GateMem reader A"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_a_manifest
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_clean_reader_replication/reader_manifest.json"
+    source_sha256: "ce17a94745394abdb2ef392e05de631f7c52e9b20dc95675bfea18a8db9957ee"
+    intended_normalized_destination: "evidence/manifests/gatemem.json"
+    transformation_required: "Preserve model, execution, and no-judge boundaries; omit approval metadata."
+    public_paper_label: "GateMem reader A manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_a_response_manifest
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_clean_reader_replication/response_manifest.json"
+    source_sha256: "73a088844de6d495ac2b17d9f4cf4128186226d927d36a39ef81ff5c3f4d7e22"
+    intended_normalized_destination: "evidence/manifests/gatemem.json"
+    transformation_required: "Preserve bundle identity only; never import the response bundle."
+    public_paper_label: "GateMem reader A response identity"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_b_summary
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_independent_reader_ra/summary.md"
+    source_sha256: "f04320fb5b61e35c4a62e3980ef4d542eeb7d272f5b5c3dc6132fb30e25f7753"
+    intended_normalized_destination: "evidence/manifests/gatemem.json"
+    transformation_required: "Extract reader B status and aggregate values; omit internal governance prose."
+    public_paper_label: "GateMem reader B"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_b_pairs
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_independent_reader_ra/exposure_use_pairs.csv"
+    source_sha256: "4a4fb48df80a176fb06e4624685b47c9a70e83f67ce2458d072962cf1f96f937"
+    intended_normalized_destination: "evidence/normalized/gatemem.csv"
+    transformation_required: "Audit identifiers and deterministically normalize reader and metric labels."
+    public_paper_label: "GateMem reader B"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_b_prediction
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_independent_reader_ra/incremental_prediction.csv"
+    source_sha256: "6d6375ecf4da09e3226a66d6f8bb712862259ec5ac16b27ccffb8fd079515527"
+    intended_normalized_destination: "evidence/normalized/gatemem.csv"
+    transformation_required: "Normalize reader label and retain estimates, intervals, and bootstrap metadata."
+    public_paper_label: "GateMem reader B"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_b_tradeoff
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_independent_reader_ra/utility_and_refusal.csv"
+    source_sha256: "7065df7211f06a0b76e7dac13d319ac69a210ed7722b794091a80f75a9e305b8"
+    intended_normalized_destination: "evidence/normalized/gatemem.csv"
+    transformation_required: "Retain reader-specific trade-off estimates without pooling."
+    public_paper_label: "GateMem reader B"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_b_arms
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_independent_reader_ra/arm_summary.csv"
+    source_sha256: "68b4243f5dcd936edb3598cc2d99dddb8c023fd9c8316e0918d6ee240c7dde3e"
+    intended_normalized_destination: "evidence/normalized/gatemem.csv"
+    transformation_required: "Normalize arm labels without changing source values."
+    public_paper_label: "GateMem reader B"
+    contains_raw_text_or_private_content: false
+
+  - id: gatemem_reader_b_manifest
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_gatemem_independent_reader_ra/reader_manifest.json"
+    source_sha256: "6581b30fbf0b6c1b55f521d37443790552b52523a7a591ec5b6709b51937a9af"
+    intended_normalized_destination: "evidence/manifests/gatemem.json"
+    transformation_required: "Preserve model, provider, execution, and no-pooling boundaries."
+    public_paper_label: "GateMem reader B manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: human_agreement_json
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_label_suite/human_agreement_summary.json"
+    source_sha256: "2ecca3d86789f5061c362a17acef9ca39163ecff647470f2c3deeed18fe0a90f"
+    intended_normalized_destination: "evidence/normalized/human_agreement.csv"
+    transformation_required: "Remove reviewer hashes; retain aggregate axis statistics and boundaries."
+    public_paper_label: "raw two-human agreement"
+    contains_raw_text_or_private_content: false
+
+  - id: human_agreement_markdown
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_label_suite/human_agreement_summary.md"
+    source_sha256: "53520f53ff1fac2e9e505bc1ed7fe2a91c1beaf09ae64b1be65477208e483c79"
+    intended_normalized_destination: "evidence/manifests/human_agreement.json"
+    transformation_required: "Extract aggregate boundary language; omit internal status prose."
+    public_paper_label: "raw two-human agreement"
+    contains_raw_text_or_private_content: false
+
+  - id: human_agreement_table
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_label_suite/agreement.csv"
+    source_sha256: "707314303224b858113863e53ab0fd7bd71ad9256f58c91eabddfd21f520942f"
+    intended_normalized_destination: "evidence/normalized/human_agreement.csv"
+    transformation_required: "Retain aggregate rows only and verify reviewer identity is absent."
+    public_paper_label: "raw two-human agreement"
+    contains_raw_text_or_private_content: false
+
+  - id: human_label_distribution
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_label_suite/label_distribution.csv"
+    source_sha256: "cab88b42b2786ce13df50d23db5d7afc85d686e533389aad6d6acc064948f62e"
+    intended_normalized_destination: "evidence/normalized/human_agreement.csv"
+    transformation_required: "Retain aggregate prevalence counts used to interpret alpha."
+    public_paper_label: "label prevalence"
+    contains_raw_text_or_private_content: false
+
+  - id: human_mapping_coverage
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_label_suite/mapping_coverage.csv"
+    source_sha256: "4732908d8a6b566d1b95025bd2eb85feecfd56475ca8b78c3df30173c854e67a"
+    intended_normalized_destination: "evidence/manifests/human_agreement.json"
+    transformation_required: "Retain aggregate coverage only; audit identifiers before import."
+    public_paper_label: "audit mapping coverage"
+    contains_raw_text_or_private_content: false
+
+  - id: human_audit_selection_manifest
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_label_suite/audit_selection_manifest.json"
+    source_sha256: "b6d36333ae808cdd24bbe0d6136fd4501e2c27fdff9c8be38bfd1654a18cafbd"
+    intended_normalized_destination: "evidence/manifests/human_agreement.json"
+    transformation_required: "Retain counts and packet hashes; remove private bundle hashes if release review requires."
+    public_paper_label: "audit selection manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: smoke_main_table
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_method_comparison/main_table.csv"
+    source_sha256: "75ff85ffd2737daa33cf1e9fd7a454e2b8f68f358605778af37f7dba8fba937a"
+    intended_normalized_destination: "evidence/normalized/mechanism_smoke.csv"
+    transformation_required: "Apply deterministic public method labels and preserve the 16-packet population."
+    public_paper_label: "candidate-pool mechanism smoke"
+    contains_raw_text_or_private_content: false
+
+  - id: smoke_paired_deltas
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_method_comparison/paired_deltas.csv"
+    source_sha256: "3756e1cf54bea133b6536cf498a3e2afad79b00d951d420675e2c12213b6724a"
+    intended_normalized_destination: "evidence/normalized/mechanism_smoke.csv"
+    transformation_required: "Apply public method labels; retain bootstrap metadata and smoke population."
+    public_paper_label: "candidate-pool mechanism smoke"
+    contains_raw_text_or_private_content: false
+
+  - id: smoke_selected_settings
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_method_comparison/selected_hyperparams.csv"
+    source_sha256: "f20c48e9092bd141c9247eece935921f5a759c053edd0776573a486a3ddb830f"
+    intended_normalized_destination: "evidence/manifests/mechanism_smoke.json"
+    transformation_required: "Rename methods deterministically and retain development-only selection boundary."
+    public_paper_label: "mechanism-smoke settings"
+    contains_raw_text_or_private_content: false
+
+  - id: smoke_run_manifest
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_method_comparison/run_manifest.json"
+    source_sha256: "5432301b31a4f2bde36e4a2343852a1f08a15fb786842709df6d513e1ab71d3c"
+    intended_normalized_destination: "evidence/manifests/mechanism_smoke.json"
+    transformation_required: "Preserve encoder, split, and no-reader boundaries; normalize method labels."
+    public_paper_label: "mechanism-smoke manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: smoke_summary
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_admissibility_method_comparison/summary.md"
+    source_sha256: "f7368f2db3fbe409e4f170283099405defa27846928f224b22a12f71ddd40685"
+    intended_normalized_destination: "evidence/manifests/mechanism_smoke.json"
+    transformation_required: "Extract bounded conclusions; omit historical status language."
+    public_paper_label: "candidate-pool mechanism smoke"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_execution_manifest
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_natural_corpus_admissibility_eval/execution_manifest.json"
+    source_sha256: "ab46b28f522e13379bf9d52d6f065c0a320779c73763dc80fd578672db3f79a9"
+    intended_normalized_destination: "evidence/manifests/natural_evaluation.json"
+    transformation_required: "Preserve execution identity and all source artifact hashes."
+    public_paper_label: "full public-source evaluation manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_main_table
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_natural_corpus_admissibility_eval/main_table.csv"
+    source_sha256: "f5bce1ae923653af913168d31e131d641578f28fea29a35b1c68af92d6f049b3"
+    intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
+    transformation_required: "Apply deterministic public method labels and write a new normalized hash."
+    public_paper_label: "full public-source evaluation"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_paired_deltas
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_natural_corpus_admissibility_eval/paired_deltas.csv"
+    source_sha256: "ad1c0fde483bf4358b2ca9d05bd39587a2b86a02c14e64fa7dd136724da90677"
+    intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
+    transformation_required: "Apply public method labels; retain source-macro intervals and populations."
+    public_paper_label: "full public-source evaluation"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_selected_settings
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_natural_corpus_admissibility_eval/selected_settings.csv"
+    source_sha256: "108b2b047beb4ff76e9ff0efcd674997fd2a7a5cab1aaf0c5f70988a24b060fc"
+    intended_normalized_destination: "evidence/manifests/natural_evaluation.json"
+    transformation_required: "Normalize method labels and retain development-selection identities."
+    public_paper_label: "full-evaluation settings"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_source_intent
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_natural_corpus_admissibility_eval/source_and_intent_table.csv"
+    source_sha256: "21d4fe8e03912fe438ced92ced966eb46c39bf608a0e3c5df76a3ed62913fcdb"
+    intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
+    transformation_required: "Retain source and intent strata; label lifecycle results as released-field upper bounds."
+    public_paper_label: "source and intent analysis"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_standard_ir
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_natural_corpus_admissibility_eval/standard_ir_table.csv"
+    source_sha256: "f7955afb484096e3dbbc8c5127160773b70e29351970cefb0461415e53a0f501"
+    intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
+    transformation_required: "Normalize method labels and retain metric definitions."
+    public_paper_label: "standard retrieval diagnostics"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_cost
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_natural_corpus_admissibility_eval/cost_table.csv"
+    source_sha256: "f1d4c14a04fc682b2263671ddd753c01e098b22ee4fa590771c74c9aa8b00e48"
+    intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
+    transformation_required: "Retain local diagnostic cost only; prohibit production latency or monetary claims."
+    public_paper_label: "diagnostic retrieval cost"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_failure_cases
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_natural_corpus_admissibility_eval/failure_cases.jsonl"
+    source_sha256: "cc650000c08fdd6dc28926007f5e96f60deacc8e01f0e6059807988053ecca22"
+    intended_normalized_destination: "evidence/normalized/natural_failure_cases.jsonl"
+    transformation_required: "Audit public query identifiers and remove internal setting IDs before release."
+    public_paper_label: "public-source failure cases"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_summary
+    category: IMPORT_AS_FROZEN_AGGREGATE
+    old_repository: "ziwang11112/bomi"
+    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    source_path: "reports/stage3_natural_corpus_admissibility_eval/summary.md"
+    source_sha256: "1802af44648c82dca743209b4478c8b63c8b268131201d09d700e756f44fbaa9"
+    intended_normalized_destination: "evidence/manifests/natural_evaluation.json"
+    transformation_required: "Extract frozen boundaries and conclusions; omit historical status language."
+    public_paper_label: "full public-source evaluation"
+    contains_raw_text_or_private_content: false

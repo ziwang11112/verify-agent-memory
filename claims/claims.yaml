@@ -1,0 +1,440 @@
+schema_version: 1
+title: "The Wrong Memory at the Right Time: Verifying Retrieval Admissibility in Long-Term Agents"
+claims:
+  - id: C1
+    status: definition
+    claim: "A memory can be relevant and still be inadmissible for the current query."
+    estimand: "Not applicable; this is the paper's formal distinction."
+    population: "Conceptual definition over a memory, query, governing policy, and query time."
+    source_repository: null
+    source_snapshot_commit: null
+    execution_commit: null
+    source_artifacts: []
+    exact_values:
+      admissible: "scopeAllowed(m,q,p) AND policyAllowed(m,q,p) AND lifecycleCompatible(m,intent(q),t)"
+      usable: "relevant(m,q) AND admissible(m,q,p,t)"
+    confidence_intervals: []
+    allowed_wording:
+      - "A memory can be relevant and still be inadmissible for the current query."
+      - "Admissibility is conditioned on the query, policy, lifecycle, and time."
+    forbidden_wording:
+      - "Every inadmissible memory is unsafe."
+      - "Stale or superseded memories are never useful."
+    known_limitations:
+      - "The definition does not itself provide an inference procedure for latent policy or intent."
+      - "Security harm, factual invalidity, and policy inadmissibility remain distinct outcomes."
+    paper_locations:
+      - "Introduction"
+      - "Formulation"
+      - "Figure 1"
+    verification_tests:
+      - "test_definition_has_no_empirical_source_requirement"
+
+  - id: C2
+    status: frozen_association
+    claim: "Exposure of a protected target is strongly associated with downstream answer leakage under two separately executed OpenAI reader snapshots."
+    estimand: "Within-checkpoint exposed-minus-unexposed answer-leakage risk difference, reported separately by reader."
+    population: "721 exposure-discordant privacy or safety checkpoints from the frozen GateMem route bundle."
+    source_repository: "ziwang11112/bomi"
+    source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    execution_commit:
+      reader_a: "b5d5e4cf49395b4079d16984b877af7b1abbc974"
+      reader_b: "a3d6814cff1f3c3927e473fb6573397e3205ee19"
+    source_artifacts:
+      - "reports/stage3_gatemem_clean_reader_replication/summary.md"
+      - "reports/stage3_gatemem_clean_reader_replication/exposure_use_pairs.csv"
+      - "reports/stage3_gatemem_clean_reader_replication/incremental_prediction.csv"
+      - "reports/stage3_gatemem_clean_reader_replication/reader_manifest.json"
+      - "reports/stage3_gatemem_independent_reader_ra/summary.md"
+      - "reports/stage3_gatemem_independent_reader_ra/exposure_use_pairs.csv"
+      - "reports/stage3_gatemem_independent_reader_ra/incremental_prediction.csv"
+      - "reports/stage3_gatemem_independent_reader_ra/reader_manifest.json"
+    exact_values:
+      discordant_checkpoints: 721
+      reader_a:
+        model: "gpt-4o-mini-2024-07-18"
+        provider: "OpenAI"
+        risk_difference: 0.4286
+        brier_delta: -0.022532058295752052
+        log_loss_delta: -0.052176096341620244
+      reader_b:
+        model: "gpt-4o-2024-08-06"
+        provider: "OpenAI"
+        risk_difference: 0.5298
+        brier_delta: -0.025471408519865714
+        log_loss_delta: -0.06326847394150133
+      pooled_estimate: null
+    confidence_intervals:
+      - metric: "reader_a_risk_difference"
+        estimate: 0.4286
+        lower: 0.3919
+        upper: 0.4642
+      - metric: "reader_a_brier_delta"
+        estimate: -0.022532058295752052
+        lower: -0.02782301100400668
+        upper: -0.017385537398860413
+      - metric: "reader_a_log_loss_delta"
+        estimate: -0.052176096341620244
+        lower: -0.06427873215287494
+        upper: -0.0395736828480233
+      - metric: "reader_b_risk_difference"
+        estimate: 0.5298
+        lower: 0.4915
+        upper: 0.5665
+      - metric: "reader_b_brier_delta"
+        estimate: -0.025471408519865714
+        lower: -0.031048185987606974
+        upper: -0.019952787487257893
+      - metric: "reader_b_log_loss_delta"
+        estimate: -0.06326847394150133
+        lower: -0.0778269788796231
+        upper: -0.04864365440321049
+    allowed_wording:
+      - "Across fixed checkpoints and separately executed readers, target exposure was strongly associated with answer leakage."
+      - "Adding exposure improved held-out leakage prediction for each reader."
+    forbidden_wording:
+      - "Exposure causally mediates answer leakage."
+      - "The result is a cross-provider replication."
+      - "The two readers were pooled into one effect estimate."
+      - "This is an official GateMem benchmark result."
+    known_limitations:
+      - "The comparison is associative and non-causal."
+      - "Both readers are from OpenAI, so this is same-provider cross-reader robustness, not cross-provider replication."
+      - "Reader estimates are reported separately and are never pooled."
+      - "The result is open-label and is not an official GateMem benchmark submission."
+    paper_locations:
+      - "Exposure and Utility"
+      - "Figure 2"
+      - "Abstract"
+    verification_tests:
+      - "test_gatemem_claim_requires_non_causal_limitation"
+      - "test_gatemem_claim_requires_same_provider_limitation"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C3
+    status: frozen_tradeoff
+    claim: "Reducing exposure lowers leakage, but the same policy comparison reduces bounded utility and increases over-refusal."
+    estimand: "Paired G1-minus-G0 differences for answer leakage, utility accuracy, and over-refusal."
+    population: "Frozen GateMem clean-reader routes: 1,490 leakage checkpoints and 728 bounded-utility checkpoints."
+    source_repository: "ziwang11112/bomi"
+    source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    execution_commit: "b5d5e4cf49395b4079d16984b877af7b1abbc974"
+    source_artifacts:
+      - "reports/stage3_gatemem_clean_reader_replication/utility_and_refusal.csv"
+      - "reports/stage3_gatemem_clean_reader_replication/arm_summary.csv"
+      - "reports/stage3_gatemem_clean_reader_replication/reader_manifest.json"
+    exact_values:
+      answer_leakage_delta: -0.22013422818791947
+      utility_accuracy_delta: -0.16895604395604397
+      over_refusal_delta: 0.28708791208791207
+      leakage_checkpoints: 1490
+      utility_checkpoints: 728
+    confidence_intervals:
+      - metric: "answer_leakage_delta"
+        estimate: -0.22013422818791947
+        lower: -0.24919584095473782
+        upper: -0.19190426898466853
+      - metric: "utility_accuracy_delta"
+        estimate: -0.16895604395604397
+        lower: -0.2079222024766579
+        upper: -0.1307901907356948
+      - metric: "over_refusal_delta"
+        estimate: 0.28708791208791207
+        lower: 0.23378334503334502
+        upper: 0.3404877624405521
+    allowed_wording:
+      - "Reducing exposure lowered leakage but incurred a bounded utility and over-refusal cost."
+      - "The results expose a safety-utility verification problem."
+    forbidden_wording:
+      - "The stricter policy is uniformly better."
+      - "Filtering protected memories is free."
+      - "The policy comparison establishes a causal treatment effect."
+    known_limitations:
+      - "This is a non-causal comparison over frozen benchmark routes."
+      - "The estimates come from one OpenAI reader and do not constitute a cross-provider result; the broader reader evidence is same-provider."
+      - "Leakage and bounded utility use different eligible checkpoint populations."
+      - "Utility accuracy is benchmark-bounded and is not a complete measure of user value."
+    paper_locations:
+      - "Exposure and Utility"
+      - "Figure 2"
+      - "Discussion"
+    verification_tests:
+      - "test_gatemem_claim_requires_non_causal_limitation"
+      - "test_gatemem_claim_requires_same_provider_limitation"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C4
+    status: mechanism_smoke
+    claim: "A curated candidate-pool smoke verifies that the scorer responds to trusted scope constraints and detects recall loss from aggressive routing."
+    estimand: "Method differences within 16 held-out audit packets selected from a 20-packet, 207-record audit."
+    population: "16 evaluation packets with 7-12 preselected records per packet; distinct from the full natural-corpus population."
+    source_repository: "ziwang11112/bomi"
+    source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    execution_commit: "f18f26cf09eea6c0e84cfa3e42b5f2af9dfbdccb"
+    source_artifacts:
+      - "reports/stage3_admissibility_method_comparison/main_table.csv"
+      - "reports/stage3_admissibility_method_comparison/paired_deltas.csv"
+      - "reports/stage3_admissibility_method_comparison/selected_hyperparams.csv"
+      - "reports/stage3_admissibility_method_comparison/run_manifest.json"
+      - "reports/stage3_admissibility_method_comparison/summary.md"
+    exact_values:
+      development_packets: 4
+      evaluation_packets: 16
+      total_audit_records: 207
+      candidates_per_packet_min: 7
+      candidates_per_packet_max: 12
+      global_dense_recall: 1.0
+      namespace_dense_recall: 1.0
+      global_dense_wrong_namespace_leakage: 0.025
+      namespace_dense_wrong_namespace_leakage: 0.0
+      global_dense_measured_contamination: 0.1189
+      namespace_dense_measured_contamination: 0.0824
+    confidence_intervals: []
+    allowed_wording:
+      - "The candidate-pool smoke validates metric behavior under known scope and recall changes."
+      - "Within 16 curated evaluation packets, namespace support preserved observed recall and removed observed wrong-namespace leakage."
+    forbidden_wording:
+      - "The 16 packets estimate natural-corpus performance."
+      - "The smoke is an official RHELM or MemOps benchmark result."
+      - "The smoke and 3,767-query evaluation are one population."
+    known_limitations:
+      - "The candidate pools are audit-curated and contain only 7-12 records per query."
+      - "The four development packets make setting selection high variance."
+      - "No downstream reader or answer leakage was evaluated."
+      - "This is a mechanism smoke, not a natural-corpus estimate."
+    paper_locations:
+      - "Evaluation Protocol"
+      - "Appendix"
+    verification_tests:
+      - "test_smoke_and_full_populations_are_distinct"
+
+  - id: C5
+    status: frozen_public_source_evaluation
+    claim: "Trusted namespace support improves evidence recall and feasible rate while reducing conservative contamination on the full public-source evaluation."
+    estimand: "Source-macro namespace-dense minus global-dense differences under settings frozen on development data."
+    population: "87 public-evaluation groups, 182,908 memories, and 3,767 queries from public RHELM and MemOps sources."
+    source_repository: "ziwang11112/bomi"
+    source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    execution_commit: "8e34e3d41c56e1699696bc27be95cdac7c9528e5"
+    source_artifacts:
+      - "reports/stage3_natural_corpus_admissibility_eval/execution_manifest.json"
+      - "reports/stage3_natural_corpus_admissibility_eval/main_table.csv"
+      - "reports/stage3_natural_corpus_admissibility_eval/paired_deltas.csv"
+      - "reports/stage3_natural_corpus_admissibility_eval/source_and_intent_table.csv"
+      - "reports/stage3_natural_corpus_admissibility_eval/standard_ir_table.csv"
+      - "reports/stage3_natural_corpus_admissibility_eval/summary.md"
+    exact_values:
+      evaluation_groups: 87
+      memories: 182908
+      queries: 3767
+      global_dense_recall: 0.7168351167568725
+      namespace_dense_recall: 0.8656633800606317
+      recall_delta: 0.14882826330375917
+      feasible_rate_delta: 0.22299559357118776
+      conservative_contamination_delta: -0.03595773739158996
+      namespace_wrong_scope_leakage: 0.0
+      provider_calls: 0
+      reader_calls: 0
+      judge_calls: 0
+      paid_calls: 0
+    confidence_intervals:
+      - metric: "recall_delta"
+        estimate: 0.14882826330375917
+        lower: 0.1294599812574066
+        upper: 0.16837205167326316
+      - metric: "feasible_rate_delta"
+        estimate: 0.22299559357118776
+        lower: 0.19215639764499312
+        upper: 0.2550192349092993
+      - metric: "conservative_contamination_delta"
+        estimate: -0.03595773739158996
+        lower: -0.04161096210584043
+        upper: -0.030300871013945373
+    allowed_wording:
+      - "Trusted namespace support improved recall and feasible rate while reducing the conservative contamination upper bound on this public-source evaluation."
+      - "Namespace-constrained arms had zero measured wrong-scope leakage under trusted released namespaces."
+    forbidden_wording:
+      - "This is an official RHELM or MemOps benchmark submission."
+      - "Namespace support improves downstream answer quality."
+      - "The result generalizes to noisy or inferred namespaces."
+      - "The conservative contamination bound is fully resolved contamination."
+    known_limitations:
+      - "This is a public-source evaluation, not an official RHELM or MemOps leaderboard result."
+      - "There is no downstream reader outcome for this population."
+      - "Non-required same-namespace memories remain unresolved, so the conservative upper bound is primary."
+      - "The result applies to trusted released namespaces, not noisy or inferred scope."
+      - "Confidence intervals are source-macro bootstrap intervals."
+    paper_locations:
+      - "Public-Source Audit"
+      - "Figure 3"
+      - "Main Results Table"
+    verification_tests:
+      - "test_smoke_and_full_populations_are_distinct"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C6
+    status: diagnostic_negative_result
+    claim: "No practical incremental retrieval utility was established for threshold or cluster routing beyond trusted namespace support."
+    estimand: "Source-macro router-minus-namespace-dense differences on the full public-source evaluation."
+    population: "The same 87 groups and 3,767 queries as C5, using settings frozen on development data."
+    source_repository: "ziwang11112/bomi"
+    source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    execution_commit: "8e34e3d41c56e1699696bc27be95cdac7c9528e5"
+    source_artifacts:
+      - "reports/stage3_natural_corpus_admissibility_eval/execution_manifest.json"
+      - "reports/stage3_natural_corpus_admissibility_eval/main_table.csv"
+      - "reports/stage3_natural_corpus_admissibility_eval/paired_deltas.csv"
+      - "reports/stage3_natural_corpus_admissibility_eval/summary.md"
+    exact_values:
+      threshold_router:
+        recall_delta: -0.02300143855322647
+        conservative_contamination_delta: 0.002100290926146948
+      cluster_router:
+        recall_delta: -0.0006091832540661147
+        conservative_contamination_delta: 0.00016633602210371686
+    confidence_intervals:
+      - metric: "threshold_router_recall_delta"
+        estimate: -0.02300143855322647
+        lower: -0.028847707336523126
+        upper: -0.017317948465240634
+      - metric: "threshold_router_conservative_contamination_delta"
+        estimate: 0.002100290926146948
+        lower: 0.0014764578849710322
+        upper: 0.0028535816018647026
+      - metric: "cluster_router_recall_delta"
+        estimate: -0.0006091832540661147
+        lower: -0.0018749435257974158
+        upper: 0.0
+      - metric: "cluster_router_conservative_contamination_delta"
+        estimate: 0.00016633602210371686
+        lower: -0.0000005268072220290817
+        upper: 0.0005125056073667471
+    allowed_wording:
+      - "Additional threshold and cluster routing did not establish practical incremental utility beyond trusted namespace support."
+      - "The threshold router reduced recall and slightly increased conservative contamination."
+      - "The cluster router was practically indistinguishable from namespace-dense retrieval on primary quality metrics."
+    forbidden_wording:
+      - "A novel router outperformed the baseline."
+      - "Clustering is universally useless."
+      - "The cluster router is exactly identical on every full-evaluation query."
+    known_limitations:
+      - "This is a negative result for two frozen diagnostic variants, not all possible routers."
+      - "Local timing and candidate counts do not establish a production cost claim."
+      - "The cluster-router contamination interval crosses zero."
+    paper_locations:
+      - "Public-Source Audit"
+      - "Figure 3"
+      - "Discussion"
+    verification_tests:
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C7
+    status: released_field_upper_bound
+    claim: "Released query intent and lifecycle fields reveal measurable upper-bound headroom without a detected recall loss."
+    estimand: "Source-macro released-intent lifecycle upper-bound minus namespace-dense differences."
+    population: "The full public-source evaluation, using released query intent and lifecycle state fields unavailable to a blind deployable router."
+    source_repository: "ziwang11112/bomi"
+    source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    execution_commit: "8e34e3d41c56e1699696bc27be95cdac7c9528e5"
+    source_artifacts:
+      - "reports/stage3_natural_corpus_admissibility_eval/execution_manifest.json"
+      - "reports/stage3_natural_corpus_admissibility_eval/main_table.csv"
+      - "reports/stage3_natural_corpus_admissibility_eval/paired_deltas.csv"
+      - "reports/stage3_natural_corpus_admissibility_eval/source_and_intent_table.csv"
+      - "reports/stage3_natural_corpus_admissibility_eval/summary.md"
+    exact_values:
+      recall_delta: 0.002902183273638267
+      conservative_contamination_delta: -0.008667372975349542
+      prohibited_stale_exposure_delta: -0.0024748348518966855
+      prohibited_superseded_exposure_delta: -0.010397352446049897
+    confidence_intervals:
+      - metric: "recall_delta"
+        estimate: 0.002902183273638267
+        lower: -0.002335748541581875
+        upper: 0.00789680524506095
+      - metric: "conservative_contamination_delta"
+        estimate: -0.008667372975349542
+        lower: -0.010697065709710664
+        upper: -0.006749619443899795
+      - metric: "prohibited_stale_exposure_delta"
+        estimate: -0.0024748348518966855
+        lower: -0.003400510359311151
+        upper: -0.0016530456379979764
+      - metric: "prohibited_superseded_exposure_delta"
+        estimate: -0.010397352446049897
+        lower: -0.011767800847179462
+        upper: -0.009085607368030274
+    allowed_wording:
+      - "Released intent and lifecycle fields provide an upper bound on lifecycle-aware retrieval headroom."
+      - "The upper-bound arm reduced conservative contamination and prohibited stale or superseded exposure without a detected recall loss."
+    forbidden_wording:
+      - "We developed a deployable lifecycle filter that improves retrieval."
+      - "The system inferred query intent and lifecycle state from raw inputs."
+      - "All stale memories should be deleted."
+    known_limitations:
+      - "This is a released-field upper bound, not a deployable blind method."
+      - "Query intent and lifecycle state are provided to the diagnostic arm rather than inferred."
+      - "The recall interval includes zero."
+      - "Historical queries can require records that are stale for current-state queries."
+    paper_locations:
+      - "Public-Source Audit"
+      - "Discussion"
+      - "Limitations"
+    verification_tests:
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C8
+    status: raw_human_agreement
+    claim: "Two independent humans showed strong agreement on relevance, scope, and usable evidence, moderate agreement on state, and a prevalence-limited prohibited-label alpha."
+    estimand: "Raw pre-adjudication exact agreement and nominal Krippendorff alpha by label axis."
+    population: "207 records from a 20-packet audit; this is an overlap audit, not population-wide human gold."
+    source_repository: "ziwang11112/bomi"
+    source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
+    execution_commit: null
+    source_artifacts:
+      - "reports/stage3_admissibility_label_suite/human_agreement_summary.json"
+      - "reports/stage3_admissibility_label_suite/human_agreement_summary.md"
+      - "reports/stage3_admissibility_label_suite/agreement.csv"
+      - "reports/stage3_admissibility_label_suite/label_distribution.csv"
+      - "reports/stage3_admissibility_label_suite/mapping_coverage.csv"
+      - "reports/stage3_admissibility_label_suite/audit_selection_manifest.json"
+    exact_values:
+      records: 207
+      reviewers: 2
+      adjudication_applied: false
+      model_assisted_labels_counted_as_human: false
+      relevance:
+        exact_agreement: 0.893719806763285
+        krippendorff_alpha: 0.8135248845561827
+      scope:
+        exact_agreement: 0.9951690821256038
+        krippendorff_alpha: 0.9808201365346213
+      state:
+        exact_agreement: 0.8599033816425121
+        krippendorff_alpha: 0.670309926635724
+      prohibited:
+        exact_agreement: 0.8840579710144928
+        krippendorff_alpha: 0.08290155440414537
+      usable_evidence:
+        exact_agreement: 0.9710144927536232
+        krippendorff_alpha: 0.9404670382471652
+    confidence_intervals: []
+    allowed_wording:
+      - "Raw two-human agreement was strong for relevance, scope, and usable evidence, and moderate for state."
+      - "The prohibited axis had high exact agreement but low alpha under strong prevalence imbalance."
+    forbidden_wording:
+      - "All five axes were highly reliable."
+      - "The 207 records are population-wide human gold."
+      - "Model-assisted labels were counted as independent human labels."
+    known_limitations:
+      - "The prohibited-label reliability limitation is material: alpha was 0.0829 despite high exact agreement, consistent with prevalence sensitivity."
+      - "The audit covers 207 selected records and is not population-wide human gold."
+      - "Agreement is raw and pre-adjudication."
+      - "A distinct execution commit is not recorded in the public summary; Phase 2 must resolve or explicitly preserve this provenance gap."
+      - "Model-assisted labels are excluded from the human agreement calculation."
+    paper_locations:
+      - "Evaluation Protocol"
+      - "Limitations"
+      - "Appendix"
+    verification_tests:
+      - "test_prohibited_reliability_limitation_is_required"
