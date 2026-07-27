@@ -37,6 +37,8 @@ routes/
 *.npz
 
 # Generated paper files
+paper/build/
+/tmp/
 paper/*.aux
 paper/*.bbl
 paper/*.bcf

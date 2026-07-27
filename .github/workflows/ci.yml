@@ -29,3 +29,5 @@ jobs:
         run: python scripts/check_claim_contract.py
       - name: Normalized evidence
         run: python scripts/verify_evidence.py
+      - name: Paper package
+        run: python -m scripts.verify_paper

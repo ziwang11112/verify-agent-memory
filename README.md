@@ -65,6 +65,23 @@ and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
 The normalized values and their source receipts are documented in
 [evidence/README.md](evidence/README.md).
 
+## Paper
+
+The double-blind NeurIPS 2026 workshop manuscript, claim map, references, and
+official checklist are under [paper/](paper/). Every empirical table, figure, and
+prose macro is regenerated from verified normalized evidence:
+
+```powershell
+uv sync --extra dev --extra paper
+uv run --extra dev --extra paper python -m scripts.build_paper_artifacts
+uv run --extra dev --extra paper python -m scripts.verify_paper
+uv run --extra dev --extra paper python -m scripts.compile_paper
+```
+
+The compile step requires `pdflatex` and BibTeX on `PATH`. The submission target
+and page-limit receipt are recorded in
+[paper/SUBMISSION_TARGET.md](paper/SUBMISSION_TARGET.md).
+
 ## Verify
 
 ```powershell

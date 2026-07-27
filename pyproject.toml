@@ -15,6 +15,9 @@ dev = [
     "pyyaml>=6",
     "ruff>=0.12",
 ]
+paper = [
+    "matplotlib>=3.9",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

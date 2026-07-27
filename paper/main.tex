@@ -1,0 +1,403 @@
+\documentclass{article}
+
+\usepackage[dblblindworkshop]{neurips_2026}
+\workshoptitle{Who Verifies the Agents? Toward Reliable Agent Development}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{hidelinks}
+\usepackage{microtype}
+\usepackage{url}
+\usepackage{xcolor}
+
+\input{generated/paper_numbers.tex}
+
+\title{The Wrong Memory at the Right Time:\\
+Verifying Retrieval Admissibility in Long-Term Agents}
+
+\author{Anonymous Author(s)}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Long-term agent memory is usually evaluated by whether it retrieves relevant
+evidence.  Relevance is necessary but not sufficient: a retrieved memory can concern
+the right topic while belonging to the wrong principal, violating policy, or
+representing a stale or superseded state.  We formulate \emph{retrieval
+admissibility}, a query-conditioned verification target that separates relevance
+from scope, policy, and lifecycle compatibility.  We instrument the memory path as
+four distinct events---stored, retrieved, exposed, and used---and define
+matched-recall contamination with explicit bounds for incompletely labeled evidence.
+We then apply this protocol to frozen public-source evaluations derived from GateMem,
+RHELM, and MemOps.  Across \NaturalQueryCount{} queries, trusted namespace support
+increases source-macro evidence recall by \NamespaceRecallDelta{} (95\% CI
+\NamespaceRecallDeltaCI{}) and makes the conservative contamination upper bound
+\NamespaceContaminationReduction{} lower (signed-delta 95\% CI
+\NamespaceContaminationDeltaCI{}).  Additional
+threshold and cluster routing does not establish incremental utility.  At fixed
+GateMem checkpoints, target exposure is strongly associated with answer use for two
+separately executed same-provider readers, while reducing exposure also incurs
+utility and over-refusal costs.  The contribution is an auditable verification
+protocol and empirical diagnosis, not a new memory index or a causal leakage claim.
+\end{abstract}
+
+\section{Introduction}
+
+Persistent memory lets an agent accumulate user facts, task experience, and
+environment state beyond one context window.  Existing evaluations therefore ask
+whether the system can recover evidence from long histories
+\citep{wu2025longmemeval,wu2026longmemevalv2,zhang2026rhelm}.  That question misses a
+deployment-critical distinction.  A memory may be semantically relevant to a query
+yet still be wrong to expose now: it can originate from another principal, cross a
+contextual boundary, conflict with a deletion policy, or describe a state that has
+since changed.  Recent benchmarks expose individual parts of this problem through
+shared-memory governance \citep{ren2026gatemem,mireshghallah2026cimemories}, explicit
+lifecycle operations \citep{hao2026memops}, and stale-state reasoning
+\citep{chao2026stale}.  What is still missing is a compact verification object that
+can be measured at retrieval time and traced to downstream use.
+
+We study this gap as an evaluation problem rather than proposing another memory
+architecture.  Our central object is \emph{query-conditioned admissibility}: whether
+a memory is within scope, policy-allowed, and lifecycle-compatible for a particular
+query and time.  We distinguish it from relevance and observe the memory path at
+four stages (Figure~\ref{fig:pipeline}).  This makes failures localizable.  A store
+can contain inadmissible material without retrieving it; a router can retrieve a
+candidate without exposing it; and a reader can be exposed to a target without
+using it in the answer.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{generated/verification_pipeline.pdf}
+  \caption{Retrieval verification separates four events and evaluates admissibility
+  before prompt exposure.  Relevance and admissibility are distinct labels; the
+  latter is query-, policy-, lifecycle-, and time-conditioned.}
+  \label{fig:pipeline}
+\end{figure}
+
+Our contributions are:
+\begin{itemize}
+  \item a formal distinction between relevance and retrieval admissibility, together
+  with a stored--retrieved--exposed--used observation model;
+  \item matched-recall contamination metrics with label coverage and conservative
+  lower and upper bounds under unresolved evidence;
+  \item a hash-bound public-source audit over \NaturalGroupCount{} groups,
+  \NaturalMemoryCount{} memories, and \NaturalQueryCount{} queries, showing that
+  trusted namespace support provides the main retrieval gain while two additional
+  routing refinements do not; and
+  \item separate exposure/use and human-agreement analyses that identify what the
+  retrieval measurements can and cannot support.
+\end{itemize}
+
+\section{Related Work}
+
+\paragraph{Long-term memory evaluation.}
+LongMemEval decomposes memory systems into indexing, retrieval, and reading and
+tests extraction, multi-session reasoning, temporal reasoning, updates, and
+abstention \citep{wu2025longmemeval}.  LongMemEval-V2 extends evaluation to
+environment experience and explicitly measures context gathering and latency
+\citep{wu2026longmemevalv2}.  RHELM introduces heterogeneous, temporally evolving
+sources \citep{zhang2026rhelm}, while MemOps evaluates explicit remember, forget,
+update, and reflection operations \citep{hao2026memops}.  These resources motivate
+our focus on evidence state and provenance rather than treating memory as a static
+bag of facts.
+
+\paragraph{Governance and contextual validity.}
+GateMem evaluates utility, access control, and active forgetting in multi-principal
+memory \citep{ren2026gatemem}; CIMemories studies context-dependent information-flow
+violations \citep{mireshghallah2026cimemories}; and STALE tests whether models reject
+invalidated premises \citep{chao2026stale}.  We do not replace these benchmarks.
+Instead, we define a common retrieval-time verification layer and demonstrate how
+their signals can be reported without collapsing scope, lifecycle, exposure, and
+answer use.
+
+\paragraph{Analytical agent evaluation.}
+AgentBench and AgentBoard broaden agent evaluation beyond static language tasks
+\citep{liu2024agentbench,ma2024agentboard}; HELM emphasizes multi-metric transparent
+evaluation \citep{liang2023helm}.  Our protocol follows this analytical stance:
+final-answer accuracy alone cannot tell whether an answer was supported by
+admissible evidence.  Because model-based evaluation can introduce systematic
+biases \citep{liu2023geval}, we report reader identities separately and include a
+two-human agreement audit.
+
+\section{Verification Protocol}
+
+\subsection{Relevance is not admissibility}
+
+For memory $m$, query $q$, policy $p$, and time $t$, define
+\begin{align}
+\operatorname{adm}(m,q,p,t)
+&= \operatorname{scopeAllowed}(m,q,p) \nonumber\\
+&\quad \land \operatorname{policyAllowed}(m,q,p) \nonumber\\
+&\quad \land \operatorname{lifecycleCompatible}(m,\operatorname{intent}(q),t),
+\label{eq:admissible}\\
+\operatorname{usable}(m,q,p,t)
+&= \operatorname{relevant}(m,q)\land\operatorname{adm}(m,q,p,t).
+\label{eq:usable}
+\end{align}
+Unknown labels remain unknown: we do not impute them as violations or as allowed.
+A definite false component makes admissibility false.  A current memory is compatible
+with current-state and history questions; stale or superseded memories are
+incompatible with a current-state question but may be valid evidence for a historical
+question.  Equation~\ref{eq:admissible} is a verification definition, not a method
+for inferring latent intent or policy.
+
+\subsection{Four observable stages}
+
+We log whether each memory was \emph{stored}, returned by retrieval, included in the
+reader prompt (\emph{exposed}), and reflected in the answer (\emph{used}).  These
+events answer different questions.  Retrieval metrics diagnose the candidate
+selection mechanism.  Exposure metrics include prompt assembly and truncation.
+Use metrics depend additionally on the reader.  Causal claims require an intervention
+on exposure; observational disagreement between routes only identifies association.
+
+\subsection{Matched-recall contamination with incomplete labels}
+
+Let $A_q$ be the set of known usable evidence anchors for query $q$, and let a route
+rank memories as $r_1,\ldots,r_n$.  For target recall $\tau$, we score the smallest
+prefix $P_q(\tau)$ that reaches
+\[
+\frac{|P_q(\tau)\cap A_q|}{|A_q|}\geq\tau.
+\]
+This compares contamination only after systems reach the same evidence-recall
+target.  If the matched prefix contains $c$ known contaminants, $u$ unresolved
+items, and $N$ total items, we report
+\[
+\text{known contamination}=\frac{c}{N-u},\quad
+\text{coverage}=\frac{N-u}{N},\quad
+\text{bounds}=\left[\frac{c}{N},\frac{c+u}{N}\right].
+\]
+The upper bound is deliberately conservative.  We additionally report wrong-scope,
+policy-disallowed, lifecycle-incompatible, and unresolved-admissibility exposure
+rates.  A query is feasible at $\tau$ when some route prefix reaches the target;
+feasible rate is the fraction of recall-evaluable queries for which this occurs.
+Queries without known usable anchors are recall-unevaluable rather than silently
+assigned zero.
+
+\section{Evaluation}
+
+\subsection{Exposure and answer use}
+
+GateMem supplies fixed checkpoints with leak-target annotations
+\citep{ren2026gatemem}.  We analyze only checkpoints where two frozen routes disagree
+on target exposure.  Two readers were executed separately:
+\texttt{gpt-4o-mini-2024-07-18} and \texttt{gpt-4o-2024-08-06}.  They share a
+provider, so this is cross-reader robustness, not cross-provider replication.
+Risk differences compare answer-use rates for exposed versus unexposed targets at
+the fixed checkpoints.  We also report whether adding exposure improves held-out
+leakage prediction and separately evaluate a stricter G1 route against G0.  The G1
+comparison is observational and has different eligible populations for leakage and
+bounded utility.
+
+\subsection{Public-source retrieval audit}
+
+The retrieval audit combines public RHELM and MemOps sources
+\citep{zhang2026rhelm,hao2026memops}.  It contains \NaturalGroupCount{} groups,
+\NaturalMemoryCount{} memories, and \NaturalQueryCount{} queries.  Exactly nine
+settings were selected on development data and applied once to evaluation groups,
+yielding \NaturalRouteRows{} complete method--query route and score rows.  There were
+no provider, reader, judge, or paid calls.
+
+We compare global dense retrieval with dense retrieval restricted to a trusted,
+released namespace.  Two diagnostic variants further apply a development-selected
+similarity threshold or within-namespace cluster gate.  A final upper-bound arm uses
+released query intent and lifecycle state.  That arm does not infer either field and
+is not deployable blind.  We source-macro average RHELM and MemOps so that the larger
+source does not dominate, and use a 10,000-replicate source-clustered bootstrap for
+paired 95\% intervals.  These are public-source diagnostics, not official benchmark
+submissions.
+
+\subsection{Human agreement}
+
+Two independent reviewers labeled \HumanRecordCount{} selected candidate records
+for relevance, scope, lifecycle state, prohibited evidence, and usable evidence.
+We report raw pre-adjudication exact agreement and nominal Krippendorff's
+$\alpha$ \citep{krippendorff2018content}.  Model-assisted labels are excluded.
+The sample is an audit slice, not population-wide human gold.
+
+\section{Results}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{generated/evidence_summary.pdf}
+  \caption{Frozen evidence summary.  (a) Exposed-minus-unexposed answer-use risk
+  differences for separately executed same-provider readers.  (b) Source-macro
+  retrieval deltas; intervals crossing zero do not establish a difference.
+  (c) Raw pre-adjudication human agreement.}
+  \label{fig:evidence}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \small
+  \caption{Primary frozen contrasts.  Deltas are method minus reference.  The
+  lifecycle row is a released-field upper bound.}
+  \label{tab:main}
+  \input{generated/main_results.tex}
+\end{table}
+
+\subsection{Exposure predicts use, but filtering is not free}
+
+For Reader A, exposed-minus-unexposed answer-use risk is
+\ReaderARiskDifference{} (95\% CI \ReaderARiskDifferenceCI{}); Reader B yields
+\ReaderBRiskDifference{} (\ReaderBRiskDifferenceCI{}).  Adding exposure also lowers
+held-out Brier score and log loss for each reader.  These results show useful
+discrimination beyond a raw leakage rate, but they remain associations at fixed
+checkpoints.
+
+The stricter G1 route has \GOneLeakageReduction{} lower answer leakage
+(signed-delta 95\% CI \GOneLeakageDeltaCI{}).  It also has
+\GOneUtilityReduction{} lower bounded utility accuracy and
+\GOneRefusalIncrease{} higher over-refusal.  Thus, a verifier should expose the
+safety--utility frontier rather than reward blanket suppression.
+
+\subsection{Trusted namespace support carries the retrieval gain}
+
+Global dense evidence recall is \GlobalDenseRecall{}, versus
+\NamespaceDenseRecall{} with trusted namespace support.  The paired source-macro
+gain is \NamespaceRecallDelta{} (\NamespaceRecallDeltaCI{}), and feasible rate
+increases by \NamespaceFeasibleDelta{} (\NamespaceFeasibleDeltaCI{}).  The
+conservative contamination upper bound is \NamespaceContaminationReduction{}
+lower (signed-delta 95\% CI \NamespaceContaminationDeltaCI{}).  Measured wrong-scope
+leakage is zero for namespace-constrained arms under trusted released namespaces.
+
+The extra threshold router has \ThresholdRecallLoss{} lower recall relative to
+namespace dense while slightly increasing conservative contamination.  The cluster
+router is practically indistinguishable on primary metrics:
+\ClusterRecallDelta{} recall and \ClusterContaminationDelta{} contamination, with
+the latter interval crossing zero.  The evidence therefore supports namespace
+constraints, not a claim that a novel router beats a strong namespace-dense control.
+
+\subsection{Released fields reveal lifecycle headroom}
+
+Using released intent and lifecycle state makes the conservative contamination
+upper bound \LifecycleContaminationReduction{} lower and prohibited stale and
+superseded exposure \LifecycleStaleReduction{} and
+\LifecycleSupersededReduction{} lower, respectively.  Its recall difference is
+\LifecycleRecallDelta{} with an interval that crosses zero.  This establishes
+diagnostic headroom under observed fields.  It does not establish that a deployed
+system can infer those fields accurately from raw interaction history.
+
+\subsection{Most annotation axes are reliable; one is not}
+
+Exact agreement and $\alpha$ are high for scope and usable evidence, and lower for
+lifecycle state.  The prohibited axis has exact agreement
+\ProhibitedExactAgreement{} but $\alpha=\ProhibitedAlpha{}$, consistent with a
+prevalence-limited reliability problem.  We therefore retain the prohibited-axis
+caveat in every claim that depends on it and use conservative unresolved-label
+bounds for retrieval conclusions.
+
+\section{Discussion}
+
+\paragraph{Verification changes the unit of analysis.}
+A benchmark score usually asks whether an agent answered correctly.  Retrieval
+admissibility asks which evidence was eligible to influence that answer, when, and
+under whose scope.  The four-stage trace supports sharper regression tests: a change
+can improve retrieval recall while worsening prompt exposure, or reduce exposure
+while increasing over-refusal.
+
+\paragraph{Constraints can matter more than routing sophistication.}
+In the frozen public-source evaluation, trusted namespace support changes the
+candidate support before semantic ranking and produces the main gain.  Additional
+threshold and clustering heuristics do not improve upon that control.  This negative
+result is useful for agent development: verifier effort should first test provenance
+and support constraints before attributing gains to a more elaborate memory index.
+
+\paragraph{Evaluation should preserve unresolved evidence.}
+Non-required same-namespace memories are not automatically contaminants.  Treating
+them as negative labels would overstate precision; treating them as relevant would
+hide risk.  Coverage and lower/upper contamination bounds keep this uncertainty
+visible and make annotation investment measurable.
+
+\section{Limitations and Broader Impact}
+
+The public-source retrieval audit covers RHELM and MemOps only, uses released trusted
+namespaces, and has no downstream reader outcome.  Source-macro intervals represent
+two source clusters, not broad domain sampling.  The mechanism smoke contains only
+16 curated evaluation packets.  The lifecycle result uses released intent and state
+fields and is therefore an upper bound.  Local timing and candidate counts do not
+support a production cost claim.
+
+The GateMem readers are both OpenAI models and are never pooled.  Exposure/use
+differences are observational rather than randomized.  Utility and leakage have
+different eligible populations.  Human agreement covers selected records and is raw
+pre-adjudication; the prohibited axis has materially weak prevalence-adjusted
+reliability.
+
+Admissibility filters can reduce cross-principal or stale-memory exposure, but they
+can also suppress legitimate evidence and encourage over-refusal.  A deployment
+should log exclusions, support appeal or audit, and evaluate utility at matched
+recall.  Our released package contains content-free aggregates and hashes only; it
+excludes raw conversations, model responses, reviewer identities, and private data.
+
+\section{Conclusion}
+
+Long-term memory verification should ask more than whether a retrieved item is
+topically relevant.  By separating relevance from query-conditioned admissibility,
+instrumenting stored--retrieved--exposed--used events, and reporting matched-recall
+contamination with uncertainty bounds, we obtain a more diagnostic evaluation of
+agent memory.  The frozen evidence points to a practical lesson: trusted provenance
+constraints provide clear value, while extra routing complexity requires evidence
+beyond an unconstrained baseline.  The protocol turns that lesson into a testable,
+auditable contract for future memory systems.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+
+\section{Metric Details}
+
+For a matched prefix, known contamination is undefined when every item is unresolved;
+the lower and upper bounds remain defined.  Queries with no known usable anchors are
+excluded from recall averages, and the evaluable rate is reported separately.  Macro
+averages never impute missing query metrics.  Duplicate ranked memory identifiers,
+missing assessments, negative runtime measurements, and non-finite values are
+rejected by the reference implementation.
+
+\section{Mechanism Smoke}
+
+The candidate-pool smoke uses four development packets and 16 evaluation packets,
+with 7--12 candidate records per packet.  Namespace support preserves observed
+recall at \SmokeGlobalRecall{} (global) and \SmokeNamespaceRecall{} (namespace),
+changes measured wrong-scope leakage from \SmokeGlobalWrongScope{} to
+\SmokeNamespaceWrongScope{}, and changes measured contamination from
+\SmokeGlobalContamination{} to \SmokeNamespaceContamination{}.  This verifies
+metric behavior under a known scope intervention; it is not a natural-corpus
+performance estimate.
+
+\begin{table}[ht]
+\centering
+\caption{Candidate-pool mechanism smoke on 16 curated evaluation packets.}
+\label{tab:smoke}
+\input{generated/mechanism_smoke.tex}
+\end{table}
+
+\section{Human Agreement}
+
+\begin{table}[ht]
+  \centering
+  \small
+  \caption{Raw pre-adjudication agreement on 207 selected audit records.}
+  \label{tab:agreement}
+  \input{generated/human_agreement.tex}
+\end{table}
+
+\section{Reproducibility and Provenance}
+
+All paper numbers are generated from four normalized CSV evidence families.  Each
+CSV has a manifest recording its output hash, frozen source paths and hashes,
+source-snapshot identity, and transformation-script hash.  The natural execution
+manifest proves complete coverage of nine settings over 3,767 queries in 33,903
+route rows and 33,903 score rows.  Tests bind every estimate and confidence interval
+back to the machine-readable claim contract.  No provider call is required to
+verify or rebuild paper tables and figures from the normalized evidence.
+
+\input{checklist.tex}
+
+\end{document}
