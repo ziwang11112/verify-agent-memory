@@ -5,13 +5,13 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 | Claim | Paper location | Artifact | Required boundary |
 | --- | --- | --- | --- |
 | C1 | Section 3.1 | Figure 1 | Definition, not a latent-intent inference procedure |
-| C2 | Sections 4.1 and 5.1 | Figure 2a, Table 1 | Association only; same-provider readers; no pooled estimate |
-| C3 | Sections 4.1 and 5.1 | Table 1 | Leakage reduction has bounded utility and over-refusal costs |
+| C2 | Sections 4.1, 4.3, and 5.1 | Figure 2a--c, Table 1 | Association only; same-provider readers; no pooled estimate |
+| C3 | Sections 4.1, 4.3, and 5.2 | Figure 2d, Table 1 | Leakage reduction has bounded utility and over-refusal costs |
 | C4 | Appendix B | Table 2 | Sixteen-packet mechanism smoke, not a natural-corpus estimate |
-| C5 | Sections 4.2 and 5.2 | Figure 2b, Table 1 | Trusted released namespaces; not an official benchmark submission |
-| C6 | Section 5.2 | Figure 2b, Table 1 | Negative result for two frozen diagnostic routers only |
-| C7 | Sections 4.2 and 5.3 | Figure 2b, Table 1 | Released-field upper bound, not deployable blind inference |
-| C8 | Sections 4.3 and 5.4 | Figure 2c, Table 3 | Selected records; raw pre-adjudication agreement; prohibited-axis caveat |
+| C5 | Sections 4.1--4.3 and 5.3 | Figure 3a--b, Table 1 | Trusted released namespaces; not an official benchmark submission |
+| C6 | Sections 4.2 and 5.4 | Figure 3c, Table 1 | Negative result for two frozen diagnostic routers only |
+| C7 | Sections 4.2 and 5.5 | Figure 3d, Table 1 | Released-field upper bound, not deployable blind inference |
+| C8 | Sections 4.1, 4.3, and 5.6 | Figure 2e, Table 3 | Selected records; raw pre-adjudication agreement; prohibited-axis caveat |
 
 ## Paper-Level Claims
 

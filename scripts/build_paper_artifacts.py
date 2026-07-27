@@ -49,6 +49,11 @@ def _signed(value: float, digits: int = 3) -> str:
     return f"{value:+.{digits}f}"
 
 
+def _count(row: Mapping[str, str], field: str = "n") -> str:
+    value = int(row[field])
+    return f"{value:,}".replace(",", "{,}")
+
+
 def _ci(row: Mapping[str, str], *, signed: bool = True, digits: int = 3) -> str:
     formatter = _signed if signed else _plain
     return (
@@ -59,6 +64,10 @@ def _ci(row: Mapping[str, str], *, signed: bool = True, digits: int = 3) -> str:
 
 def _macro(name: str, value: str) -> str:
     return rf"\newcommand{{\{name}}}{{\ensuremath{{{value}}}}}"
+
+
+def _write_ascii_lines(path: Path, lines: Sequence[str]) -> None:
+    path.write_bytes(("\n".join(lines) + "\n").encode("ascii"))
 
 
 def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
@@ -74,6 +83,34 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             claim_id="C2",
             source="gpt-4o-2024-08-06",
             metric="answer_leakage_risk_difference",
+        ),
+        "reader_a_brier": _one(
+            rows,
+            claim_id="C2",
+            source="gpt-4o-mini-2024-07-18",
+            contrast="exposure_augmented_minus_baseline",
+            metric="brier_delta",
+        ),
+        "reader_a_log_loss": _one(
+            rows,
+            claim_id="C2",
+            source="gpt-4o-mini-2024-07-18",
+            contrast="exposure_augmented_minus_baseline",
+            metric="log_loss_delta",
+        ),
+        "reader_b_brier": _one(
+            rows,
+            claim_id="C2",
+            source="gpt-4o-2024-08-06",
+            contrast="exposure_augmented_minus_baseline",
+            metric="brier_delta",
+        ),
+        "reader_b_log_loss": _one(
+            rows,
+            claim_id="C2",
+            source="gpt-4o-2024-08-06",
+            contrast="exposure_augmented_minus_baseline",
+            metric="log_loss_delta",
         ),
         "g1_leakage": _one(rows, claim_id="C3", metric="answer_leakage_delta"),
         "g1_utility": _one(rows, claim_id="C3", metric="utility_accuracy_delta"),
@@ -144,6 +181,12 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             contrast="namespace_dense_minus_global_dense",
             metric="conservative_contamination_delta",
         ),
+        "namespace_wrong_scope": _one(
+            rows,
+            claim_id="C5",
+            contrast="namespace_dense",
+            metric="wrong_scope_leakage",
+        ),
         "threshold_recall_delta": _one(
             rows,
             claim_id="C6",
@@ -188,6 +231,42 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             claim_id="C7",
             metric="prohibited_superseded_exposure_delta",
         ),
+        "relevance_exact": _one(
+            rows,
+            claim_id="C8",
+            contrast="relevance",
+            metric="exact_agreement",
+        ),
+        "relevance_alpha": _one(
+            rows,
+            claim_id="C8",
+            contrast="relevance",
+            metric="krippendorff_alpha",
+        ),
+        "scope_exact": _one(
+            rows,
+            claim_id="C8",
+            contrast="scope",
+            metric="exact_agreement",
+        ),
+        "scope_alpha": _one(
+            rows,
+            claim_id="C8",
+            contrast="scope",
+            metric="krippendorff_alpha",
+        ),
+        "state_exact": _one(
+            rows,
+            claim_id="C8",
+            contrast="state",
+            metric="exact_agreement",
+        ),
+        "state_alpha": _one(
+            rows,
+            claim_id="C8",
+            contrast="state",
+            metric="krippendorff_alpha",
+        ),
         "prohibited_exact": _one(
             rows,
             claim_id="C8",
@@ -198,6 +277,18 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             rows,
             claim_id="C8",
             contrast="prohibited",
+            metric="krippendorff_alpha",
+        ),
+        "usable_exact": _one(
+            rows,
+            claim_id="C8",
+            contrast="usable_evidence",
+            metric="exact_agreement",
+        ),
+        "usable_alpha": _one(
+            rows,
+            claim_id="C8",
+            contrast="usable_evidence",
             metric="krippendorff_alpha",
         ),
     }
@@ -211,6 +302,14 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
         _macro("NaturalQueryCount", "3{,}767"),
         _macro("NaturalRouteRows", "33{,}903"),
         _macro("HumanRecordCount", "207"),
+        _macro("ReaderDiscordantCount", _count(selected["reader_a"])),
+        _macro("ReaderPredictionCount", _count(selected["reader_a_brier"])),
+        _macro("GOneLeakageCount", _count(selected["g1_leakage"])),
+        _macro("GOneUtilityCount", _count(selected["g1_utility"])),
+        _macro(
+            "LifecycleExposureCount",
+            _count(selected["lifecycle_stale_delta"]),
+        ),
         _macro("ReaderARiskDifference", _plain(_number(selected["reader_a"]))),
         _macro(
             "ReaderARiskDifferenceCI",
@@ -221,10 +320,26 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             "ReaderBRiskDifferenceCI",
             _ci(selected["reader_b"], signed=False),
         ),
+        _macro("ReaderABrierDelta", _signed(_number(selected["reader_a_brier"]))),
+        _macro("ReaderABrierDeltaCI", _ci(selected["reader_a_brier"])),
+        _macro(
+            "ReaderALogLossDelta",
+            _signed(_number(selected["reader_a_log_loss"])),
+        ),
+        _macro("ReaderALogLossDeltaCI", _ci(selected["reader_a_log_loss"])),
+        _macro("ReaderBBrierDelta", _signed(_number(selected["reader_b_brier"]))),
+        _macro("ReaderBBrierDeltaCI", _ci(selected["reader_b_brier"])),
+        _macro(
+            "ReaderBLogLossDelta",
+            _signed(_number(selected["reader_b_log_loss"])),
+        ),
+        _macro("ReaderBLogLossDeltaCI", _ci(selected["reader_b_log_loss"])),
         _macro("GOneLeakageDelta", _signed(_number(selected["g1_leakage"]))),
         _macro("GOneLeakageDeltaCI", _ci(selected["g1_leakage"])),
         _macro("GOneUtilityDelta", _signed(_number(selected["g1_utility"]))),
+        _macro("GOneUtilityDeltaCI", _ci(selected["g1_utility"])),
         _macro("GOneRefusalDelta", _signed(_number(selected["g1_refusal"]))),
+        _macro("GOneRefusalDeltaCI", _ci(selected["g1_refusal"])),
         _macro("GOneLeakageReduction", _plain(abs(_number(selected["g1_leakage"])))),
         _macro("GOneUtilityReduction", _plain(abs(_number(selected["g1_utility"])))),
         _macro("GOneRefusalIncrease", _plain(abs(_number(selected["g1_refusal"])))),
@@ -279,6 +394,10 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(abs(_number(selected["namespace_contamination_delta"]))),
         ),
         _macro(
+            "NamespaceWrongScopeLeakage",
+            _plain(_number(selected["namespace_wrong_scope"])),
+        ),
+        _macro(
             "NamespaceContaminationDeltaCI",
             _ci(selected["namespace_contamination_delta"]),
         ),
@@ -291,16 +410,40 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(abs(_number(selected["threshold_recall_delta"]))),
         ),
         _macro(
+            "ThresholdRecallDeltaCI",
+            _ci(selected["threshold_recall_delta"]),
+        ),
+        _macro(
+            "ThresholdContaminationDelta",
+            _signed(_number(selected["threshold_contamination_delta"])),
+        ),
+        _macro(
+            "ThresholdContaminationDeltaCI",
+            _ci(selected["threshold_contamination_delta"]),
+        ),
+        _macro(
             "ClusterRecallDelta",
             _signed(_number(selected["cluster_recall_delta"]), digits=4),
+        ),
+        _macro(
+            "ClusterRecallDeltaCI",
+            _ci(selected["cluster_recall_delta"], digits=4),
         ),
         _macro(
             "ClusterContaminationDelta",
             _signed(_number(selected["cluster_contamination_delta"]), digits=4),
         ),
         _macro(
+            "ClusterContaminationDeltaCI",
+            _ci(selected["cluster_contamination_delta"], digits=4),
+        ),
+        _macro(
             "LifecycleRecallDelta",
             _signed(_number(selected["lifecycle_recall_delta"])),
+        ),
+        _macro(
+            "LifecycleRecallDeltaCI",
+            _ci(selected["lifecycle_recall_delta"]),
         ),
         _macro(
             "LifecycleContaminationDelta",
@@ -311,12 +454,20 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(abs(_number(selected["lifecycle_contamination_delta"]))),
         ),
         _macro(
+            "LifecycleContaminationDeltaCI",
+            _ci(selected["lifecycle_contamination_delta"]),
+        ),
+        _macro(
             "LifecycleStaleDelta",
             _signed(_number(selected["lifecycle_stale_delta"])),
         ),
         _macro(
             "LifecycleStaleReduction",
             _plain(abs(_number(selected["lifecycle_stale_delta"]))),
+        ),
+        _macro(
+            "LifecycleStaleDeltaCI",
+            _ci(selected["lifecycle_stale_delta"]),
         ),
         _macro(
             "LifecycleSupersededDelta",
@@ -327,6 +478,28 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(abs(_number(selected["lifecycle_superseded_delta"]))),
         ),
         _macro(
+            "LifecycleSupersededDeltaCI",
+            _ci(selected["lifecycle_superseded_delta"]),
+        ),
+        _macro(
+            "RelevanceExactAgreement",
+            _plain(_number(selected["relevance_exact"])),
+        ),
+        _macro(
+            "RelevanceAlpha",
+            _plain(_number(selected["relevance_alpha"])),
+        ),
+        _macro(
+            "ScopeExactAgreement",
+            _plain(_number(selected["scope_exact"])),
+        ),
+        _macro("ScopeAlpha", _plain(_number(selected["scope_alpha"]))),
+        _macro(
+            "StateExactAgreement",
+            _plain(_number(selected["state_exact"])),
+        ),
+        _macro("StateAlpha", _plain(_number(selected["state_alpha"]))),
+        _macro(
             "ProhibitedExactAgreement",
             _plain(_number(selected["prohibited_exact"])),
         ),
@@ -334,8 +507,13 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             "ProhibitedAlpha",
             _plain(_number(selected["prohibited_alpha"])),
         ),
+        _macro(
+            "UsableExactAgreement",
+            _plain(_number(selected["usable_exact"])),
+        ),
+        _macro("UsableAlpha", _plain(_number(selected["usable_alpha"]))),
     ]
-    path.write_text("\n".join(macros) + "\n", encoding="ascii")
+    _write_ascii_lines(path, macros)
 
 
 def _write_main_table(path: Path, selected: Mapping[str, Row]) -> None:
@@ -413,7 +591,7 @@ def _write_main_table(path: Path, selected: Mapping[str, Row]) -> None:
     for contrast, metric, estimate, interval, claim_id in entries:
         lines.append(f"{contrast} & {metric} & {estimate} & {interval} & {claim_id} \\\\")
     lines.extend((r"\bottomrule", r"\end{tabular}"))
-    path.write_text("\n".join(lines) + "\n", encoding="ascii")
+    _write_ascii_lines(path, lines)
 
 
 def _write_agreement_table(path: Path, rows: Sequence[Row]) -> None:
@@ -440,7 +618,7 @@ def _write_agreement_table(path: Path, rows: Sequence[Row]) -> None:
         )
         lines.append(f"{label} & {_plain(_number(exact))} & {_plain(_number(alpha))} \\\\")
     lines.extend((r"\bottomrule", r"\end{tabular}"))
-    path.write_text("\n".join(lines) + "\n", encoding="ascii")
+    _write_ascii_lines(path, lines)
 
 
 def _write_smoke_table(path: Path, selected: Mapping[str, Row]) -> None:
@@ -471,7 +649,7 @@ def _write_smoke_table(path: Path, selected: Mapping[str, Row]) -> None:
             f" & {_plain(_number(contamination), digits=4)} \\\\"
         )
     lines.extend((r"\bottomrule", r"\end{tabular}"))
-    path.write_text("\n".join(lines) + "\n", encoding="ascii")
+    _write_ascii_lines(path, lines)
 
 
 def _configure_matplotlib() -> None:
@@ -480,7 +658,8 @@ def _configure_matplotlib() -> None:
     matplotlib.use("Agg")
     matplotlib.rcParams.update(
         {
-            "font.family": "DejaVu Sans",
+            "font.family": "sans-serif",
+            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],
             "font.size": 8,
             "axes.titlesize": 9,
             "axes.labelsize": 8,
@@ -492,6 +671,10 @@ def _configure_matplotlib() -> None:
             "figure.facecolor": "white",
             "axes.facecolor": "white",
             "savefig.facecolor": "white",
+            "pdf.fonttype": 42,
+            "ps.fonttype": 42,
+            "svg.fonttype": "none",
+            "svg.hashsalt": "verify-agent-memory",
         }
     )
 
@@ -504,6 +687,11 @@ def _save_figure(figure: object, stem: Path) -> None:
         "ModDate": None,
     }
     figure.savefig(stem.with_suffix(".pdf"), bbox_inches="tight", metadata=metadata)
+    figure.savefig(
+        stem.with_suffix(".svg"),
+        bbox_inches="tight",
+        metadata={"Creator": "verify-agent-memory", "Date": None},
+    )
     figure.savefig(
         stem.with_suffix(".png"),
         bbox_inches="tight",
@@ -616,40 +804,59 @@ def _write_evidence_figure(path: Path, rows: Sequence[Row], selected: Mapping[st
     _configure_matplotlib()
     import matplotlib.pyplot as plt
 
-    figure, axes = plt.subplots(1, 3, figsize=(10.2, 3.0))
+    reader_a = "#007C91"
+    reader_b = "#D55E00"
+    figure = plt.figure(figsize=(7.1, 4.8), layout="constrained")
+    grid = figure.add_gridspec(2, 6, height_ratios=(0.85, 1.25))
+    risk_axis = figure.add_subplot(grid[0, 0:2])
+    brier_axis = figure.add_subplot(grid[0, 2:4])
+    log_loss_axis = figure.add_subplot(grid[0, 4:6])
+    tradeoff_axis = figure.add_subplot(grid[1, 0:3])
+    agreement_axis = figure.add_subplot(grid[1, 3:6])
 
     _errorbar(
-        axes[0],
+        risk_axis,
         [selected["reader_a"], selected["reader_b"]],
         ["Reader A", "Reader B"],
-        ["#007C91", "#D55E00"],
+        [reader_a, reader_b],
     )
-    axes[0].set_title("(a) Exposure and answer use")
-    axes[0].set_xlabel("Risk difference")
-    axes[0].set_xlim(0.35, 0.60)
+    risk_axis.set_title("(a) Answer use", loc="left", weight="bold")
+    risk_axis.set_xlabel("Exposed minus unexposed risk")
+    risk_axis.set_xlim(0.35, 0.60)
 
-    retrieval_rows = [
-        selected["namespace_recall_delta"],
-        selected["namespace_contamination_delta"],
-        selected["threshold_recall_delta"],
-        selected["cluster_recall_delta"],
-        selected["lifecycle_contamination_delta"],
-    ]
     _errorbar(
-        axes[1],
-        retrieval_rows,
-        [
-            "Namespace: recall",
-            "Namespace: contamination",
-            "Threshold: recall",
-            "Cluster: recall",
-            "Lifecycle UB: contamination",
-        ],
-        ["#59A14F", "#59A14F", "#E15759", "#4C78A8", "#F28E2B"],
+        brier_axis,
+        [selected["reader_a_brier"], selected["reader_b_brier"]],
+        ["Reader A", "Reader B"],
+        [reader_a, reader_b],
     )
-    axes[1].set_title("(b) Retrieval deltas")
-    axes[1].set_xlabel("Method minus reference")
-    axes[1].set_xlim(-0.055, 0.18)
+    brier_axis.set_title("(b) Brier score", loc="left", weight="bold")
+    brier_axis.set_xlabel("Exposure-feature delta")
+    brier_axis.set_xlim(-0.035, 0.002)
+
+    _errorbar(
+        log_loss_axis,
+        [selected["reader_a_log_loss"], selected["reader_b_log_loss"]],
+        ["Reader A", "Reader B"],
+        [reader_a, reader_b],
+    )
+    log_loss_axis.set_title("(c) Log loss", loc="left", weight="bold")
+    log_loss_axis.set_xlabel("Exposure-feature delta")
+    log_loss_axis.set_xlim(-0.085, 0.005)
+
+    _errorbar(
+        tradeoff_axis,
+        [
+            selected["g1_leakage"],
+            selected["g1_utility"],
+            selected["g1_refusal"],
+        ],
+        ["Answer leakage", "Bounded utility", "Over-refusal"],
+        ["#2E8B57", "#B64342", "#D55E00"],
+    )
+    tradeoff_axis.set_title("(d) Filtering trade-off", loc="left", weight="bold")
+    tradeoff_axis.set_xlabel("G1 minus G0")
+    tradeoff_axis.set_xlim(-0.30, 0.38)
 
     axes_order = ("relevance", "scope", "state", "prohibited", "usable_evidence")
     labels = ("Relevance", "Scope", "Lifecycle", "Prohibited", "Usable")
@@ -663,34 +870,124 @@ def _write_evidence_figure(path: Path, rows: Sequence[Row], selected: Mapping[st
     ]
     positions = list(range(len(labels)))
     width = 0.36
-    axes[2].barh(
+    agreement_axis.barh(
         [position - width / 2 for position in positions],
         exact,
         height=width,
         label="Exact",
         color="#4C78A8",
     )
-    axes[2].barh(
+    agreement_axis.barh(
         [position + width / 2 for position in positions],
         alpha,
         height=width,
         label=r"$\alpha$",
         color="#F2CF5B",
     )
-    axes[2].set_yticks(positions, labels)
-    axes[2].invert_yaxis()
-    axes[2].set_xlim(0, 1.02)
-    axes[2].set_xlabel("Agreement")
-    axes[2].set_title("(c) Human audit")
-    axes[2].grid(axis="x", color="#E5E5E5", linewidth=0.6)
-    axes[2].legend(
+    agreement_axis.set_yticks(positions, labels)
+    agreement_axis.invert_yaxis()
+    agreement_axis.set_xlim(0, 1.02)
+    agreement_axis.set_xlabel("Agreement")
+    agreement_axis.set_title("(e) Human audit", loc="left", weight="bold")
+    agreement_axis.grid(axis="x", color="#E5E5E5", linewidth=0.6)
+    agreement_axis.legend(
         loc="upper center",
         bbox_to_anchor=(0.5, -0.18),
         ncol=2,
         frameon=False,
     )
 
-    figure.tight_layout(w_pad=1.2)
+    _save_figure(figure, path)
+    plt.close(figure)
+
+
+def _write_retrieval_figure(path: Path, selected: Mapping[str, Row]) -> None:
+    _configure_matplotlib()
+    import matplotlib.pyplot as plt
+
+    namespace_color = "#2E8B57"
+    threshold_color = "#D55E00"
+    cluster_color = "#4C78A8"
+    lifecycle_color = "#7A5195"
+    figure, axes = plt.subplots(2, 2, figsize=(7.1, 4.8))
+
+    recall_values = (
+        _number(selected["global_recall"]),
+        _number(selected["namespace_recall"]),
+    )
+    recall_positions = (0, 1)
+    axes[0, 0].barh(
+        recall_positions,
+        recall_values,
+        color=("#A7A9AC", namespace_color),
+        height=0.55,
+    )
+    axes[0, 0].set_yticks(recall_positions, ("Global dense", "Namespace dense"))
+    axes[0, 0].invert_yaxis()
+    axes[0, 0].set_xlim(0, 1.0)
+    axes[0, 0].set_xlabel("Evidence recall")
+    axes[0, 0].set_title("(a) Trusted namespace support", loc="left", weight="bold")
+    axes[0, 0].grid(axis="x", color="#E5E5E5", linewidth=0.6)
+    for position, value in zip(recall_positions, recall_values, strict=True):
+        axes[0, 0].text(
+            value + 0.004,
+            position,
+            f"{value:.3f}",
+            va="center",
+            ha="left",
+            fontsize=7,
+        )
+
+    _errorbar(
+        axes[0, 1],
+        [
+            selected["namespace_recall_delta"],
+            selected["namespace_feasible_delta"],
+            selected["namespace_contamination_delta"],
+        ],
+        ["Evidence recall", "Feasible rate", "Contamination UB"],
+        [namespace_color, namespace_color, namespace_color],
+    )
+    axes[0, 1].set_title("(b) Namespace main effects", loc="left", weight="bold")
+    axes[0, 1].set_xlabel("Namespace minus global")
+    axes[0, 1].set_xlim(-0.065, 0.28)
+
+    _errorbar(
+        axes[1, 0],
+        [
+            selected["threshold_recall_delta"],
+            selected["threshold_contamination_delta"],
+            selected["cluster_recall_delta"],
+            selected["cluster_contamination_delta"],
+        ],
+        [
+            "Threshold: recall",
+            "Threshold: contam. UB",
+            "Cluster: recall",
+            "Cluster: contam. UB",
+        ],
+        [threshold_color, threshold_color, cluster_color, cluster_color],
+    )
+    axes[1, 0].set_title("(c) Router increments", loc="left", weight="bold")
+    axes[1, 0].set_xlabel("Router minus namespace dense")
+    axes[1, 0].set_xlim(-0.032, 0.006)
+
+    _errorbar(
+        axes[1, 1],
+        [
+            selected["lifecycle_recall_delta"],
+            selected["lifecycle_contamination_delta"],
+            selected["lifecycle_stale_delta"],
+            selected["lifecycle_superseded_delta"],
+        ],
+        ["Evidence recall", "Contamination UB", "Stale exposure", "Superseded exposure"],
+        [lifecycle_color] * 4,
+    )
+    axes[1, 1].set_title("(d) Lifecycle upper bound", loc="left", weight="bold")
+    axes[1, 1].set_xlabel("Released-field arm minus namespace")
+    axes[1, 1].set_xlim(-0.014, 0.010)
+
+    figure.tight_layout(pad=0.7, w_pad=1.6, h_pad=1.8)
     _save_figure(figure, path)
     plt.close(figure)
 
@@ -728,22 +1025,32 @@ def build(repository_root: Path) -> tuple[Path, ...]:
     selected = _evidence_rows(rows)
     output_root = repository_root / "paper" / "generated"
     output_root.mkdir(parents=True, exist_ok=True)
+    numbers_path = output_root / "paper_numbers.tex"
+    main_table_path = output_root / "main_results.tex"
+    agreement_table_path = output_root / "human_agreement.tex"
+    smoke_table_path = output_root / "mechanism_smoke.tex"
     outputs = (
-        output_root / "paper_numbers.tex",
-        output_root / "main_results.tex",
-        output_root / "human_agreement.tex",
-        output_root / "mechanism_smoke.tex",
+        numbers_path,
+        main_table_path,
+        agreement_table_path,
+        smoke_table_path,
         output_root / "verification_pipeline.pdf",
         output_root / "verification_pipeline.png",
+        output_root / "verification_pipeline.svg",
         output_root / "evidence_summary.pdf",
         output_root / "evidence_summary.png",
+        output_root / "evidence_summary.svg",
+        output_root / "retrieval_results.pdf",
+        output_root / "retrieval_results.png",
+        output_root / "retrieval_results.svg",
     )
-    _write_numbers(outputs[0], selected)
-    _write_main_table(outputs[1], selected)
-    _write_agreement_table(outputs[2], rows)
-    _write_smoke_table(outputs[3], selected)
+    _write_numbers(numbers_path, selected)
+    _write_main_table(main_table_path, selected)
+    _write_agreement_table(agreement_table_path, rows)
+    _write_smoke_table(smoke_table_path, selected)
     _write_pipeline_figure(output_root / "verification_pipeline")
     _write_evidence_figure(output_root / "evidence_summary", rows, selected)
+    _write_retrieval_figure(output_root / "retrieval_results", selected)
     _write_manifest(repository_root, output_root, outputs)
     return outputs
 

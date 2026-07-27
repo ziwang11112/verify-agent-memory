@@ -15,7 +15,14 @@ uv run --extra dev --extra paper python -m scripts.verify_paper
 The generator reads only `evidence/normalized/*.csv` after
 `scripts/verify_evidence.py` succeeds. It writes all empirical LaTeX numbers, tables,
 and figures under `paper/generated/`, plus a hash manifest binding inputs, outputs,
-and generator code.
+and generator code. Figure assets are emitted as vector PDF/SVG and inspection PNG:
+
+- `verification_pipeline.*`: the stored--retrieved--exposed--used protocol;
+- `evidence_summary.*`: exposure/use, filtering trade-off, and human agreement;
+- `retrieval_results.*`: namespace, router, and lifecycle contrasts.
+
+`paper/FIGURE_CONTRACT.md` records each figure's intended conclusion and claim
+boundary.
 
 ## Compile
 

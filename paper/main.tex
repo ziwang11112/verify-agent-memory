@@ -181,54 +181,96 @@ assigned zero.
 
 \section{Evaluation}
 
-\subsection{Exposure and answer use}
+\subsection{Evidence surfaces and frozen populations}
 
-GateMem supplies fixed checkpoints with leak-target annotations
-\citep{ren2026gatemem}.  We analyze only checkpoints where two frozen routes disagree
-on target exposure.  Two readers were executed separately:
-\texttt{gpt-4o-mini-2024-07-18} and \texttt{gpt-4o-2024-08-06}.  They share a
-provider, so this is cross-reader robustness, not cross-provider replication.
-Risk differences compare answer-use rates for exposed versus unexposed targets at
-the fixed checkpoints.  We also report whether adding exposure improves held-out
-leakage prediction and separately evaluate a stricter G1 route against G0.  The G1
-comparison is observational and has different eligible populations for leakage and
-bounded utility.
+We evaluate the protocol on three complementary surfaces.  They answer different
+questions and are never pooled into one score.
 
-\subsection{Public-source retrieval audit}
+\paragraph{GateMem exposure and answer use.}
+GateMem supplies fixed privacy and safety checkpoints with leak-target annotations
+\citep{ren2026gatemem}.  The exposure analysis contains
+\ReaderDiscordantCount{} checkpoints where two frozen routes disagree on whether
+the target reaches the prompt.  Incremental prediction uses
+\ReaderPredictionCount{} held-out checkpoint rows.  We execute
+\texttt{gpt-4o-mini-2024-07-18} (Reader A) and
+\texttt{gpt-4o-2024-08-06} (Reader B) separately.  Both are OpenAI snapshots:
+this is same-provider cross-reader robustness, not cross-provider replication.
+A separate frozen comparison retains the source study's G0 baseline and G1 stricter
+exposure-filtering labels.  It contains \GOneLeakageCount{} leakage-eligible
+checkpoints and a distinct \GOneUtilityCount{} bounded-utility population.
 
+\paragraph{Public-source retrieval.}
 The retrieval audit combines public RHELM and MemOps sources
-\citep{zhang2026rhelm,hao2026memops}.  It contains \NaturalGroupCount{} groups,
-\NaturalMemoryCount{} memories, and \NaturalQueryCount{} queries.  Exactly nine
-settings were selected on development data and applied once to evaluation groups,
-yielding \NaturalRouteRows{} complete method--query route and score rows.  There were
-no provider, reader, judge, or paid calls.
+\citep{zhang2026rhelm,hao2026memops}: \NaturalGroupCount{} groups,
+\NaturalMemoryCount{} memories, and \NaturalQueryCount{} queries.  A pinned
+Qwen3-Embedding-8B encoder produces unit-normalized dense rankings.  Nine settings
+were selected once on development groups and applied without retuning, query
+deletion, or output repair, yielding \NaturalRouteRows{} complete route and score
+rows.
 
-We compare global dense retrieval with dense retrieval restricted to a trusted,
-released namespace.  Two diagnostic variants further apply a development-selected
-similarity threshold or within-namespace cluster gate.  A final upper-bound arm uses
-released query intent and lifecycle state.  That arm does not infer either field and
-is not deployable blind.  We source-macro average RHELM and MemOps so that the larger
-source does not dominate, and use a 10,000-replicate source-clustered bootstrap for
-paired 95\% intervals.  These are public-source diagnostics, not official benchmark
-submissions.
+\paragraph{Human audit.}
+Two independent reviewers label \HumanRecordCount{} selected candidate records
+for relevance, scope, lifecycle state, prohibited evidence, and the binary
+usable-evidence conjunction.  We use raw pre-adjudication labels; model-assisted
+labels are excluded.  This is an overlap audit rather than population-wide human
+gold.
 
-\subsection{Human agreement}
+\subsection{Retrieval arms and frozen selection}
 
-Two independent reviewers labeled \HumanRecordCount{} selected candidate records
-for relevance, scope, lifecycle state, prohibited evidence, and usable evidence.
-We report raw pre-adjudication exact agreement and nominal Krippendorff's
-$\alpha$ \citep{krippendorff2018content}.  Model-assisted labels are excluded.
-The sample is an audit slice, not population-wide human gold.
+The primary support intervention compares global dense retrieval with
+\emph{namespace dense}: the same semantic ranker applied only within a trusted,
+released namespace.  Two diagnostic routers operate after that support constraint.
+The threshold arm applies a development-selected cosine threshold; the cluster arm
+applies a development-selected within-namespace cluster gate.  A final diagnostic
+arm filters with released query intent and lifecycle state.  Because it observes
+rather than infers these fields, it is a conservative upper bound on available
+headroom, not a deployable method.  Every arm uses a maximum ranked depth of 100.
+The primary operating point is evidence recall $\tau=0.8$.
+
+\subsection{Metrics and uncertainty}
+
+For GateMem, exposed-minus-unexposed risk difference measures answer use at fixed
+discordant checkpoints.  We also compare an exposure-augmented leakage predictor
+with its frozen baseline using Brier score and log loss; lower values are better.
+G1-minus-G0 deltas are reported separately for leakage, bounded utility accuracy,
+and over-refusal.  These route comparisons are observational, and leakage and
+utility use different eligible populations.
+
+For retrieval, the primary outcomes are source-macro evidence recall, feasibility
+at $\tau$, and the conservative contamination upper bound at the shortest
+matched-recall prefix.  We also report wrong-scope leakage and prohibited stale or
+superseded exposure.  RHELM and MemOps receive equal source weight so that MemOps
+does not dominate by size.  Paired 95\% intervals use 10,000 source-clustered
+bootstrap replicates.  Local timing and candidate counts are diagnostics only and
+are not used for a production cost claim.
+
+Human reliability is summarized by exact agreement and nominal Krippendorff's
+$\alpha$ \citep{krippendorff2018content}.  All empirical numbers, tables, and
+figures below are generated from hash-bound normalized evidence after claim-boundary
+validation.
+
+\subsection{Evaluation boundaries}
+
+The public-source retrieval run makes no provider, reader, judge, or paid calls and
+does not measure downstream answer quality.  It is not an official RHELM or MemOps
+submission.  The GateMem analyses are open-label, observational diagnostics rather
+than an official benchmark result or a causal intervention.  The three evidence
+surfaces remain distinct throughout reporting.
 
 \section{Results}
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{generated/evidence_summary.pdf}
-  \caption{Frozen evidence summary.  (a) Exposed-minus-unexposed answer-use risk
-  differences for separately executed same-provider readers.  (b) Source-macro
-  retrieval deltas; intervals crossing zero do not establish a difference.
-  (c) Raw pre-adjudication human agreement.}
+  \caption{Exposure, filtering, and human-audit evidence.  (a) Exposed-minus-
+  unexposed answer-use risk over \ReaderDiscordantCount{} discordant checkpoints.
+  (b,c) Exposure-augmented minus baseline Brier score and log loss over
+  \ReaderPredictionCount{} held-out rows; lower is better and the metrics use
+  separate scales.  (d) G1-minus-G0 leakage over \GOneLeakageCount{} checkpoints
+  and utility/refusal over a distinct \GOneUtilityCount{} checkpoints.  (e) Raw
+  pre-adjudication agreement over \HumanRecordCount{} records.  Points and whiskers
+  show estimates and 95\% intervals; bars show exact agreement and $\alpha$.
+  Reader estimates are reported separately and never pooled.}
   \label{fig:evidence}
 \end{figure}
 
@@ -241,56 +283,100 @@ The sample is an audit slice, not population-wide human gold.
   \input{generated/main_results.tex}
 \end{table}
 
-\subsection{Exposure predicts use, but filtering is not free}
+\subsection{Exposure predicts answer use across readers}
 
-For Reader A, exposed-minus-unexposed answer-use risk is
+Across \ReaderDiscordantCount{} fixed discordant checkpoints, Reader A has an
+exposed-minus-unexposed answer-use risk difference of
 \ReaderARiskDifference{} (95\% CI \ReaderARiskDifferenceCI{}); Reader B yields
-\ReaderBRiskDifference{} (\ReaderBRiskDifferenceCI{}).  Adding exposure also lowers
-held-out Brier score and log loss for each reader.  These results show useful
-discrimination beyond a raw leakage rate, but they remain associations at fixed
-checkpoints.
+\ReaderBRiskDifference{} (\ReaderBRiskDifferenceCI{}; Figure~\ref{fig:evidence}a).
+The separately executed estimates agree in direction but are not pooled.
 
-The stricter G1 route has \GOneLeakageReduction{} lower answer leakage
-(signed-delta 95\% CI \GOneLeakageDeltaCI{}).  It also has
-\GOneUtilityReduction{} lower bounded utility accuracy and
-\GOneRefusalIncrease{} higher over-refusal.  Thus, a verifier should expose the
-safety--utility frontier rather than reward blanket suppression.
+On \ReaderPredictionCount{} held-out rows, adding exposure improves leakage
+prediction for both readers.  Reader A changes Brier score by
+\ReaderABrierDelta{} (\ReaderABrierDeltaCI{}) and log loss by
+\ReaderALogLossDelta{} (\ReaderALogLossDeltaCI{}); Reader B changes them by
+\ReaderBBrierDelta{} (\ReaderBBrierDeltaCI{}) and
+\ReaderBLogLossDelta{} (\ReaderBLogLossDeltaCI{}), respectively
+(Figure~\ref{fig:evidence}b,c).  Exposure therefore carries predictive information
+beyond the frozen baseline, but the result remains an association rather than a
+causal mediation estimate.
+
+\subsection{Filtering exposes a safety--utility frontier}
+
+On \GOneLeakageCount{} leakage-eligible checkpoints, the stricter G1 route changes
+answer leakage by \GOneLeakageDelta{} (95\% CI \GOneLeakageDeltaCI{}) relative to
+G0.  On the separate \GOneUtilityCount{} bounded-utility checkpoints, it changes
+utility accuracy by \GOneUtilityDelta{} (\GOneUtilityDeltaCI{}) and over-refusal by
+\GOneRefusalDelta{} (\GOneRefusalDeltaCI{}; Figure~\ref{fig:evidence}d).  Filtering
+therefore reduces leakage while imposing measurable utility and refusal costs; it
+is not uniformly better.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{generated/retrieval_results.pdf}
+  \caption{Public-source retrieval results over \NaturalGroupCount{} groups and
+  \NaturalQueryCount{} queries.  (a) Absolute source-macro evidence recall.
+  (b) Namespace-dense minus global-dense effects.  (c) Threshold and cluster
+  router increments over namespace dense.  (d) Released-intent and lifecycle-field
+  upper bound relative to namespace dense.  Points and whiskers show source-macro
+  estimates and source-clustered 95\% intervals; zero denotes no change.
+  Contamination UB is the conservative incomplete-label upper bound.}
+  \label{fig:retrieval}
+\end{figure}
 
 \subsection{Trusted namespace support carries the retrieval gain}
 
 Global dense evidence recall is \GlobalDenseRecall{}, versus
-\NamespaceDenseRecall{} with trusted namespace support.  The paired source-macro
+\NamespaceDenseRecall{} with trusted namespace support
+(Figure~\ref{fig:retrieval}a).  The paired source-macro
 gain is \NamespaceRecallDelta{} (\NamespaceRecallDeltaCI{}), and feasible rate
 increases by \NamespaceFeasibleDelta{} (\NamespaceFeasibleDeltaCI{}).  The
 conservative contamination upper bound is \NamespaceContaminationReduction{}
-lower (signed-delta 95\% CI \NamespaceContaminationDeltaCI{}).  Measured wrong-scope
-leakage is zero for namespace-constrained arms under trusted released namespaces.
+lower (signed delta \NamespaceContaminationDelta{}, 95\% CI
+\NamespaceContaminationDeltaCI{}; Figure~\ref{fig:retrieval}b).  Measured
+wrong-scope leakage is \NamespaceWrongScopeLeakage{} for namespace-constrained arms
+under trusted released namespaces.  This supports a trusted provenance constraint;
+it does not establish performance under noisy or inferred namespaces or downstream
+answer improvement.
 
-The extra threshold router has \ThresholdRecallLoss{} lower recall relative to
-namespace dense while slightly increasing conservative contamination.  The cluster
-router is practically indistinguishable on primary metrics:
-\ClusterRecallDelta{} recall and \ClusterContaminationDelta{} contamination, with
-the latter interval crossing zero.  The evidence therefore supports namespace
-constraints, not a claim that a novel router beats a strong namespace-dense control.
+\subsection{Additional routing does not add retrieval utility}
+
+Relative to namespace dense, the threshold router changes recall by
+\ThresholdRecallDelta{} (\ThresholdRecallDeltaCI{}) and conservative contamination
+by \ThresholdContaminationDelta{} (\ThresholdContaminationDeltaCI{}).  The cluster
+router changes recall by \ClusterRecallDelta{} (\ClusterRecallDeltaCI{}) and
+contamination by \ClusterContaminationDelta{}
+(\ClusterContaminationDeltaCI{}; Figure~\ref{fig:retrieval}c).  The threshold arm
+loses recall and slightly worsens the conservative bound; the cluster arm is
+practically indistinguishable, with its contamination interval crossing zero.
+These frozen variants establish no incremental utility beyond the namespace-dense
+control, without implying that clustering is universally ineffective.
 
 \subsection{Released fields reveal lifecycle headroom}
 
-Using released intent and lifecycle state makes the conservative contamination
-upper bound \LifecycleContaminationReduction{} lower and prohibited stale and
-superseded exposure \LifecycleStaleReduction{} and
-\LifecycleSupersededReduction{} lower, respectively.  Its recall difference is
-\LifecycleRecallDelta{} with an interval that crosses zero.  This establishes
-diagnostic headroom under observed fields.  It does not establish that a deployed
-system can infer those fields accurately from raw interaction history.
+Using released intent and lifecycle state changes the conservative contamination
+upper bound by \LifecycleContaminationDelta{}
+(\LifecycleContaminationDeltaCI{}) and recall by \LifecycleRecallDelta{}
+(\LifecycleRecallDeltaCI{}).  Over the \LifecycleExposureCount{} eligible exposure
+rows, prohibited stale exposure changes by \LifecycleStaleDelta{}
+(\LifecycleStaleDeltaCI{}) and prohibited superseded exposure by
+\LifecycleSupersededDelta{} (\LifecycleSupersededDeltaCI{};
+Figure~\ref{fig:retrieval}d).  The recall interval crosses zero, while all three
+admissibility-risk intervals favor the upper-bound arm.  This establishes
+diagnostic headroom under observed fields, not that a deployed system can infer
+intent or lifecycle state from raw history.
 
 \subsection{Most annotation axes are reliable; one is not}
 
-Exact agreement and $\alpha$ are high for scope and usable evidence, and lower for
-lifecycle state.  The prohibited axis has exact agreement
+For relevance, exact agreement is \RelevanceExactAgreement{} and
+$\alpha=\RelevanceAlpha{}$; for scope, \ScopeExactAgreement{} and
+\ScopeAlpha{}; for lifecycle state, \StateExactAgreement{} and \StateAlpha{}; and
+for usable evidence, \UsableExactAgreement{} and \UsableAlpha{}
+(Figure~\ref{fig:evidence}e).  The prohibited axis differs: exact agreement is
 \ProhibitedExactAgreement{} but $\alpha=\ProhibitedAlpha{}$, consistent with a
 prevalence-limited reliability problem.  We therefore retain the prohibited-axis
-caveat in every claim that depends on it and use conservative unresolved-label
-bounds for retrieval conclusions.
+caveat in every dependent claim and use unresolved-label bounds for retrieval
+conclusions.
 
 \section{Discussion}
 

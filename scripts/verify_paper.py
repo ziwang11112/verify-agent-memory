@@ -21,6 +21,7 @@ REQUIRED_GENERATED_INPUTS = (
     "generated/mechanism_smoke.tex",
     "generated/verification_pipeline.pdf",
     "generated/evidence_summary.pdf",
+    "generated/retrieval_results.pdf",
 )
 
 
