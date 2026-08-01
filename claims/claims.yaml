@@ -210,7 +210,7 @@ claims:
 
   - id: C5
     status: frozen_public_source_evaluation
-    claim: "Trusted namespace support improves evidence recall and feasible rate while reducing conservative contamination on the full public-source evaluation."
+    claim: "Trusted namespace support improves evidence recall and feasible rate while reducing the preregistered penalized conservative risk score on the full public-source evaluation; conditional matched-prefix diagnostics retain substantial unresolved-label uncertainty."
     estimand: "Source-macro namespace-dense minus global-dense differences under settings frozen on development data."
     population: "87 public-evaluation groups, 182,908 memories, and 3,767 queries from public RHELM and MemOps sources."
     source_repository: "ziwang11112/bomi"
@@ -233,6 +233,61 @@ claims:
       feasible_rate_delta: 0.22299559357118776
       conservative_contamination_delta: -0.03595773739158996
       namespace_wrong_scope_leakage: 0.0
+      arm_summary:
+        global_bm25:
+          evidence_recall: 0.44776903140185376
+          feasible_rate: 0.283601672038156
+          penalized_contamination_upper: 0.9133942077399828
+          mean_candidates_scored: 90121.7017208413
+        global_dense:
+          feasible_rate: 0.5388709970223009
+          penalized_contamination_upper: 0.87262599261847
+          mean_candidates_scored: 90121.7017208413
+        global_bm25_dense_rrf:
+          evidence_recall: 0.6912213957478431
+          feasible_rate: 0.5026252319328167
+          penalized_contamination_upper: 0.8825852235335776
+          mean_candidates_scored: 90121.7017208413
+        global_recency_dense:
+          evidence_recall: 0.7280520903395933
+          feasible_rate: 0.5504411144091872
+          penalized_contamination_upper: 0.8643161513639288
+          mean_candidates_scored: 90121.7017208413
+        namespace_dense:
+          feasible_rate: 0.7618665905934887
+          penalized_contamination_upper: 0.83666825522688
+          mean_candidates_scored: 1551.24455090498
+        namespace_current_only:
+          evidence_recall: 0.8241231984310543
+          feasible_rate: 0.6724707829486058
+          penalized_contamination_upper: 0.8454370075050248
+          mean_candidates_scored: 1549.2815422736608
+        released_intent_lifecycle_upper_bound:
+          evidence_recall: 0.8685655633342699
+          feasible_rate: 0.7630996362161767
+          penalized_contamination_upper: 0.8280008822515305
+          mean_candidates_scored: 1525.3117518914164
+        threshold_router:
+          evidence_recall: 0.8426619415074053
+          feasible_rate: 0.7350478483000238
+          penalized_contamination_upper: 0.838768546153027
+          mean_candidates_scored: 1470.2036564635873
+        cluster_router:
+          evidence_recall: 0.8650541968065657
+          feasible_rate: 0.7609418063764727
+          penalized_contamination_upper: 0.8368345912489837
+          mean_candidates_scored: 1530.5978691651362
+      matched_prefix_diagnostics:
+        global_dense:
+          known_contamination: 0.5753141896331887
+          label_coverage: 0.5380305342399545
+          lower_bound: 0.3078604096597722
+          upper_bound: 0.7698298754198178
+        namespace_dense:
+          known_contamination: 0.3478583416917444
+          label_coverage: 0.35548034155637087
+          lower_bound: 0.13368622297660057
+          upper_bound: 0.7782058814202297
       provider_calls: 0
       reader_calls: 0
       judge_calls: 0
@@ -251,17 +306,21 @@ claims:
         lower: -0.04161096210584043
         upper: -0.030300871013945373
     allowed_wording:
-      - "Trusted namespace support improved recall and feasible rate while reducing the conservative contamination upper bound on this public-source evaluation."
+      - "Trusted namespace support improved recall and feasible rate while reducing the preregistered penalized conservative risk score on this public-source evaluation."
       - "Namespace-constrained arms had zero measured wrong-scope leakage under trusted released namespaces."
+      - "Descriptively, resolved contamination and the lower bound were smaller inside the feasible matched prefixes, but label coverage was also lower and the conditional upper bound remained high."
     forbidden_wording:
       - "This is an official RHELM or MemOps benchmark submission."
       - "Namespace support improves downstream answer quality."
       - "The result generalizes to noisy or inferred namespaces."
       - "The conservative contamination bound is fully resolved contamination."
+      - "The penalized conservative risk score is a pure conditional contamination estimate."
+      - "Namespace support reduced the conditional matched-prefix upper bound."
     known_limitations:
       - "This is a public-source evaluation, not an official RHELM or MemOps leaderboard result."
       - "There is no downstream reader outcome for this population."
-      - "Non-required same-namespace memories remain unresolved, so the conservative upper bound is primary."
+      - "The preregistered penalized conservative risk assigns 1.0 to infeasible queries and feasible queries without a resolved contamination label."
+      - "Non-required same-namespace memories remain unresolved; the namespace-dense conditional matched-prefix label coverage is 0.3555 and its upper bound is 0.7782."
       - "The result applies to trusted released namespaces, not noisy or inferred scope."
       - "Confidence intervals are source-macro bootstrap intervals."
     paper_locations:
@@ -289,9 +348,11 @@ claims:
       threshold_router:
         recall_delta: -0.02300143855322647
         conservative_contamination_delta: 0.002100290926146948
+        fallback_rate: 0.9654434838372002
       cluster_router:
         recall_delta: -0.0006091832540661147
         conservative_contamination_delta: 0.00016633602210371686
+        mean_route_width: 1.0
     confidence_intervals:
       - metric: "threshold_router_recall_delta"
         estimate: -0.02300143855322647
@@ -311,7 +372,7 @@ claims:
         upper: 0.0005125056073667471
     allowed_wording:
       - "Additional threshold and cluster routing did not establish practical incremental utility beyond trusted namespace support."
-      - "The threshold router reduced recall and slightly increased conservative contamination."
+      - "The threshold router reduced recall and slightly increased the preregistered penalized conservative risk."
       - "The cluster router was practically indistinguishable from namespace-dense retrieval on primary quality metrics."
     forbidden_wording:
       - "A novel router outperformed the baseline."
@@ -366,7 +427,7 @@ claims:
         upper: -0.009085607368030274
     allowed_wording:
       - "Released intent and lifecycle fields provide an upper bound on lifecycle-aware retrieval headroom."
-      - "The upper-bound arm reduced conservative contamination and prohibited stale or superseded exposure without a detected recall loss."
+      - "The upper-bound arm reduced the preregistered penalized conservative risk and prohibited stale or superseded exposure without a detected recall loss."
     forbidden_wording:
       - "We developed a deployable lifecycle filter that improves retrieval."
       - "The system inferred query intent and lifecycle state from raw inputs."

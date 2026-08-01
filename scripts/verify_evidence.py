@@ -36,8 +36,8 @@ EXPECTED_METRIC_COUNTS = {
     "C2": 6,
     "C3": 3,
     "C4": 6,
-    "C5": 6,
-    "C6": 4,
+    "C5": 48,
+    "C6": 6,
     "C7": 4,
     "C8": 10,
 }
@@ -149,7 +149,35 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
                 "wrong_scope_leakage",
             ): "namespace_wrong_scope_leakage",
         }.get((contrast, metric))
-        return (absolute or metric,) if absolute or "_delta" in metric else None
+        if absolute or "_delta" in metric:
+            return (absolute or metric,)
+        if contrast.endswith("_matched_prefix") and metric in {
+            "known_contamination",
+            "label_coverage",
+            "lower_bound",
+            "upper_bound",
+        }:
+            arm = contrast.removesuffix("_matched_prefix")
+            if arm in {"global_dense", "namespace_dense"}:
+                return ("matched_prefix_diagnostics", arm, metric)
+        if contrast in {
+            "global_bm25",
+            "global_dense",
+            "global_bm25_dense_rrf",
+            "global_recency_dense",
+            "namespace_dense",
+            "namespace_current_only",
+            "released_intent_lifecycle_upper_bound",
+            "threshold_router",
+            "cluster_router",
+        } and metric in {
+            "evidence_recall",
+            "feasible_rate",
+            "penalized_contamination_upper",
+            "mean_candidates_scored",
+        }:
+            return ("arm_summary", contrast, metric)
+        return None
     if claim_id == "C6":
         method = contrast.removesuffix("_minus_namespace_dense")
         if method not in {"threshold_router", "cluster_router"}:

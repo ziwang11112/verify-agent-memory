@@ -17,6 +17,8 @@ RETIRED_LABELS = ("ncr_threshold", "ncr_a5", "A1-", "E1-debug", "E2 ", "E3 ", "E
 REQUIRED_GENERATED_INPUTS = (
     "generated/paper_numbers.tex",
     "generated/main_results.tex",
+    "generated/full_arm_results.tex",
+    "generated/matched_prefix_diagnostics.tex",
     "generated/human_agreement.tex",
     "generated/mechanism_smoke.tex",
     "generated/verification_pipeline.pdf",

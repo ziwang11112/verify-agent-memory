@@ -17,9 +17,13 @@ The generator reads only `evidence/normalized/*.csv` after
 and figures under `paper/generated/`, plus a hash manifest binding inputs, outputs,
 and generator code. Figure assets are emitted as vector PDF/SVG and inspection PNG:
 
-- `verification_pipeline.*`: the stored--retrieved--exposed--used protocol;
-- `evidence_summary.*`: exposure/use, filtering trade-off, and human agreement;
-- `retrieval_results.*`: namespace, router, and lifecycle contrasts.
+- `verification_pipeline.*`: four abridged audited examples covering wrong
+  namespace, supersession, explicit forgetting, and history-compatible old states,
+  plus the compact record-level verification interface;
+- `evidence_summary.*`: exposure/disclosure, reader calibration, filtering
+  trade-off, and human agreement;
+- `retrieval_results.*`: all retrieval arms in recall--cost space, the trusted
+  namespace effect, incomplete-label uncertainty, and router/lifecycle contrasts.
 
 `paper/FIGURE_CONTRACT.md` records each figure's intended conclusion and claim
 boundary.

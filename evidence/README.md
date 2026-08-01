@@ -1,8 +1,13 @@
-# Normalized Evidence
+# Evidence Package
 
-This directory contains content-free aggregate measurements for claims C2-C8. It
-does not contain benchmark conversations, query text, memory text, model responses,
-reviewer identity, embeddings, or per-query identifiers.
+The `normalized/` directory contains content-free aggregate measurements for claims
+C2-C8. It does not contain benchmark conversations, query text, memory text, model
+responses, reviewer identity, embeddings, or per-query identifiers.
+
+The `examples/` directory contains four deliberately selected, abridged
+public-source query-memory cases for Figure 1 and claim C1. It contains no private
+user data, model responses, reviewer identity, or embeddings. Its packet and memory
+identifiers are retained solely to make the qualitative examples auditable.
 
 ## Evidence Families
 
@@ -25,6 +30,15 @@ that row. They are not zeroes. Delta rows are method minus reference, as named i
 `contrast`. Source-macro values weight the RHELM and MemOps source estimates equally;
 they are not pooled-query estimates.
 
+## Qualitative Examples
+
+`examples/retrieval_admissibility_cases.json` records the four Figure 1 cases:
+wrong namespace, superseded current state, an explicit forget request, and a history
+query that legitimately requires older states. The source artifact hashes and frozen
+repository commit are recorded in the file. Text is abridged for legibility, while
+the source labels and use/drop verdicts are unchanged. These cases illustrate failure
+modes; they do not estimate prevalence.
+
 ## Integrity
 
 Each file has a JSON receipt in `manifests/` containing:
@@ -43,4 +57,6 @@ uv run --extra dev python scripts/verify_evidence.py
 The verifier rejects changed CSVs, changed transformation code, unindexed or changed
 source hashes, path traversal, non-finite values, malformed intervals, retired method
 labels, values or intervals that drift from `claims/claims.yaml`, and missing
-claim-specific interpretation boundaries.
+claim-specific interpretation boundaries. Figure-example JSON is separately
+validated by the paper artifact builder and hash-bound in
+`paper/generated/artifact_manifest.json`.

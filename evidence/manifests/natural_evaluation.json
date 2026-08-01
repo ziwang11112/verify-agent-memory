@@ -1,8 +1,8 @@
 {
   "contains_raw_text_or_private_content": false,
   "normalized_file": "evidence/normalized/natural_evaluation.csv",
-  "normalized_sha256": "e5b79e717e2c691fa92e80a7265123b1150ffa738e43132deaa3a7216214cec8",
-  "row_count": 14,
+  "normalized_sha256": "edbb7ebe08cd5c8a7091134082bc87a013c8923f0b65cd57d9c943c69de407ed",
+  "row_count": 58,
   "schema_version": 1,
   "source_artifacts": [
     {
@@ -21,5 +21,5 @@
   "source_repository": "ziwang11112/bomi",
   "source_snapshot_commit": "a28093110325968c26906223e9eb0f1e078f6aad",
   "transformation_script": "scripts/import_frozen_evidence.py",
-  "transformation_script_sha256": "119e96032c9155ab0e3f2e3521b222862756b424a76caf80ed185c3e6a91c7dc"
+  "transformation_script_sha256": "aa60790fc51ee68aeb4d34294bff9d57a7e09f85d9614ee887a64b0a1db5c253"
 }

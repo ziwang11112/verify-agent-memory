@@ -12,10 +12,11 @@ how to verify that distinction while preserving the useful evidence an agent nee
 The evaluation surface separates four states:
 
 ```text
-Stored -> Retrieved -> Exposed -> Used
+Stored -> Retrieved -> Exposed -> Disclosed
 ```
 
-Retrieval does not imply prompt exposure, and exposure does not imply answer use.
+Retrieval does not imply prompt exposure, and exposure does not imply answer
+disclosure.
 The formal object is query-conditioned admissibility:
 
 ```text
@@ -53,8 +54,8 @@ and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
   exposure and answer leakage.
 - Restricting exposure lowers leakage but also reduces bounded utility and increases
   over-refusal.
-- Trusted released namespaces improve recall and feasible rate while reducing a
-  conservative contamination bound on the public-source evaluation.
+- Trusted released namespaces improve recall and feasible rate while reducing the
+  preregistered penalized conservative risk on the public-source evaluation.
 - The evaluated threshold and cluster routers do not establish incremental utility
   beyond namespace support.
 - Released intent and lifecycle fields show upper-bound headroom, not deployable

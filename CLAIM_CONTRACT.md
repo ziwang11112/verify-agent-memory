@@ -125,19 +125,36 @@ The evaluation applied settings selected once on development data to 87 groups,
 | --- | ---: | ---: |
 | Global-dense recall | 0.716835 | n/a |
 | Namespace-dense recall | 0.865663 | n/a |
+| Global-dense feasible rate | 0.538871 | n/a |
+| Namespace-dense feasible rate | 0.761867 | n/a |
+| Global-dense penalized conservative risk | 0.872626 | n/a |
+| Namespace-dense penalized conservative risk | 0.836668 | n/a |
 | Recall difference | 0.148828 | [0.129460, 0.168372] |
 | Feasible-rate difference | 0.222996 | [0.192156, 0.255019] |
 | Conservative-contamination difference | -0.035958 | [-0.041611, -0.030301] |
 | Namespace wrong-scope leakage | 0.000000 | n/a |
 
+The preregistered penalized conservative risk assigns `1.0` to an infeasible query
+or a feasible query without a resolved contamination label. It is therefore not a
+pure conditional contamination estimate. Among feasible matched prefixes:
+
+| Support | Known contamination | Label coverage | Lower bound | Upper bound |
+| --- | ---: | ---: | ---: | ---: |
+| Global dense | 0.575314 | 0.538031 | 0.307860 | 0.769830 |
+| Namespace dense | 0.347858 | 0.355480 | 0.133686 | 0.778206 |
+
 **Allowed:** Trusted namespace support improved recall and feasible rate while
-reducing the conservative contamination upper bound on this public-source
+reducing the preregistered penalized conservative risk score on this public-source
 evaluation. Namespace arms had zero measured wrong-scope leakage under trusted
-released namespaces.
+released namespaces. Descriptively, resolved contamination and the lower bound were
+smaller inside feasible matched prefixes, but label coverage was also lower and the
+conditional upper bound remained high.
 
 **Forbidden:** Do not call this an official RHELM or MemOps submission, claim a
 downstream answer-quality effect, generalize to noisy or inferred namespaces, or
-describe the conservative bound as fully resolved contamination.
+describe the conservative bound as fully resolved contamination. Do not describe the
+penalized risk as a pure conditional contamination estimate or claim that namespace
+support reduced the conditional matched-prefix upper bound.
 
 **Boundary:** Non-required same-namespace memories remain unresolved. There is no
 reader outcome for this population. Intervals are source-macro bootstrap intervals.
@@ -148,7 +165,7 @@ reader outcome for this population. Intervals are source-macro bootstrap interva
 
 **Status:** Diagnostic negative result
 
-| Contrast against namespace dense | Recall difference | 95% CI | Conservative contamination difference | 95% CI |
+| Contrast against namespace dense | Recall difference | 95% CI | Penalized conservative risk difference | 95% CI |
 | --- | ---: | ---: | ---: | ---: |
 | Threshold router | -0.023001 | [-0.028848, -0.017318] | 0.002100 | [0.001476, 0.002854] |
 | Cluster router | -0.000609 | [-0.001875, 0.000000] | 0.000166 | [-0.000001, 0.000513] |
@@ -156,6 +173,8 @@ reader outcome for this population. Intervals are source-macro bootstrap interva
 **Allowed:** Additional threshold and cluster routing did not establish practical
 incremental utility beyond trusted namespace support. The threshold arm lost recall;
 the cluster arm was practically indistinguishable on primary quality metrics.
+The selected threshold arm used namespace-local fallback on 0.965443 of source-macro
+queries, while the selected cluster arm routed to one cluster on average.
 
 **Forbidden:** Do not present a new router as the contribution, claim clustering is
 universally useless, or claim exact identity on every full-evaluation query.
@@ -172,12 +191,13 @@ possible routing methods.
 | Upper-bound minus namespace dense | Difference | 95% CI |
 | --- | ---: | ---: |
 | Recall | 0.002902 | [-0.002336, 0.007897] |
-| Conservative contamination | -0.008667 | [-0.010697, -0.006750] |
+| Penalized conservative risk | -0.008667 | [-0.010697, -0.006750] |
 | Prohibited-stale exposure | -0.002475 | [-0.003401, -0.001653] |
 | Prohibited-superseded exposure | -0.010397 | [-0.011768, -0.009086] |
 
 **Allowed:** Released query intent and lifecycle fields reveal upper-bound headroom
-without a detected recall loss.
+without a detected recall loss. The diagnostic reduced penalized conservative risk
+and prohibited stale or superseded exposure.
 
 **Forbidden:** Do not describe this as a deployable lifecycle filter, claim the
 system inferred intent or state, or recommend deleting every stale memory.
