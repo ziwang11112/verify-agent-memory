@@ -21,5 +21,5 @@
   "source_repository": "ziwang11112/bomi",
   "source_snapshot_commit": "a28093110325968c26906223e9eb0f1e078f6aad",
   "transformation_script": "scripts/import_frozen_evidence.py",
-  "transformation_script_sha256": "aa60790fc51ee68aeb4d34294bff9d57a7e09f85d9614ee887a64b0a1db5c253"
+  "transformation_script_sha256": "a69b441d2627722bad374682919001ed9369149c7575587d83682ba423cae533"
 }

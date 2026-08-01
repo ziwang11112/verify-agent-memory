@@ -375,66 +375,6 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             claim_id="C7",
             metric="prohibited_superseded_exposure_delta",
         ),
-        "relevance_exact": _one(
-            rows,
-            claim_id="C8",
-            contrast="relevance",
-            metric="exact_agreement",
-        ),
-        "relevance_alpha": _one(
-            rows,
-            claim_id="C8",
-            contrast="relevance",
-            metric="krippendorff_alpha",
-        ),
-        "scope_exact": _one(
-            rows,
-            claim_id="C8",
-            contrast="scope",
-            metric="exact_agreement",
-        ),
-        "scope_alpha": _one(
-            rows,
-            claim_id="C8",
-            contrast="scope",
-            metric="krippendorff_alpha",
-        ),
-        "state_exact": _one(
-            rows,
-            claim_id="C8",
-            contrast="state",
-            metric="exact_agreement",
-        ),
-        "state_alpha": _one(
-            rows,
-            claim_id="C8",
-            contrast="state",
-            metric="krippendorff_alpha",
-        ),
-        "prohibited_exact": _one(
-            rows,
-            claim_id="C8",
-            contrast="prohibited",
-            metric="exact_agreement",
-        ),
-        "prohibited_alpha": _one(
-            rows,
-            claim_id="C8",
-            contrast="prohibited",
-            metric="krippendorff_alpha",
-        ),
-        "usable_exact": _one(
-            rows,
-            claim_id="C8",
-            contrast="usable_evidence",
-            metric="exact_agreement",
-        ),
-        "usable_alpha": _one(
-            rows,
-            claim_id="C8",
-            contrast="usable_evidence",
-            metric="krippendorff_alpha",
-        ),
     }
 
 
@@ -445,7 +385,6 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
         _macro("NaturalMemoryCount", "182{,}908"),
         _macro("NaturalQueryCount", "3{,}767"),
         _macro("NaturalRouteRows", "33{,}903"),
-        _macro("HumanRecordCount", "207"),
         _macro("ReaderDiscordantCount", _count(selected["reader_a"])),
         _macro("ReaderPredictionCount", _count(selected["reader_a_brier"])),
         _macro("GOneLeakageCount", _count(selected["g1_leakage"])),
@@ -672,37 +611,6 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             "LifecycleSupersededDeltaCI",
             _ci(selected["lifecycle_superseded_delta"]),
         ),
-        _macro(
-            "RelevanceExactAgreement",
-            _plain(_number(selected["relevance_exact"])),
-        ),
-        _macro(
-            "RelevanceAlpha",
-            _plain(_number(selected["relevance_alpha"])),
-        ),
-        _macro(
-            "ScopeExactAgreement",
-            _plain(_number(selected["scope_exact"])),
-        ),
-        _macro("ScopeAlpha", _plain(_number(selected["scope_alpha"]))),
-        _macro(
-            "StateExactAgreement",
-            _plain(_number(selected["state_exact"])),
-        ),
-        _macro("StateAlpha", _plain(_number(selected["state_alpha"]))),
-        _macro(
-            "ProhibitedExactAgreement",
-            _plain(_number(selected["prohibited_exact"])),
-        ),
-        _macro(
-            "ProhibitedAlpha",
-            _plain(_number(selected["prohibited_alpha"])),
-        ),
-        _macro(
-            "UsableExactAgreement",
-            _plain(_number(selected["usable_exact"])),
-        ),
-        _macro("UsableAlpha", _plain(_number(selected["usable_alpha"]))),
     ]
     _write_ascii_lines(path, macros)
 
@@ -871,33 +779,6 @@ def _write_matched_prefix_table(path: Path, selected: Mapping[str, Row]) -> None
             f" & {_plain(_number(lower))}"
             f" & {_plain(_number(upper))} \\\\"
         )
-    lines.extend((r"\bottomrule", r"\end{tabular}"))
-    _write_ascii_lines(path, lines)
-
-
-def _write_agreement_table(path: Path, rows: Sequence[Row]) -> None:
-    labels = {
-        "relevance": "Relevance",
-        "scope": "Scope",
-        "state": "Lifecycle state",
-        "prohibited": "Prohibited evidence",
-        "usable_evidence": "Usable evidence",
-    }
-    lines = [
-        r"\begin{tabular}{lrr}",
-        r"\toprule",
-        r"Axis & Exact agreement & Krippendorff's $\alpha$ \\",
-        r"\midrule",
-    ]
-    for axis, label in labels.items():
-        exact = _one(rows, claim_id="C8", contrast=axis, metric="exact_agreement")
-        alpha = _one(
-            rows,
-            claim_id="C8",
-            contrast=axis,
-            metric="krippendorff_alpha",
-        )
-        lines.append(f"{label} & {_plain(_number(exact))} & {_plain(_number(alpha))} \\\\")
     lines.extend((r"\bottomrule", r"\end{tabular}"))
     _write_ascii_lines(path, lines)
 
@@ -1355,18 +1236,15 @@ def _errorbar(
     axis.grid(axis="x", color="#E5E5E5", linewidth=0.6)
 
 
-def _write_evidence_figure(path: Path, rows: Sequence[Row], selected: Mapping[str, Row]) -> None:
+def _write_evidence_figure(path: Path, selected: Mapping[str, Row]) -> None:
     _configure_matplotlib()
     import matplotlib.pyplot as plt
 
     reader_a = "#087F8C"
     reader_b = "#C65D2E"
     neutral = "#7C838C"
-    figure, axes = plt.subplots(2, 2, figsize=(7.1, 4.8), layout="constrained")
-    risk_axis = axes[0, 0]
-    predictive_axis = axes[0, 1]
-    tradeoff_axis = axes[1, 0]
-    agreement_axis = axes[1, 1]
+    figure, axes = plt.subplots(1, 3, figsize=(7.1, 2.65), layout="constrained")
+    risk_axis, predictive_axis, tradeoff_axis = axes
 
     _errorbar(
         risk_axis,
@@ -1374,7 +1252,7 @@ def _write_evidence_figure(path: Path, rows: Sequence[Row], selected: Mapping[st
         ["Reader A", "Reader B"],
         [reader_a, reader_b],
     )
-    risk_axis.set_title("(a) Exposure tracks answer disclosure", loc="left", weight="bold")
+    risk_axis.set_title("(a) Exposure and disclosure", loc="left", weight="bold")
     risk_axis.set_xlabel("Exposed minus unexposed disclosure risk")
     risk_axis.set_xlim(0.34, 0.60)
     risk_axis.grid(False)
@@ -1414,7 +1292,7 @@ def _write_evidence_figure(path: Path, rows: Sequence[Row], selected: Mapping[st
         ["Brier / A", "Brier / B", "Log loss / A", "Log loss / B"],
         [reader_a, reader_b, reader_a, reader_b],
     )
-    predictive_axis.set_title("(b) Exposure adds predictive value", loc="left", weight="bold")
+    predictive_axis.set_title("(b) Predictive value of exposure", loc="left", weight="bold")
     predictive_axis.set_xlabel("Delta vs. no-exposure model (lower is better)")
     predictive_axis.set_xlim(-0.085, 0.005)
     predictive_axis.grid(False)
@@ -1440,7 +1318,7 @@ def _write_evidence_figure(path: Path, rows: Sequence[Row], selected: Mapping[st
         ["Answer leakage", "Bounded utility", "Over-refusal"],
         ["#2E8B57", "#B64342", "#D9822B"],
     )
-    tradeoff_axis.set_title("(c) A stricter route is not free", loc="left", weight="bold")
+    tradeoff_axis.set_title("(c) Safety and utility trade-off", loc="left", weight="bold")
     tradeoff_axis.set_xlabel("G1 minus G0")
     tradeoff_axis.set_xlim(-0.30, 0.38)
     tradeoff_axis.grid(False)
@@ -1461,57 +1339,6 @@ def _write_evidence_figure(path: Path, rows: Sequence[Row], selected: Mapping[st
             fontsize=6.0,
             weight="bold",
         )
-
-    axes_order = ("relevance", "scope", "state", "prohibited", "usable_evidence")
-    labels = ("Relevance", "Scope", "Lifecycle", "Prohibited", "Usable")
-    exact = [
-        _number(_one(rows, claim_id="C8", contrast=axis, metric="exact_agreement"))
-        for axis in axes_order
-    ]
-    alpha = [
-        _number(_one(rows, claim_id="C8", contrast=axis, metric="krippendorff_alpha"))
-        for axis in axes_order
-    ]
-    positions = list(range(len(labels)))
-    width = 0.32
-    agreement_axis.barh(
-        [position - width / 2 for position in positions],
-        exact,
-        height=width,
-        label="Exact",
-        color="#8B95A1",
-    )
-    alpha_colors = ["#4C78A8"] * len(labels)
-    alpha_colors[3] = "#B64342"
-    agreement_axis.barh(
-        [position + width / 2 for position in positions],
-        alpha,
-        height=width,
-        label=r"$\alpha$",
-        color=alpha_colors,
-    )
-    agreement_axis.set_yticks(positions, labels)
-    agreement_axis.invert_yaxis()
-    agreement_axis.set_xlim(0, 1.02)
-    agreement_axis.set_xlabel("Agreement")
-    agreement_axis.set_title("(d) Human labels: one weak axis", loc="left", weight="bold")
-    agreement_axis.grid(False)
-    agreement_axis.axvline(0.8, color="#CBD0D6", linewidth=0.7, linestyle=":")
-    agreement_axis.legend(
-        loc="lower center",
-        bbox_to_anchor=(0.5, -0.29),
-        ncol=2,
-        frameon=False,
-    )
-    agreement_axis.text(
-        alpha[3] + 0.02,
-        positions[3] + width / 2,
-        f"{alpha[3]:.3f}",
-        va="center",
-        color="#B64342",
-        fontsize=5.8,
-        weight="bold",
-    )
 
     _save_figure(figure, path)
     plt.close(figure)
@@ -1827,14 +1654,12 @@ def build(repository_root: Path) -> tuple[Path, ...]:
     main_table_path = output_root / "main_results.tex"
     full_arm_table_path = output_root / "full_arm_results.tex"
     matched_prefix_table_path = output_root / "matched_prefix_diagnostics.tex"
-    agreement_table_path = output_root / "human_agreement.tex"
     smoke_table_path = output_root / "mechanism_smoke.tex"
     outputs = (
         numbers_path,
         main_table_path,
         full_arm_table_path,
         matched_prefix_table_path,
-        agreement_table_path,
         smoke_table_path,
         output_root / "verification_pipeline.pdf",
         output_root / "verification_pipeline.png",
@@ -1850,10 +1675,9 @@ def build(repository_root: Path) -> tuple[Path, ...]:
     _write_main_table(main_table_path, selected)
     _write_full_arm_table(full_arm_table_path, rows)
     _write_matched_prefix_table(matched_prefix_table_path, selected)
-    _write_agreement_table(agreement_table_path, rows)
     _write_smoke_table(smoke_table_path, selected)
     _write_pipeline_figure(output_root / "verification_pipeline", figure_examples)
-    _write_evidence_figure(output_root / "evidence_summary", rows, selected)
+    _write_evidence_figure(output_root / "evidence_summary", selected)
     _write_retrieval_figure(output_root / "retrieval_results", rows, selected)
     _write_manifest(repository_root, output_root, outputs)
     return outputs

@@ -11,7 +11,6 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 | C5 | Sections 4.1--4.3 and 5.3 | Figure 3a--c, Table 1 | Trusted released namespaces; not an official benchmark submission |
 | C6 | Sections 4.2 and 5.4 | Figure 3d, Table 1 | Negative result for two frozen diagnostic routers only |
 | C7 | Sections 4.2 and 5.5 | Figure 3d, Table 1 | Released-field upper bound, not deployable blind inference |
-| C8 | Sections 4.1, 4.3, and 5.6 | Figure 2d, Table 3 | Selected records; raw pre-adjudication agreement; prohibited-axis caveat |
 
 ## Paper-Level Claims
 
@@ -35,5 +34,4 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 - Generalization from trusted namespaces to noisy or inferred namespaces.
 - A causal effect of retrieval or exposure on answer leakage.
 - Cross-provider replication of the GateMem reader analysis.
-- Fully reliable prohibited-evidence annotation.
 - A deployable method for inferring intent, scope, or lifecycle state.

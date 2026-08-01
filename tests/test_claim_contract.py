@@ -52,10 +52,10 @@ def test_missing_required_field_is_rejected() -> None:
 
 def test_duplicate_ids_are_rejected() -> None:
     data = load_valid_contract()
-    duplicate = deepcopy(claim(data, "C8"))
+    duplicate = deepcopy(claim(data, "C7"))
     duplicate["claim"] = "Duplicate fixture."
     data["claims"].append(duplicate)
-    assert "duplicate claim id: C8" in validate(data)
+    assert "duplicate claim id: C7" in validate(data)
 
 
 def test_nonfinite_exact_value_is_rejected() -> None:
@@ -119,20 +119,9 @@ def test_gatemem_claim_requires_same_provider_limitation() -> None:
     assert "C3 must include a same-provider limitation" in validate(data)
 
 
-def test_prohibited_reliability_limitation_is_required() -> None:
-    data = load_valid_contract()
-    human_claim = claim(data, "C8")
-    human_claim["known_limitations"] = [
-        item
-        for item in human_claim["known_limitations"]
-        if not ("prohibited" in item and "reliability" in item)
-    ]
-    assert "C8 must include the prohibited-label reliability limitation" in validate(data)
-
-
 def test_readable_contract_must_render_every_claim() -> None:
     data = load_valid_contract()
-    assert "CLAIM_CONTRACT.md does not render C8" in validate_contract(data, "### C1: only")
+    assert "CLAIM_CONTRACT.md does not render C7" in validate_contract(data, "### C1: only")
 
 
 def test_source_index_covers_empirical_claims() -> None:

@@ -205,34 +205,6 @@ system inferred intent or state, or recommend deleting every stale memory.
 **Boundary:** Query intent and lifecycle state are released inputs. Historical
 queries may require records that are stale for current-state queries.
 
-## Human Agreement Boundary
-
-### C8: Raw two-human overlap
-
-**Status:** Raw pre-adjudication agreement
-
-Two independent humans labeled 207 selected records. Model-assisted labels are
-excluded.
-
-| Axis | Exact agreement | Krippendorff alpha |
-| --- | ---: | ---: |
-| Relevance | 0.8937 | 0.8135 |
-| Scope | 0.9952 | 0.9808 |
-| State | 0.8599 | 0.6703 |
-| Prohibited | 0.8841 | 0.0829 |
-| Usable evidence | 0.9710 | 0.9405 |
-
-**Allowed:** Agreement was strong for relevance, scope, and usable evidence, and
-moderate for state. The prohibited axis had high exact agreement but low alpha under
-strong prevalence imbalance.
-
-**Forbidden:** Do not summarize all five axes as highly reliable, call the selected
-records population-wide human gold, or count model-assisted labels as humans.
-
-**Boundary:** The overlap is raw and pre-adjudication. A distinct execution commit is
-not recorded in the public summary and must be resolved or explicitly preserved as a
-provenance gap before Phase 2.
-
 ## Writing Rule
 
 Every manuscript sentence that asserts an empirical result must map to one claim ID.

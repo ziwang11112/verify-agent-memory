@@ -34,11 +34,9 @@ intent, or lifecycle state, and it does not estimate population prevalence.
 | a | 721 GateMem exposure-discordant checkpoints | Exposed-minus-unexposed answer-disclosure risk difference | Exposure is strongly associated with answer disclosure for each reader |
 | b | 4,470 held-out GateMem rows | Exposure-augmented minus baseline Brier score and log loss | Exposure improves held-out prediction under two proper scores |
 | c | 1,490 leakage and 728 distinct bounded-utility checkpoints | G1-minus-G0 leakage, utility, and over-refusal | Stricter filtering exposes a safety--utility frontier |
-| d | 207 selected records | Raw exact agreement and Krippendorff alpha | Most axes are reliable enough for audit; prohibited is prevalence-limited |
 
 **Boundaries:** Readers are same-provider and never pooled. Exposure/disclosure and G1/G0
 comparisons are associative, not causal. Leakage and utility populations differ.
-Human labels are raw, pre-adjudication, and not population-wide gold.
 
 ## Figure 3: Namespace Support Carries the Retrieval Gain
 

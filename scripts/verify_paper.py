@@ -19,7 +19,6 @@ REQUIRED_GENERATED_INPUTS = (
     "generated/main_results.tex",
     "generated/full_arm_results.tex",
     "generated/matched_prefix_diagnostics.tex",
-    "generated/human_agreement.tex",
     "generated/mechanism_smoke.tex",
     "generated/verification_pipeline.pdf",
     "generated/evidence_summary.pdf",

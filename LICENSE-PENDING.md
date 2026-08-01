@@ -9,8 +9,8 @@ Phase 2 review established that:
    from the unlicensed internal archive;
 2. GateMem, RHELM, and MemOps carry repository-level MIT licenses at their frozen
    revisions;
-3. normalized aggregate evidence contains no raw benchmark text, private data,
-   reviewer identity, or model response content; and
+3. normalized aggregate evidence contains no raw benchmark text, private data, or
+   model response content; and
 4. upstream notices and incorporated-data caveats are recorded in
    `THIRD_PARTY_NOTICES.md` and `docs/LICENSE_AUDIT.md`.
 

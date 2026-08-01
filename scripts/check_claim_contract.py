@@ -172,12 +172,6 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
         if "same-provider" not in limitations:
             errors.append(f"{claim_id} must include a same-provider limitation")
 
-    human = claim_by_id.get("C8")
-    if human:
-        limitations = _combined_text(human.get("known_limitations"))
-        if "prohibited" not in limitations or "reliability" not in limitations:
-            errors.append("C8 must include the prohibited-label reliability limitation")
-
     if readable_contract is not None:
         for claim_id in claim_by_id:
             if f"### {claim_id}:" not in readable_contract:

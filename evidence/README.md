@@ -1,12 +1,12 @@
 # Evidence Package
 
 The `normalized/` directory contains content-free aggregate measurements for claims
-C2-C8. It does not contain benchmark conversations, query text, memory text, model
-responses, reviewer identity, embeddings, or per-query identifiers.
+C2-C7. It does not contain benchmark conversations, query text, memory text, model
+responses, embeddings, or per-query identifiers.
 
 The `examples/` directory contains four deliberately selected, abridged
 public-source query-memory cases for Figure 1 and claim C1. It contains no private
-user data, model responses, reviewer identity, or embeddings. Its packet and memory
+user data, model responses, or embeddings. Its packet and memory
 identifiers are retained solely to make the qualitative examples auditable.
 
 ## Evidence Families
@@ -16,7 +16,6 @@ identifiers are retained solely to make the qualitative examples auditable.
 | `normalized/gatemem.csv` | Separate fixed-reader exposure/use associations and a clean-reader leakage-utility trade-off |
 | `normalized/mechanism_smoke.csv` | Sixteen curated candidate-pool evaluation packets only |
 | `normalized/natural_evaluation.csv` | Source-macro evaluation over 87 groups, 182,908 memories, and 3,767 queries |
-| `normalized/human_agreement.csv` | Raw pre-adjudication agreement over 207 selected audit records |
 
 Every CSV uses the same schema:
 

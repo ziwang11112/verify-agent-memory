@@ -32,17 +32,6 @@ artifacts:
     public_paper_label: "evaluation runner"
     contains_raw_text_or_private_content: false
 
-  - id: code_human_agreement
-    category: PORT_AND_REFACTOR
-    old_repository: "ziwang11112/bomi"
-    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
-    source_path: "bomi/eval/stage3_human_agreement.py"
-    source_sha256: "4354c3a24c12657c5e1d119e9bc7dce9e256e29644cdb44babea563106d0e29b"
-    intended_normalized_destination: "src/verify_agent_memory/agreement.py"
-    transformation_required: "Port pure agreement calculations after license and identifier review."
-    public_paper_label: "human agreement"
-    contains_raw_text_or_private_content: false
-
   - id: code_memops_mapping
     category: PORT_AND_REFACTOR
     old_repository: "ziwang11112/bomi"
@@ -228,72 +217,6 @@ artifacts:
     intended_normalized_destination: "evidence/manifests/gatemem.json"
     transformation_required: "Preserve model, provider, execution, and no-pooling boundaries."
     public_paper_label: "GateMem reader B manifest"
-    contains_raw_text_or_private_content: false
-
-  - id: human_agreement_json
-    category: IMPORT_AS_FROZEN_AGGREGATE
-    old_repository: "ziwang11112/bomi"
-    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
-    source_path: "reports/stage3_admissibility_label_suite/human_agreement_summary.json"
-    source_sha256: "2ecca3d86789f5061c362a17acef9ca39163ecff647470f2c3deeed18fe0a90f"
-    intended_normalized_destination: "evidence/normalized/human_agreement.csv"
-    transformation_required: "Remove reviewer hashes; retain aggregate axis statistics and boundaries."
-    public_paper_label: "raw two-human agreement"
-    contains_raw_text_or_private_content: false
-
-  - id: human_agreement_markdown
-    category: IMPORT_AS_FROZEN_AGGREGATE
-    old_repository: "ziwang11112/bomi"
-    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
-    source_path: "reports/stage3_admissibility_label_suite/human_agreement_summary.md"
-    source_sha256: "53520f53ff1fac2e9e505bc1ed7fe2a91c1beaf09ae64b1be65477208e483c79"
-    intended_normalized_destination: "evidence/manifests/human_agreement.json"
-    transformation_required: "Extract aggregate boundary language; omit internal status prose."
-    public_paper_label: "raw two-human agreement"
-    contains_raw_text_or_private_content: false
-
-  - id: human_agreement_table
-    category: IMPORT_AS_FROZEN_AGGREGATE
-    old_repository: "ziwang11112/bomi"
-    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
-    source_path: "reports/stage3_admissibility_label_suite/agreement.csv"
-    source_sha256: "707314303224b858113863e53ab0fd7bd71ad9256f58c91eabddfd21f520942f"
-    intended_normalized_destination: "evidence/normalized/human_agreement.csv"
-    transformation_required: "Retain aggregate rows only and verify reviewer identity is absent."
-    public_paper_label: "raw two-human agreement"
-    contains_raw_text_or_private_content: false
-
-  - id: human_label_distribution
-    category: IMPORT_AS_FROZEN_AGGREGATE
-    old_repository: "ziwang11112/bomi"
-    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
-    source_path: "reports/stage3_admissibility_label_suite/label_distribution.csv"
-    source_sha256: "cab88b42b2786ce13df50d23db5d7afc85d686e533389aad6d6acc064948f62e"
-    intended_normalized_destination: "evidence/normalized/human_agreement.csv"
-    transformation_required: "Retain aggregate prevalence counts used to interpret alpha."
-    public_paper_label: "label prevalence"
-    contains_raw_text_or_private_content: false
-
-  - id: human_mapping_coverage
-    category: IMPORT_AS_FROZEN_AGGREGATE
-    old_repository: "ziwang11112/bomi"
-    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
-    source_path: "reports/stage3_admissibility_label_suite/mapping_coverage.csv"
-    source_sha256: "4732908d8a6b566d1b95025bd2eb85feecfd56475ca8b78c3df30173c854e67a"
-    intended_normalized_destination: "evidence/manifests/human_agreement.json"
-    transformation_required: "Retain aggregate coverage only; audit identifiers before import."
-    public_paper_label: "audit mapping coverage"
-    contains_raw_text_or_private_content: false
-
-  - id: human_audit_selection_manifest
-    category: IMPORT_AS_FROZEN_AGGREGATE
-    old_repository: "ziwang11112/bomi"
-    frozen_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
-    source_path: "reports/stage3_admissibility_label_suite/audit_selection_manifest.json"
-    source_sha256: "b6d36333ae808cdd24bbe0d6136fd4501e2c27fdff9c8be38bfd1654a18cafbd"
-    intended_normalized_destination: "evidence/manifests/human_agreement.json"
-    transformation_required: "Retain counts and packet hashes; remove private bundle hashes if release review requires."
-    public_paper_label: "audit selection manifest"
     contains_raw_text_or_private_content: false
 
   - id: smoke_main_table

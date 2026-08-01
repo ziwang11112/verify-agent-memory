@@ -20,7 +20,7 @@
     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
     \item[] Answer: \answerYes{}
     \item[] Justification: The dedicated limitations section covers source scope,
-    trusted metadata, reader dependence, annotation reliability, missing hardware
+    trusted metadata, reader dependence, incomplete labels, missing hardware
     details, and non-causal interpretation.
     \item[] Guidelines:
     \begin{itemize}
@@ -170,8 +170,8 @@
     \item[] Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse (e.g., pre-trained language models, image generators, or scraped datasets)?
     \item[] Answer: \answerNA{}
     \item[] Justification: No model or high-risk raw dataset is released.  The
-    package intentionally excludes conversations, responses, reviewer identities,
-    credentials, embeddings, and private data.
+    package intentionally excludes conversations, responses, credentials,
+    embeddings, and private data.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper poses no such risks.
@@ -215,8 +215,8 @@
 \item {\bf Crowdsourcing and research with human subjects}
     \item[] Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation (if any)? 
     \item[] Answer: \answerNA{}
-    \item[] Justification: The audit labels were produced by members of the research
-    team; there was no crowdsourcing, recruited-participant study, or compensation.
+    \item[] Justification: There was no crowdsourcing, recruited-participant study,
+    or compensation.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not involve crowdsourcing nor research with human subjects.
@@ -227,8 +227,7 @@
 \item {\bf Institutional review board (IRB) approvals or equivalent for research with human subjects}
     \item[] Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) approvals (or an equivalent approval/review based on the requirements of your country or institution) were obtained?
     \item[] Answer: \answerNA{}
-    \item[] Justification: No human-subject experiment was conducted.  The paper
-    reports agreement between research-team annotations without reviewer identity.
+    \item[] Justification: No human-subject experiment was conducted.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not involve crowdsourcing nor research with human subjects.
@@ -242,8 +241,7 @@
     %this research? 
     \item[] Answer: \answerYes{}
     \item[] Justification: Section 4.1 names the two reader models and explains their
-    role in the exposure/disclosure analysis.  Model-assisted labels are excluded from the
-    two-human agreement result.
+    role in the exposure/disclosure analysis.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the core method development in this research does not involve LLMs as any important, original, or non-standard components.

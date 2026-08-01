@@ -13,7 +13,6 @@ constants, and covered by new tests:
 ```text
 bomi/eval/stage3_admissibility_metrics.py
 bomi/eval/stage3_admissibility_runner.py
-bomi/eval/stage3_human_agreement.py
 bomi/bench/stage3_memops_mapping.py
 bomi/bench/stage3_rhelm_evidence_resolution.py
 bomi/bench/stage3_natural_corpus_admissibility.py
@@ -40,12 +39,10 @@ eligible. Phase 2 must:
 The eligible evidence families are:
 
 - two separately executed GateMem reader aggregates and manifests;
-- raw pre-adjudication two-human agreement aggregates;
 - the 16-packet candidate-pool mechanism smoke; and
 - the 87-group, 3,767-query public-source natural evaluation.
 
-Raw response bundles, private scored derivatives, reviewer identity, and private
-review rows are not eligible.
+Raw response bundles and private scored derivatives are not eligible.
 
 ## REFERENCE_ONLY
 
@@ -76,7 +73,6 @@ internal experiment and milestone numbering
 owner-unlock and provider-recovery records
 failed execution checkpoints
 private responses and raw prompts
-raw reviewer identities and private review packets
 GPU embedding shards and route checkpoints
 data/private/**
 reports/**/cache/**

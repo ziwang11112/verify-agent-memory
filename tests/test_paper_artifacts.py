@@ -26,8 +26,6 @@ def test_paper_evidence_selectors_cover_primary_claims() -> None:
     assert selected["threshold_recall_delta"]["claim_id"] == "C6"
     assert selected["threshold_fallback_rate"]["metric"] == "fallback_rate"
     assert selected["lifecycle_contamination_delta"]["claim_id"] == "C7"
-    assert selected["prohibited_alpha"]["claim_id"] == "C8"
-    assert selected["usable_alpha"]["contrast"] == "usable_evidence"
 
 
 def test_paper_package_passes() -> None:

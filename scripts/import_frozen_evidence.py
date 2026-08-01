@@ -640,38 +640,6 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
     return output
 
 
-def _human_rows(source: FrozenSource) -> list[dict[str, object]]:
-    path = "reports/stage3_admissibility_label_suite/human_agreement_summary.json"
-    summary = json.loads(source.read(path))
-    output: list[dict[str, object]] = []
-    for row in summary["agreement_rows"]:
-        axis = str(row["axis"])
-        for source_metric, public_metric in (
-            ("exact_agreement", "exact_agreement"),
-            ("krippendorff_alpha_nominal", "krippendorff_alpha"),
-        ):
-            output.append(
-                _evidence_row(
-                    claim_id="C8",
-                    family="human_agreement",
-                    population="207 selected audit records",
-                    source="two independent human reviewers",
-                    contrast=axis,
-                    metric=public_metric,
-                    estimate=_finite_float(
-                        row[source_metric],
-                        f"{axis} {source_metric}",
-                    ),
-                    n=_integer(row["records"], f"{axis} records"),
-                    notes=(
-                        "raw_pre_adjudication;not_population_wide_human_gold"
-                        + (";prevalence_limited_reliability" if axis == "prohibited" else "")
-                    ),
-                )
-            )
-    return output
-
-
 def _write_csv(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
@@ -720,7 +688,6 @@ def import_evidence(
         ("gatemem", _gatemem_rows),
         ("mechanism_smoke", _mechanism_smoke_rows),
         ("natural_evaluation", _natural_rows),
-        ("human_agreement", _human_rows),
     )
     written: list[Path] = []
     for family, builder in families:

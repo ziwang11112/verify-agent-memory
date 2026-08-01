@@ -32,7 +32,7 @@ usable(m, q, p, t)
 
 This repository contains the claim contract, a small pure evaluation library, and
 hash-bound normalized aggregate evidence. It contains no benchmark payloads, raw
-prompts, model responses, embeddings, checkpoints, reviewer identities, or provider
+prompts, model responses, embeddings, checkpoints, or provider
 runtime.
 
 ## Current Scope
@@ -60,8 +60,6 @@ and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
   beyond namespace support.
 - Released intent and lifecycle fields show upper-bound headroom, not deployable
   blind inference performance.
-- Two-human agreement is strong on most audited axes, while the prohibited axis is
-  prevalence-limited and not reliable enough for a broad claim.
 
 The normalized values and their source receipts are documented in
 [evidence/README.md](evidence/README.md).

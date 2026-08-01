@@ -21,7 +21,7 @@ and generator code. Figure assets are emitted as vector PDF/SVG and inspection P
   namespace, supersession, explicit forgetting, and history-compatible old states,
   plus the compact record-level verification interface;
 - `evidence_summary.*`: exposure/disclosure, reader calibration, filtering
-  trade-off, and human agreement;
+  trade-off;
 - `retrieval_results.*`: all retrieval arms in recall--cost space, the trusted
   namespace effect, incomplete-label uncertainty, and router/lifecycle contrasts.
 
@@ -44,7 +44,7 @@ page-count and visual-inspection receipt is in `paper/BUILD_REPORT.md`.
 
 - `paper/main.tex` must use `dblblindworkshop`.
 - `paper/checklist.tex` must contain no TODO answers.
-- C1-C8 must each appear in `paper/CLAIM_MAP.md`.
+- C1-C7 must each appear in `paper/CLAIM_MAP.md`.
 - Generated artifact hashes must match the manifest.
 - No empirical number should be hand-entered in prose when a generated macro exists.
 - The main text must not use retired internal method labels.

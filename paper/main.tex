@@ -103,8 +103,8 @@ Our contributions are:
   \NaturalMemoryCount{} memories, and \NaturalQueryCount{} queries, showing that
   trusted namespace support provides the main retrieval gain while two additional
   routing refinements do not; and
-  \item separate exposure/disclosure and human-agreement analyses that identify what the
-  retrieval measurements can and cannot support.
+  \item a separate exposure/disclosure analysis that identifies what the retrieval
+  measurements can and cannot support.
 \end{itemize}
 
 \section{Related Work}
@@ -135,8 +135,8 @@ AgentBench and AgentBoard broaden agent evaluation beyond static language tasks
 evaluation \citep{liang2023helm}.  Our protocol follows this analytical stance:
 final-answer accuracy alone cannot tell whether an answer was supported by
 admissible evidence.  Because model-based evaluation can introduce systematic
-biases \citep{liu2023geval}, we report reader identities separately and include a
-two-human agreement audit.
+biases \citep{liu2023geval}, we report reader identities separately and do not pool
+their estimates.
 
 \section{Verification Protocol}
 
@@ -263,13 +263,6 @@ there and then applied without evaluation retuning, query deletion, output repai
 or fallback changes, yielding \NaturalRouteRows{} complete method-query routes and
 scores.
 
-\paragraph{Human audit.}
-Two independent reviewers label \HumanRecordCount{} selected candidate records
-for relevance, scope, lifecycle state, prohibited evidence, and the binary
-usable-evidence conjunction.  We use raw pre-adjudication labels; model-assisted
-labels are excluded.  This is an overlap audit rather than population-wide human
-gold.
-
 \subsection{Retrieval arms and frozen selection}
 
 The nine arms share memory units, query text, embedding revision, and top-$k$ budget.
@@ -318,10 +311,8 @@ MemOps receive equal source weight so that MemOps does not dominate by size.  Pa
 profiles within MemOps before replicate-wise equal-source averaging.  Local timing
 and candidate counts are diagnostics only and are not production cost estimates.
 
-Human reliability is summarized by exact agreement and nominal Krippendorff's
-$\alpha$ \citep{krippendorff2018content}.  All empirical numbers, tables, and
-figures below are generated from hash-bound normalized evidence after claim-boundary
-validation.
+All empirical numbers, tables, and figures below are generated from hash-bound
+normalized evidence after claim-boundary validation.
 
 \subsection{Evaluation boundaries}
 
@@ -336,15 +327,14 @@ surfaces remain distinct throughout reporting.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{generated/evidence_summary.pdf}
-  \caption{Exposure, filtering, and human-audit evidence.  (a) Exposed-minus-
+  \caption{Exposure and filtering evidence.  (a) Exposed-minus-
   unexposed answer-disclosure risk over \ReaderDiscordantCount{} discordant checkpoints.
   (b) Exposure-augmented minus baseline Brier score and log loss over
   \ReaderPredictionCount{} held-out rows; lower is better and the metrics use
   separate scales.  (c) G1-minus-G0 leakage over \GOneLeakageCount{} checkpoints
-  and utility/refusal over a distinct \GOneUtilityCount{} checkpoints.  (d) Raw
-  pre-adjudication agreement over \HumanRecordCount{} records.  Points and whiskers
-  show estimates and 95\% intervals; bars show exact agreement and $\alpha$.
-  Reader estimates are reported separately and never pooled.}
+  and utility/refusal over a distinct \GOneUtilityCount{} checkpoints.  Points and
+  whiskers show estimates and 95\% intervals.  Reader estimates are reported
+  separately and never pooled.}
   \label{fig:evidence}
 \end{figure}
 
@@ -466,18 +456,6 @@ admissibility-risk intervals favor the upper-bound arm.  This establishes
 diagnostic headroom under observed fields, not that a deployed system can infer
 intent or lifecycle state from raw history.
 
-\subsection{Most annotation axes are reliable; one is not}
-
-For relevance, exact agreement is \RelevanceExactAgreement{} and
-$\alpha=\RelevanceAlpha{}$; for scope, \ScopeExactAgreement{} and
-\ScopeAlpha{}; for lifecycle state, \StateExactAgreement{} and \StateAlpha{}; and
-for usable evidence, \UsableExactAgreement{} and \UsableAlpha{}
-(Figure~\ref{fig:evidence}d).  The prohibited axis differs: exact agreement is
-\ProhibitedExactAgreement{} but $\alpha=\ProhibitedAlpha{}$, consistent with a
-prevalence-limited reliability problem.  We therefore retain the prohibited-axis
-caveat in every dependent claim and use unresolved-label bounds for retrieval
-conclusions.
-
 \section{Discussion}
 
 \paragraph{Verification changes the unit of analysis.}
@@ -513,15 +491,13 @@ support a production cost claim.
 
 The GateMem readers are both OpenAI models and are never pooled.  Exposure/disclosure
 differences are observational rather than randomized.  Utility and leakage have
-different eligible populations.  Human agreement covers selected records and is raw
-pre-adjudication; the prohibited axis has materially weak prevalence-adjusted
-reliability.
+different eligible populations.
 
 Admissibility filters can reduce cross-principal or stale-memory exposure, but they
 can also suppress legitimate evidence and encourage over-refusal.  A deployment
 should log exclusions, support appeal or audit, and evaluate utility at matched
 recall.  Our released package contains content-free aggregates and hashes only; it
-excludes raw conversations, model responses, reviewer identities, and private data.
+excludes raw conversations, model responses, and private data.
 
 \section{Conclusion}
 
@@ -656,27 +632,9 @@ performance estimate.
 \input{generated/mechanism_smoke.tex}
 \end{table}
 
-\section{Human Agreement}
-
-Exact agreement includes unresolved labels:
-\[
-P_o=\frac{1}{N}\sum_{i=1}^{N}\mathbf{1}[y_{i1}=y_{i2}].
-\]
-Nominal Krippendorff's $\alpha=1-D_o/D_e$ is computed after excluding pairs for
-which either reviewer used the unresolved label.  Results remain raw and
-pre-adjudication.
-
-\begin{table}[ht]
-  \centering
-  \small
-  \caption{Raw pre-adjudication agreement on 207 selected audit records.}
-  \label{tab:agreement}
-  \input{generated/human_agreement.tex}
-\end{table}
-
 \section{Reproducibility and Provenance}
 
-All paper numbers are generated from four normalized CSV evidence families.  Each
+All paper numbers are generated from three normalized CSV evidence families.  Each
 CSV has a manifest recording its output hash, frozen source paths and hashes,
 source-snapshot identity, and transformation-script hash.  The natural execution
 manifest proves complete coverage of nine settings over 3,767 queries in 33,903

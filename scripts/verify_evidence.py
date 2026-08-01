@@ -29,7 +29,7 @@ REQUIRED_COLUMNS = {
     "n",
     "notes",
 }
-REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 9)}
+REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 8)}
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 PROHIBITED_OUTPUT_LABELS = {"ncr_threshold", "ncr_a5"}
 EXPECTED_METRIC_COUNTS = {
@@ -39,7 +39,6 @@ EXPECTED_METRIC_COUNTS = {
     "C5": 48,
     "C6": 6,
     "C7": 4,
-    "C8": 10,
 }
 
 
@@ -183,8 +182,6 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
         if method not in {"threshold_router", "cluster_router"}:
             return None
         return (method, metric)
-    if claim_id == "C8":
-        return (contrast, metric)
     return None
 
 
