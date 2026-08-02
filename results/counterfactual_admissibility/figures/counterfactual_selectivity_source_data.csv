@@ -1,0 +1,29 @@
+panel,model,display_name,axis,metric,value,ci_lower,ci_upper,n,analysis_status
+a,OpenAI/gpt-5.6-sol,GPT-5.6,all,strict_focal_pair_consistency,1.0,1.0,1.0,32,preregistered
+a,OpenAI/gpt-5.6-sol,GPT-5.6,all,stable_control_overflip_rate,0.203125,0.109375,0.3125,64,preregistered
+b,OpenAI/gpt-5.6-sol,GPT-5.6,all,stable_admissible_false_deny_rate,0.265625,,,64,posthoc_descriptive
+b,OpenAI/gpt-5.6-sol,GPT-5.6,all,stable_inadmissible_false_admit_rate,0.03125,,,64,posthoc_descriptive
+c,OpenAI/gpt-5.6-sol,GPT-5.6,principal_scope,stable_control_overflip_rate,0.1875,,,16,posthoc_descriptive
+c,OpenAI/gpt-5.6-sol,GPT-5.6,policy_purpose,stable_control_overflip_rate,0.1875,,,16,posthoc_descriptive
+c,OpenAI/gpt-5.6-sol,GPT-5.6,lifecycle_intent,stable_control_overflip_rate,0.4375,,,16,posthoc_descriptive
+c,OpenAI/gpt-5.6-sol,GPT-5.6,as_of_time,stable_control_overflip_rate,0.0,,,16,posthoc_descriptive
+a,DeepSeek/deepseek-v4-pro,DeepSeek-V4,all,strict_focal_pair_consistency,0.71875,0.59375,0.84375,32,preregistered
+a,DeepSeek/deepseek-v4-pro,DeepSeek-V4,all,stable_control_overflip_rate,0.265625,0.1875,0.34375,64,preregistered
+b,DeepSeek/deepseek-v4-pro,DeepSeek-V4,all,stable_admissible_false_deny_rate,0.59375,,,64,posthoc_descriptive
+b,DeepSeek/deepseek-v4-pro,DeepSeek-V4,all,stable_inadmissible_false_admit_rate,0.015625,,,64,posthoc_descriptive
+c,DeepSeek/deepseek-v4-pro,DeepSeek-V4,principal_scope,stable_control_overflip_rate,0.0625,,,16,posthoc_descriptive
+c,DeepSeek/deepseek-v4-pro,DeepSeek-V4,policy_purpose,stable_control_overflip_rate,0.4375,,,16,posthoc_descriptive
+c,DeepSeek/deepseek-v4-pro,DeepSeek-V4,lifecycle_intent,stable_control_overflip_rate,0.4375,,,16,posthoc_descriptive
+c,DeepSeek/deepseek-v4-pro,DeepSeek-V4,as_of_time,stable_control_overflip_rate,0.125,,,16,posthoc_descriptive
+a,Gemini/gemini-3.6-flash,Gemini 3.6,all,strict_focal_pair_consistency,1.0,1.0,1.0,32,preregistered
+a,Gemini/gemini-3.6-flash,Gemini 3.6,all,stable_control_overflip_rate,0.296875,0.21875,0.375,64,preregistered
+b,Gemini/gemini-3.6-flash,Gemini 3.6,all,stable_admissible_false_deny_rate,0.53125,,,64,posthoc_descriptive
+b,Gemini/gemini-3.6-flash,Gemini 3.6,all,stable_inadmissible_false_admit_rate,0.0,,,64,posthoc_descriptive
+c,Gemini/gemini-3.6-flash,Gemini 3.6,principal_scope,stable_control_overflip_rate,0.125,,,16,posthoc_descriptive
+c,Gemini/gemini-3.6-flash,Gemini 3.6,policy_purpose,stable_control_overflip_rate,0.3125,,,16,posthoc_descriptive
+c,Gemini/gemini-3.6-flash,Gemini 3.6,lifecycle_intent,stable_control_overflip_rate,0.5,,,16,posthoc_descriptive
+c,Gemini/gemini-3.6-flash,Gemini 3.6,as_of_time,stable_control_overflip_rate,0.25,,,16,posthoc_descriptive
+a,released_oracle,Released oracle,all,strict_focal_pair_consistency,1.0,1.0,1.0,32,reference
+a,released_oracle,Released oracle,all,stable_control_overflip_rate,0.0,0.0,0.0,64,reference
+a,no_verifier_keep_all,No verifier,all,strict_focal_pair_consistency,0.0,0.0,0.0,32,reference
+a,no_verifier_keep_all,No verifier,all,stable_control_overflip_rate,0.0,0.0,0.0,64,reference

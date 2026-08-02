@@ -11,6 +11,15 @@ Candidate pools are fixed within each pair; only the query condition changes.
 | DeepSeek/deepseek-v4-pro | 0.7188 | 0.8750 | 0.2656 | 0.6927 |
 | Gemini/gemini-3.6-flash | 1.0000 | 1.0000 | 0.2969 | 0.8021 |
 
+Publication assets generated directly from the frozen aggregate files are available as
+an editable [SVG](figures/counterfactual_selectivity.svg), print-ready
+[PDF](figures/counterfactual_selectivity.pdf), and 300-dpi
+[PNG](figures/counterfactual_selectivity.png). The accompanying
+[caption](figures/counterfactual_selectivity_caption.md),
+[source data](figures/counterfactual_selectivity_source_data.csv), and
+[manifest](figures/counterfactual_selectivity_manifest.json) preserve the distinction
+between the preregistered primary panel and the posthoc descriptive panels.
+
 The frozen supportive pattern requires at least 0.80 strict focal-pair consistency,
 at least 0.75 on every axis, stable-control overflip at most 0.05, and a
 positive mean directional margin. Passing would establish explicit-condition rule
