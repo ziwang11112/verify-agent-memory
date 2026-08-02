@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from verify_agent_memory.retrieval import (
     MemoryRecord,
+    PolicyDecision,
+    PolicyPurpose,
     QueryRecord,
     RetrievalArm,
     RetrievalConfig,
@@ -18,7 +20,6 @@ def memory(
     text: str = "",
     order: float = 0,
     state: LifecycleState = LifecycleState.CURRENT,
-    policy_allowed: bool | None = True,
 ) -> MemoryRecord:
     return MemoryRecord(
         memory_id=memory_id,
@@ -27,7 +28,6 @@ def memory(
         embedding=embedding,
         released_order=order,
         lifecycle_state=state,
-        policy_allowed=policy_allowed,
     )
 
 
@@ -36,6 +36,7 @@ def query(
     embedding: tuple[float, ...] = (1.0, 0.0),
     text: str = "target",
     intent: QueryIntent = QueryIntent.CURRENT_STATE,
+    policy_purpose: PolicyPurpose = PolicyPurpose.CONTENT_DISCLOSURE,
 ) -> QueryRecord:
     return QueryRecord(
         query_id="q",
@@ -43,6 +44,7 @@ def query(
         text=text,
         embedding=embedding,
         intent=intent,
+        policy_purpose=policy_purpose,
     )
 
 
@@ -67,32 +69,43 @@ def test_released_lifecycle_filter_is_query_conditioned() -> None:
     memories = (
         memory("current", "a", (1.0, 0.0)),
         memory("stale", "a", (0.9, 0.43589), state=LifecycleState.STALE),
-        memory(
-            "blocked",
-            "a",
-            (0.8, 0.6),
-            state=LifecycleState.CURRENT,
-            policy_allowed=False,
-        ),
+        memory("blocked", "a", (0.8, 0.6), state=LifecycleState.CURRENT),
+    )
+    policies = (
+        PolicyDecision("current", True, True),
+        PolicyDecision("stale", True, True),
+        PolicyDecision("blocked", False, True),
     )
     current = route(
         memories,
         query(intent=QueryIntent.CURRENT_STATE),
         config(RetrievalArm.RELEASED_INTENT_LIFECYCLE_UPPER_BOUND),
+        policy_decisions=policies,
     )
     history = route(
         memories,
         query(intent=QueryIntent.HISTORY),
         config(RetrievalArm.RELEASED_INTENT_LIFECYCLE_UPPER_BOUND),
+        policy_decisions=policies,
+    )
+    operation_trace = route(
+        memories,
+        query(
+            intent=QueryIntent.HISTORY,
+            policy_purpose=PolicyPurpose.OPERATION_TRACE,
+        ),
+        config(RetrievalArm.RELEASED_INTENT_LIFECYCLE_UPPER_BOUND),
+        policy_decisions=policies,
     )
     current_only = route(
         memories,
         query(intent=QueryIntent.HISTORY),
-        config(RetrievalArm.NAMESPACE_CURRENT_ONLY),
+        config(RetrievalArm.QUERY_AGNOSTIC_CURRENT_ONLY),
     )
 
     assert current.ranked_memory_ids == ("current",)
-    assert set(history.ranked_memory_ids) == {"current", "stale", "blocked"}
+    assert set(history.ranked_memory_ids) == {"current", "stale"}
+    assert set(operation_trace.ranked_memory_ids) == {"current", "stale", "blocked"}
     assert set(current_only.ranked_memory_ids) == {"current", "blocked"}
 
 

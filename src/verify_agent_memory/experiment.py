@@ -6,10 +6,12 @@ import math
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from enum import StrEnum
 
 from verify_agent_memory.metrics import RouteScore, score_route
 from verify_agent_memory.retrieval import (
     MemoryRecord,
+    PolicyDecision,
     QueryRecord,
     RetrievalArm,
     RetrievalConfig,
@@ -26,6 +28,7 @@ class ExperimentCase:
     query: QueryRecord
     memories: tuple[MemoryRecord, ...]
     assessments: tuple[MemoryAssessment, ...]
+    policy_decisions: tuple[PolicyDecision, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.source or not self.group_id:
@@ -38,6 +41,14 @@ class ExperimentCase:
             raise ValueError("case assessment IDs must be unique")
         if assessment_ids != memory_ids:
             raise ValueError("assessments must cover every case memory exactly once")
+        policy_ids = [decision.memory_id for decision in self.policy_decisions]
+        if len(set(policy_ids)) != len(policy_ids):
+            raise ValueError("case policy decisions must be unique")
+        unknown_policy_ids = set(policy_ids) - memory_ids
+        if unknown_policy_ids:
+            raise ValueError(
+                f"policy decisions reference unknown memories: {sorted(unknown_policy_ids)!r}"
+            )
 
 
 @dataclass(frozen=True)
@@ -51,6 +62,11 @@ class QueryRun:
     score: RouteScore
 
 
+class SelectionRisk(StrEnum):
+    NON_USABLE_UPPER_BOUND = "non_usable_upper_bound"
+    ADMISSIBILITY_UPPER_BOUND = "admissibility_upper_bound"
+
+
 @dataclass(frozen=True)
 class SettingSummary:
     setting_id: str
@@ -58,22 +74,43 @@ class SettingSummary:
     source_count: int
     query_count: int
     feasible_rate: float
-    penalized_conservative_risk: float
-    penalized_resolved_contamination: float
+    penalized_non_usable_upper_risk: float
+    penalized_non_usable_known_risk: float
+    penalized_admissibility_upper_risk: float
+    penalized_admissibility_known_risk: float
+    infeasibility_risk_component: float
+    non_usable_conditional_risk_component: float
+    admissibility_conditional_risk_component: float
+    conditional_non_usable_upper_risk: float | None
+    conditional_admissibility_upper_risk: float | None
     evidence_recall: float
     candidates_scored: float
 
-    @property
-    def selection_key(self) -> tuple[float | str, ...]:
+    def selection_key(self, risk_target: SelectionRisk) -> tuple[float | str, ...]:
         """Lexicographic key; smaller is better."""
+        if risk_target is SelectionRisk.NON_USABLE_UPPER_BOUND:
+            upper_risk = self.penalized_non_usable_upper_risk
+            known_risk = self.penalized_non_usable_known_risk
+        else:
+            upper_risk = self.penalized_admissibility_upper_risk
+            known_risk = self.penalized_admissibility_known_risk
         return (
             -self.feasible_rate,
-            self.penalized_conservative_risk,
-            self.penalized_resolved_contamination,
+            upper_risk,
+            known_risk,
             -self.evidence_recall,
             self.candidates_scored,
             self.setting_id,
         )
+
+    @property
+    def penalized_conservative_risk(self) -> float:
+        """Legacy alias for the frozen v1 non-usable selection quantity."""
+        return self.penalized_non_usable_upper_risk
+
+    @property
+    def penalized_resolved_contamination(self) -> float:
+        return self.penalized_non_usable_known_risk
 
 
 def run_case(
@@ -83,7 +120,12 @@ def run_case(
     target_recall: float = 0.8,
 ) -> QueryRun:
     """Route and score one query without mutating the case or configuration."""
-    routed = route(case.memories, case.query, config)
+    routed = route(
+        case.memories,
+        case.query,
+        config,
+        policy_decisions=case.policy_decisions,
+    )
     score = score_route(
         routed.ranked_memory_ids,
         case.assessments,
@@ -128,24 +170,69 @@ def _mean(values: Sequence[float]) -> float:
     return sum(values) / len(values)
 
 
-def _penalized_upper(score: RouteScore) -> float | None:
+def _penalized(score: RouteScore, value: float | None) -> float | None:
     if score.feasible is None:
         return None
-    if score.feasible and score.contamination_upper_bound is not None:
-        return score.contamination_upper_bound
-    return 1.0
-
-
-def _penalized_resolved(score: RouteScore) -> float | None:
-    if score.feasible is None:
-        return None
-    if score.feasible and score.contamination_known_rate is not None:
-        return score.contamination_known_rate
+    if score.feasible and value is not None:
+        return value
     return 1.0
 
 
 def _available(values: Sequence[float | bool | None]) -> list[float]:
     return [float(value) for value in values if value is not None]
+
+
+@dataclass(frozen=True)
+class _SourceMetrics:
+    feasible_rate: float
+    non_usable_upper: float
+    non_usable_known: float
+    admissibility_upper: float
+    admissibility_known: float
+    infeasibility_component: float
+    non_usable_conditional_component: float
+    admissibility_conditional_component: float
+    conditional_non_usable_upper: float | None
+    conditional_admissibility_upper: float | None
+    recall: float
+    candidates: float
+
+
+def _risk_decomposition(
+    source_runs: Sequence[QueryRun],
+    *,
+    value_name: str,
+) -> tuple[float, float, float | None]:
+    evaluable = [run for run in source_runs if run.score.feasible is not None]
+    if not evaluable:
+        raise ValueError("risk decomposition requires recall-evaluable queries")
+    infeasibility = _mean([float(run.score.feasible is False) for run in evaluable])
+    feasible_values = [
+        (
+            float(getattr(run.score, value_name))
+            if getattr(run.score, value_name) is not None
+            else 1.0
+        )
+        for run in evaluable
+        if run.score.feasible is True
+    ]
+    conditional = _mean(feasible_values) if feasible_values else None
+    conditional_component = _mean(
+        [
+            (
+                float(getattr(run.score, value_name))
+                if run.score.feasible is True and getattr(run.score, value_name) is not None
+                else float(run.score.feasible is True)
+            )
+            for run in evaluable
+        ]
+    )
+    return infeasibility, conditional_component, conditional
+
+
+def _optional_source_mean(values: Sequence[float | None]) -> float | None:
+    available = [value for value in values if value is not None]
+    return _mean(available) if available else None
 
 
 def summarize_setting(runs: Sequence[QueryRun]) -> SettingSummary:
@@ -164,22 +251,82 @@ def summarize_setting(runs: Sequence[QueryRun]) -> SettingSummary:
     for run in runs:
         by_source[run.source].append(run)
 
-    source_metrics: list[tuple[float, float, float, float, float]] = []
+    source_metrics: list[_SourceMetrics] = []
     for source_runs in by_source.values():
         feasible = _available([run.score.feasible for run in source_runs])
-        upper = _available([_penalized_upper(run.score) for run in source_runs])
-        resolved = _available([_penalized_resolved(run.score) for run in source_runs])
+        non_usable_upper = _available(
+            [_penalized(run.score, run.score.non_usable_upper_bound) for run in source_runs]
+        )
+        non_usable_known = _available(
+            [_penalized(run.score, run.score.non_usable_known_rate) for run in source_runs]
+        )
+        admissibility_upper = _available(
+            [
+                _penalized(run.score, run.score.admissibility_violation_upper_bound)
+                for run in source_runs
+            ]
+        )
+        admissibility_known = _available(
+            [
+                _penalized(run.score, run.score.admissibility_violation_known_rate)
+                for run in source_runs
+            ]
+        )
         recall = _available([run.score.evidence_recall for run in source_runs])
         candidates = [float(run.route.candidates_scored) for run in source_runs]
-        if not feasible or not upper or not resolved or not recall:
-            raise ValueError("every source needs recall-evaluable development queries")
-        source_metrics.append(
+        if not all(
             (
-                _mean(feasible),
-                _mean(upper),
-                _mean(resolved),
-                _mean(recall),
-                _mean(candidates),
+                feasible,
+                non_usable_upper,
+                non_usable_known,
+                admissibility_upper,
+                admissibility_known,
+                recall,
+            )
+        ):
+            raise ValueError("every source needs recall-evaluable development queries")
+        infeasibility, non_usable_component, conditional_non_usable = _risk_decomposition(
+            source_runs,
+            value_name="non_usable_upper_bound",
+        )
+        (
+            admissibility_infeasibility,
+            admissibility_component,
+            conditional_admissibility,
+        ) = _risk_decomposition(
+            source_runs,
+            value_name="admissibility_violation_upper_bound",
+        )
+        if not math.isclose(infeasibility, admissibility_infeasibility, abs_tol=1e-15):
+            raise RuntimeError("risk decompositions disagree on infeasibility")
+        non_usable_upper_mean = _mean(non_usable_upper)
+        admissibility_upper_mean = _mean(admissibility_upper)
+        if not math.isclose(
+            non_usable_upper_mean,
+            infeasibility + non_usable_component,
+            abs_tol=1e-15,
+        ):
+            raise RuntimeError("non-usable risk decomposition does not close")
+        if not math.isclose(
+            admissibility_upper_mean,
+            infeasibility + admissibility_component,
+            abs_tol=1e-15,
+        ):
+            raise RuntimeError("admissibility risk decomposition does not close")
+        source_metrics.append(
+            _SourceMetrics(
+                feasible_rate=_mean(feasible),
+                non_usable_upper=non_usable_upper_mean,
+                non_usable_known=_mean(non_usable_known),
+                admissibility_upper=admissibility_upper_mean,
+                admissibility_known=_mean(admissibility_known),
+                infeasibility_component=infeasibility,
+                non_usable_conditional_component=non_usable_component,
+                admissibility_conditional_component=admissibility_component,
+                conditional_non_usable_upper=conditional_non_usable,
+                conditional_admissibility_upper=conditional_admissibility,
+                recall=_mean(recall),
+                candidates=_mean(candidates),
             )
         )
 
@@ -188,15 +335,38 @@ def summarize_setting(runs: Sequence[QueryRun]) -> SettingSummary:
         arm=next(iter(arms)),
         source_count=len(by_source),
         query_count=len(runs),
-        feasible_rate=_mean([row[0] for row in source_metrics]),
-        penalized_conservative_risk=_mean([row[1] for row in source_metrics]),
-        penalized_resolved_contamination=_mean([row[2] for row in source_metrics]),
-        evidence_recall=_mean([row[3] for row in source_metrics]),
-        candidates_scored=_mean([row[4] for row in source_metrics]),
+        feasible_rate=_mean([row.feasible_rate for row in source_metrics]),
+        penalized_non_usable_upper_risk=_mean([row.non_usable_upper for row in source_metrics]),
+        penalized_non_usable_known_risk=_mean([row.non_usable_known for row in source_metrics]),
+        penalized_admissibility_upper_risk=_mean(
+            [row.admissibility_upper for row in source_metrics]
+        ),
+        penalized_admissibility_known_risk=_mean(
+            [row.admissibility_known for row in source_metrics]
+        ),
+        infeasibility_risk_component=_mean([row.infeasibility_component for row in source_metrics]),
+        non_usable_conditional_risk_component=_mean(
+            [row.non_usable_conditional_component for row in source_metrics]
+        ),
+        admissibility_conditional_risk_component=_mean(
+            [row.admissibility_conditional_component for row in source_metrics]
+        ),
+        conditional_non_usable_upper_risk=_optional_source_mean(
+            [row.conditional_non_usable_upper for row in source_metrics]
+        ),
+        conditional_admissibility_upper_risk=_optional_source_mean(
+            [row.conditional_admissibility_upper for row in source_metrics]
+        ),
+        evidence_recall=_mean([row.recall for row in source_metrics]),
+        candidates_scored=_mean([row.candidates for row in source_metrics]),
     )
 
 
-def select_dev_settings(runs: Sequence[QueryRun]) -> Mapping[RetrievalArm, SettingSummary]:
+def select_dev_settings(
+    runs: Sequence[QueryRun],
+    *,
+    risk_target: SelectionRisk = SelectionRisk.ADMISSIBILITY_UPPER_BOUND,
+) -> Mapping[RetrievalArm, SettingSummary]:
     """Select one setting per arm after checking complete dev-grid coverage."""
     if not runs:
         raise ValueError("development rows are required")
@@ -215,6 +385,9 @@ def select_dev_settings(runs: Sequence[QueryRun]) -> Mapping[RetrievalArm, Setti
     for (arm, _), setting_runs in by_setting.items():
         summaries[arm].append(summarize_setting(setting_runs))
     return {
-        arm: min(arm_summaries, key=lambda summary: summary.selection_key)
+        arm: min(
+            arm_summaries,
+            key=lambda summary: summary.selection_key(risk_target),
+        )
         for arm, arm_summaries in sorted(summaries.items(), key=lambda row: row[0].value)
     }

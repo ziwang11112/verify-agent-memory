@@ -7,6 +7,8 @@ from collections.abc import Mapping, Sequence
 from verify_agent_memory.experiment import ExperimentCase, QueryRun, SettingSummary
 from verify_agent_memory.retrieval import (
     MemoryRecord,
+    PolicyDecision,
+    PolicyPurpose,
     QueryRecord,
     RetrievalArm,
     RetrievalConfig,
@@ -62,21 +64,30 @@ def case_from_mapping(value: object) -> ExperimentCase:
         text=_string(query_row.get("text"), "query.text", allow_empty=True),
         embedding=_vector(query_row.get("embedding"), "query.embedding"),
         intent=QueryIntent(_string(query_row.get("intent", "unknown"), "query.intent")),
+        policy_purpose=PolicyPurpose(
+            _string(
+                query_row.get("policy_purpose", "content_disclosure"),
+                "query.policy_purpose",
+            )
+        ),
     )
 
     memories: list[MemoryRecord] = []
     assessments: list[MemoryAssessment] = []
+    policy_decisions: list[PolicyDecision] = []
     for index, raw_memory in enumerate(_sequence(row.get("memories"), "memories")):
         memory_row = _mapping(raw_memory, f"memories[{index}]")
+        if "policy_allowed" in memory_row:
+            raise ValueError(
+                f"memories[{index}].policy_allowed is deprecated; use released_policy "
+                "for router-visible decisions and assessment.policy_allowed for scorer gold"
+            )
         memory_id = _string(memory_row.get("memory_id"), f"memories[{index}].memory_id")
         lifecycle_state = LifecycleState(
             _string(
                 memory_row.get("lifecycle_state", "unknown"),
                 f"memories[{index}].lifecycle_state",
             )
-        )
-        policy_allowed = _optional_bool(
-            memory_row.get("policy_allowed"), f"memories[{index}].policy_allowed"
         )
         try:
             released_order = float(memory_row.get("released_order"))
@@ -90,9 +101,24 @@ def case_from_mapping(value: object) -> ExperimentCase:
                 embedding=_vector(memory_row.get("embedding"), f"memories[{index}].embedding"),
                 released_order=released_order,
                 lifecycle_state=lifecycle_state,
-                policy_allowed=policy_allowed,
             )
         )
+        released_policy = memory_row.get("released_policy")
+        if released_policy is not None:
+            policy_row = _mapping(released_policy, f"memories[{index}].released_policy")
+            policy_decisions.append(
+                PolicyDecision(
+                    memory_id=memory_id,
+                    content_disclosure_allowed=_optional_bool(
+                        policy_row.get("content_disclosure_allowed"),
+                        f"memories[{index}].released_policy.content_disclosure_allowed",
+                    ),
+                    operation_trace_allowed=_optional_bool(
+                        policy_row.get("operation_trace_allowed"),
+                        f"memories[{index}].released_policy.operation_trace_allowed",
+                    ),
+                )
+            )
         assessment = _mapping(memory_row.get("assessment"), f"memories[{index}].assessment")
         assessments.append(
             MemoryAssessment(
@@ -110,7 +136,10 @@ def case_from_mapping(value: object) -> ExperimentCase:
                     )
                 ),
                 lifecycle_state=lifecycle_state,
-                policy_allowed=policy_allowed,
+                policy_allowed=_optional_bool(
+                    assessment.get("policy_allowed"),
+                    f"memories[{index}].assessment.policy_allowed",
+                ),
                 query_intent=query.intent,
             )
         )
@@ -120,6 +149,7 @@ def case_from_mapping(value: object) -> ExperimentCase:
         query=query,
         memories=tuple(memories),
         assessments=tuple(assessments),
+        policy_decisions=tuple(policy_decisions),
     )
 
 
@@ -155,6 +185,7 @@ def config_from_mapping(value: object) -> RetrievalConfig:
 def query_run_to_mapping(run: QueryRun) -> dict[str, object]:
     score = run.score
     return {
+        "metric_schema_version": 2,
         "source": run.source,
         "group_id": run.group_id,
         "query_id": run.query_id,
@@ -170,10 +201,19 @@ def query_run_to_mapping(run: QueryRun) -> dict[str, object]:
         "evidence_recall": score.evidence_recall,
         "feasible": score.feasible,
         "matched_prefix_count": score.matched_prefix_count,
-        "contamination_known_rate": score.contamination_known_rate,
-        "contamination_label_coverage": score.contamination_label_coverage,
-        "contamination_lower_bound": score.contamination_lower_bound,
-        "contamination_upper_bound": score.contamination_upper_bound,
+        "non_usable_known_rate": score.non_usable_known_rate,
+        "non_usable_label_coverage": score.non_usable_label_coverage,
+        "non_usable_lower_bound": score.non_usable_lower_bound,
+        "non_usable_upper_bound": score.non_usable_upper_bound,
+        "admissibility_violation_known_rate": score.admissibility_violation_known_rate,
+        "admissibility_label_coverage": score.admissibility_label_coverage,
+        "admissibility_violation_lower_bound": score.admissibility_violation_lower_bound,
+        "admissibility_violation_upper_bound": score.admissibility_violation_upper_bound,
+        "known_relevant_admissible_rate": score.known_relevant_admissible_rate,
+        "known_relevant_inadmissible_rate": score.known_relevant_inadmissible_rate,
+        "known_irrelevant_admissible_rate": score.known_irrelevant_admissible_rate,
+        "known_irrelevant_inadmissible_rate": score.known_irrelevant_inadmissible_rate,
+        "joint_label_coverage": score.joint_label_coverage,
         "wrong_scope_exposure_rate": score.wrong_scope_exposure_rate,
         "policy_disallowed_exposure_rate": score.policy_disallowed_exposure_rate,
         "lifecycle_incompatible_exposure_rate": score.lifecycle_incompatible_exposure_rate,
@@ -183,13 +223,23 @@ def query_run_to_mapping(run: QueryRun) -> dict[str, object]:
 
 def setting_summary_to_mapping(summary: SettingSummary) -> dict[str, object]:
     return {
+        "metric_schema_version": 2,
         "setting_id": summary.setting_id,
         "arm": summary.arm.value,
         "source_count": summary.source_count,
         "query_count": summary.query_count,
         "feasible_rate": summary.feasible_rate,
-        "penalized_conservative_risk": summary.penalized_conservative_risk,
-        "penalized_resolved_contamination": summary.penalized_resolved_contamination,
+        "penalized_non_usable_upper_risk": summary.penalized_non_usable_upper_risk,
+        "penalized_non_usable_known_risk": summary.penalized_non_usable_known_risk,
+        "penalized_admissibility_upper_risk": summary.penalized_admissibility_upper_risk,
+        "penalized_admissibility_known_risk": summary.penalized_admissibility_known_risk,
+        "infeasibility_risk_component": summary.infeasibility_risk_component,
+        "non_usable_conditional_risk_component": (summary.non_usable_conditional_risk_component),
+        "admissibility_conditional_risk_component": (
+            summary.admissibility_conditional_risk_component
+        ),
+        "conditional_non_usable_upper_risk": summary.conditional_non_usable_upper_risk,
+        "conditional_admissibility_upper_risk": (summary.conditional_admissibility_upper_risk),
         "evidence_recall": summary.evidence_recall,
         "candidates_scored": summary.candidates_scored,
     }

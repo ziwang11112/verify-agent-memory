@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from verify_agent_memory.admissibility import (
     admissible_status,
     lifecycle_compatible,
+    relevant_status,
     usable_status,
 )
 from verify_agent_memory.schema import MemoryAssessment, Scope
@@ -23,16 +24,42 @@ class RouteScore:
     feasible: bool | None
     route_width: int
     matched_prefix_count: int | None
-    contamination_known_rate: float | None
-    contamination_label_coverage: float | None
-    contamination_lower_bound: float | None
-    contamination_upper_bound: float | None
+    non_usable_known_rate: float | None
+    non_usable_label_coverage: float | None
+    non_usable_lower_bound: float | None
+    non_usable_upper_bound: float | None
+    admissibility_violation_known_rate: float | None
+    admissibility_label_coverage: float | None
+    admissibility_violation_lower_bound: float | None
+    admissibility_violation_upper_bound: float | None
+    known_relevant_admissible_rate: float | None
+    known_relevant_inadmissible_rate: float | None
+    known_irrelevant_admissible_rate: float | None
+    known_irrelevant_inadmissible_rate: float | None
+    joint_label_coverage: float | None
     wrong_scope_exposure_rate: float | None
     policy_disallowed_exposure_rate: float | None
     lifecycle_incompatible_exposure_rate: float | None
     unresolved_admissibility_rate: float | None
     candidates_scored: int | None
     latency_ms: float | None
+
+    @property
+    def contamination_known_rate(self) -> float | None:
+        """Legacy alias; the historical metric is non-usable, not inadmissible."""
+        return self.non_usable_known_rate
+
+    @property
+    def contamination_label_coverage(self) -> float | None:
+        return self.non_usable_label_coverage
+
+    @property
+    def contamination_lower_bound(self) -> float | None:
+        return self.non_usable_lower_bound
+
+    @property
+    def contamination_upper_bound(self) -> float | None:
+        return self.non_usable_upper_bound
 
 
 @dataclass(frozen=True)
@@ -42,10 +69,19 @@ class AggregateScore:
     mean_evidence_recall: float | None
     feasible_rate: float | None
     matched_recall_evaluable_rate: float
-    contamination_known_rate: float | None
-    contamination_label_coverage: float | None
-    contamination_lower_bound: float | None
-    contamination_upper_bound: float | None
+    non_usable_known_rate: float | None
+    non_usable_label_coverage: float | None
+    non_usable_lower_bound: float | None
+    non_usable_upper_bound: float | None
+    admissibility_violation_known_rate: float | None
+    admissibility_label_coverage: float | None
+    admissibility_violation_lower_bound: float | None
+    admissibility_violation_upper_bound: float | None
+    known_relevant_admissible_rate: float | None
+    known_relevant_inadmissible_rate: float | None
+    known_irrelevant_admissible_rate: float | None
+    known_irrelevant_inadmissible_rate: float | None
+    joint_label_coverage: float | None
     wrong_scope_exposure_rate: float | None
     policy_disallowed_exposure_rate: float | None
     lifecycle_incompatible_exposure_rate: float | None
@@ -54,6 +90,23 @@ class AggregateScore:
     mean_matched_prefix_count: float | None
     mean_candidates_scored: float | None
     mean_latency_ms: float | None
+
+    @property
+    def contamination_known_rate(self) -> float | None:
+        """Legacy alias; the historical metric is non-usable, not inadmissible."""
+        return self.non_usable_known_rate
+
+    @property
+    def contamination_label_coverage(self) -> float | None:
+        return self.non_usable_label_coverage
+
+    @property
+    def contamination_lower_bound(self) -> float | None:
+        return self.non_usable_lower_bound
+
+    @property
+    def contamination_upper_bound(self) -> float | None:
+        return self.non_usable_upper_bound
 
 
 def _optional_nonnegative_finite(value: int | float | None, name: str) -> None:
@@ -72,6 +125,22 @@ def _rate(numerator: int, denominator: int) -> float | None:
 def _mean(values: Iterable[int | float | bool | None]) -> float | None:
     available = [float(value) for value in values if value is not None]
     return sum(available) / len(available) if available else None
+
+
+def _violation_bounds(
+    statuses: Sequence[bool | None], *, prefix_exists: bool
+) -> tuple[float | None, float | None, float | None, float | None]:
+    if not prefix_exists:
+        return None, None, None, None
+    known_count = sum(value is not None for value in statuses)
+    violation_count = sum(value is False for value in statuses)
+    unresolved_count = len(statuses) - known_count
+    return (
+        _rate(violation_count, known_count),
+        _rate(known_count, len(statuses)),
+        _rate(violation_count, len(statuses)),
+        _rate(violation_count + unresolved_count, len(statuses)),
+    )
 
 
 def score_route(
@@ -129,25 +198,15 @@ def score_route(
 
     matched = tuple(by_id[memory_id] for memory_id in (matched_prefix or ()))
     usability = tuple(usable_status(assessment) for assessment in matched)
-    known_count = sum(value is not None for value in usability)
-    known_contaminants = sum(value is False for value in usability)
-    unresolved_count = len(matched) - known_count
+    admissibility = tuple(admissible_status(assessment) for assessment in matched)
 
     def matched_rate(predicate: Callable[[MemoryAssessment], bool]) -> float | None:
         if matched_prefix is None:
             return None
         return _rate(sum(predicate(assessment) for assessment in matched), len(matched))
 
-    if matched_prefix is None:
-        known_rate = None
-        coverage = None
-        lower_bound = None
-        upper_bound = None
-    else:
-        known_rate = _rate(known_contaminants, known_count)
-        coverage = _rate(known_count, len(matched))
-        lower_bound = _rate(known_contaminants, len(matched))
-        upper_bound = _rate(known_contaminants + unresolved_count, len(matched))
+    non_usable = _violation_bounds(usability, prefix_exists=matched_prefix is not None)
+    inadmissible = _violation_bounds(admissibility, prefix_exists=matched_prefix is not None)
 
     return RouteScore(
         target_recall=float(target_recall),
@@ -157,10 +216,40 @@ def score_route(
         feasible=feasible,
         route_width=len(ranked_memory_ids) if route_width is None else int(route_width),
         matched_prefix_count=len(matched_prefix) if matched_prefix is not None else None,
-        contamination_known_rate=known_rate,
-        contamination_label_coverage=coverage,
-        contamination_lower_bound=lower_bound,
-        contamination_upper_bound=upper_bound,
+        non_usable_known_rate=non_usable[0],
+        non_usable_label_coverage=non_usable[1],
+        non_usable_lower_bound=non_usable[2],
+        non_usable_upper_bound=non_usable[3],
+        admissibility_violation_known_rate=inadmissible[0],
+        admissibility_label_coverage=inadmissible[1],
+        admissibility_violation_lower_bound=inadmissible[2],
+        admissibility_violation_upper_bound=inadmissible[3],
+        known_relevant_admissible_rate=matched_rate(
+            lambda assessment: (
+                relevant_status(assessment) is True and admissible_status(assessment) is True
+            )
+        ),
+        known_relevant_inadmissible_rate=matched_rate(
+            lambda assessment: (
+                relevant_status(assessment) is True and admissible_status(assessment) is False
+            )
+        ),
+        known_irrelevant_admissible_rate=matched_rate(
+            lambda assessment: (
+                relevant_status(assessment) is False and admissible_status(assessment) is True
+            )
+        ),
+        known_irrelevant_inadmissible_rate=matched_rate(
+            lambda assessment: (
+                relevant_status(assessment) is False and admissible_status(assessment) is False
+            )
+        ),
+        joint_label_coverage=matched_rate(
+            lambda assessment: (
+                relevant_status(assessment) is not None
+                and admissible_status(assessment) is not None
+            )
+        ),
         wrong_scope_exposure_rate=matched_rate(
             lambda assessment: assessment.scope is Scope.DISALLOWED
         ),
@@ -190,17 +279,40 @@ def aggregate_scores(scores: Sequence[RouteScore]) -> AggregateScore:
         raise ValueError("at least one route score is required")
     recall_evaluable = sum(score.evidence_recall is not None for score in scores)
     feasible_evaluable = [score.feasible for score in scores if score.feasible is not None]
-    matched_evaluable = sum(score.contamination_known_rate is not None for score in scores)
+    matched_evaluable = sum(score.matched_prefix_count is not None for score in scores)
     return AggregateScore(
         query_count=len(scores),
         recall_evaluable_rate=recall_evaluable / len(scores),
         mean_evidence_recall=_mean(score.evidence_recall for score in scores),
         feasible_rate=_mean(feasible_evaluable),
         matched_recall_evaluable_rate=matched_evaluable / len(scores),
-        contamination_known_rate=_mean(score.contamination_known_rate for score in scores),
-        contamination_label_coverage=_mean(score.contamination_label_coverage for score in scores),
-        contamination_lower_bound=_mean(score.contamination_lower_bound for score in scores),
-        contamination_upper_bound=_mean(score.contamination_upper_bound for score in scores),
+        non_usable_known_rate=_mean(score.non_usable_known_rate for score in scores),
+        non_usable_label_coverage=_mean(score.non_usable_label_coverage for score in scores),
+        non_usable_lower_bound=_mean(score.non_usable_lower_bound for score in scores),
+        non_usable_upper_bound=_mean(score.non_usable_upper_bound for score in scores),
+        admissibility_violation_known_rate=_mean(
+            score.admissibility_violation_known_rate for score in scores
+        ),
+        admissibility_label_coverage=_mean(score.admissibility_label_coverage for score in scores),
+        admissibility_violation_lower_bound=_mean(
+            score.admissibility_violation_lower_bound for score in scores
+        ),
+        admissibility_violation_upper_bound=_mean(
+            score.admissibility_violation_upper_bound for score in scores
+        ),
+        known_relevant_admissible_rate=_mean(
+            score.known_relevant_admissible_rate for score in scores
+        ),
+        known_relevant_inadmissible_rate=_mean(
+            score.known_relevant_inadmissible_rate for score in scores
+        ),
+        known_irrelevant_admissible_rate=_mean(
+            score.known_irrelevant_admissible_rate for score in scores
+        ),
+        known_irrelevant_inadmissible_rate=_mean(
+            score.known_irrelevant_inadmissible_rate for score in scores
+        ),
+        joint_label_coverage=_mean(score.joint_label_coverage for score in scores),
         wrong_scope_exposure_rate=_mean(score.wrong_scope_exposure_rate for score in scores),
         policy_disallowed_exposure_rate=_mean(
             score.policy_disallowed_exposure_rate for score in scores

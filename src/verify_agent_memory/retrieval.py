@@ -26,7 +26,7 @@ class RetrievalArm(StrEnum):
     GLOBAL_BM25_DENSE_RRF = "global_bm25_dense_rrf"
     GLOBAL_RECENCY_DENSE = "global_recency_dense"
     NAMESPACE_DENSE = "namespace_dense"
-    NAMESPACE_CURRENT_ONLY = "namespace_current_only"
+    QUERY_AGNOSTIC_CURRENT_ONLY = "query_agnostic_current_only"
     RELEASED_INTENT_LIFECYCLE_UPPER_BOUND = "released_intent_lifecycle_upper_bound"
     THRESHOLD_ROUTER = "threshold_router"
     CLUSTER_ROUTER = "cluster_router"
@@ -54,7 +54,6 @@ class MemoryRecord:
     embedding: Vector
     released_order: float
     lifecycle_state: LifecycleState = LifecycleState.UNKNOWN
-    policy_allowed: bool | None = None
 
     def __post_init__(self) -> None:
         if not self.memory_id or not self.namespace:
@@ -66,8 +65,35 @@ class MemoryRecord:
             raise ValueError("released_order must be finite")
         if not isinstance(self.lifecycle_state, LifecycleState):
             raise TypeError("lifecycle_state must be LifecycleState")
-        if self.policy_allowed not in {True, False, None}:
-            raise TypeError("policy_allowed must be true, false, or unknown")
+
+
+class PolicyPurpose(StrEnum):
+    CONTENT_DISCLOSURE = "content_disclosure"
+    OPERATION_TRACE = "operation_trace"
+
+
+@dataclass(frozen=True)
+class PolicyDecision:
+    """Released query-memory policy approximation visible to a routing arm."""
+
+    memory_id: str
+    content_disclosure_allowed: bool | None = None
+    operation_trace_allowed: bool | None = None
+
+    def __post_init__(self) -> None:
+        if not self.memory_id:
+            raise ValueError("policy memory_id must be nonempty")
+        for name, value in (
+            ("content_disclosure_allowed", self.content_disclosure_allowed),
+            ("operation_trace_allowed", self.operation_trace_allowed),
+        ):
+            if value not in {True, False, None}:
+                raise TypeError(f"{name} must be true, false, or unknown")
+
+    def allowed_for(self, purpose: PolicyPurpose) -> bool | None:
+        if purpose is PolicyPurpose.CONTENT_DISCLOSURE:
+            return self.content_disclosure_allowed
+        return self.operation_trace_allowed
 
 
 @dataclass(frozen=True)
@@ -77,6 +103,7 @@ class QueryRecord:
     text: str
     embedding: Vector
     intent: QueryIntent = QueryIntent.UNKNOWN
+    policy_purpose: PolicyPurpose = PolicyPurpose.CONTENT_DISCLOSURE
 
     def __post_init__(self) -> None:
         if not self.query_id or not self.namespace:
@@ -86,6 +113,8 @@ class QueryRecord:
         _validate_vector(self.embedding, "query embedding")
         if not isinstance(self.intent, QueryIntent):
             raise TypeError("intent must be QueryIntent")
+        if not isinstance(self.policy_purpose, PolicyPurpose):
+            raise TypeError("policy_purpose must be PolicyPurpose")
 
 
 @dataclass(frozen=True)
@@ -416,15 +445,30 @@ def _namespace_support(
 
 
 def _lifecycle_support(
-    memories: Sequence[MemoryRecord], query: QueryRecord
+    memories: Sequence[MemoryRecord],
+    query: QueryRecord,
+    policy_decisions: Sequence[PolicyDecision],
 ) -> tuple[MemoryRecord, ...]:
-    if query.intent is not QueryIntent.CURRENT_STATE:
-        return tuple(memories)
-    return tuple(
+    policy_by_memory: dict[str, PolicyDecision] = {}
+    for decision in policy_decisions:
+        if decision.memory_id in policy_by_memory:
+            raise ValueError(f"duplicate policy decision for {decision.memory_id!r}")
+        policy_by_memory[decision.memory_id] = decision
+
+    policy_valid = tuple(
         memory
         for memory in memories
+        if (
+            policy_by_memory.get(memory.memory_id) is None
+            or policy_by_memory[memory.memory_id].allowed_for(query.policy_purpose) is not False
+        )
+    )
+    if query.intent is not QueryIntent.CURRENT_STATE:
+        return policy_valid
+    return tuple(
+        memory
+        for memory in policy_valid
         if memory.lifecycle_state not in {LifecycleState.STALE, LifecycleState.SUPERSEDED}
-        and memory.policy_allowed is not False
     )
 
 
@@ -446,12 +490,24 @@ def _direct_result(
 
 
 def route(
-    memories: Sequence[MemoryRecord], query: QueryRecord, config: RetrievalConfig
+    memories: Sequence[MemoryRecord],
+    query: QueryRecord,
+    config: RetrievalConfig,
+    *,
+    policy_decisions: Sequence[PolicyDecision] = (),
 ) -> RouteResult:
     """Run one frozen retrieval arm with deterministic ID tie breaking."""
     memory_ids = [memory.memory_id for memory in memories]
     if len(set(memory_ids)) != len(memory_ids):
         raise ValueError("memory IDs must be unique")
+    policy_ids = [decision.memory_id for decision in policy_decisions]
+    if len(set(policy_ids)) != len(policy_ids):
+        raise ValueError("policy decisions must have unique memory IDs")
+    unknown_policy_ids = set(policy_ids) - set(memory_ids)
+    if unknown_policy_ids:
+        raise ValueError(
+            f"policy decisions reference unknown memories: {sorted(unknown_policy_ids)!r}"
+        )
     if memories and any(len(memory.embedding) != len(query.embedding) for memory in memories):
         raise ValueError("all memory and query embeddings must share one dimension")
 
@@ -510,7 +566,7 @@ def route(
             config,
             _dense_rank(namespace, query, top_k=config.top_k),
         )
-    if config.arm is RetrievalArm.NAMESPACE_CURRENT_ONLY:
+    if config.arm is RetrievalArm.QUERY_AGNOSTIC_CURRENT_ONLY:
         candidates = tuple(
             memory
             for memory in namespace
@@ -523,7 +579,7 @@ def route(
             _dense_rank(candidates, query, top_k=config.top_k),
         )
     if config.arm is RetrievalArm.RELEASED_INTENT_LIFECYCLE_UPPER_BOUND:
-        candidates = _lifecycle_support(namespace, query)
+        candidates = _lifecycle_support(namespace, query, policy_decisions)
         return _direct_result(
             candidates,
             query,

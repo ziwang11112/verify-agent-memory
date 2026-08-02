@@ -11,6 +11,7 @@ from verify_agent_memory.experiment import (
     ExperimentCase,
     run_experiment,
     select_dev_settings,
+    summarize_setting,
 )
 from verify_agent_memory.retrieval import (
     MemoryRecord,
@@ -45,7 +46,6 @@ def selection_case() -> ExperimentCase:
             embedding=(1.0, 0.0),
             released_order=0,
             lifecycle_state=LifecycleState.CURRENT,
-            policy_allowed=True,
         ),
         MemoryRecord(
             memory_id="anchor",
@@ -54,7 +54,6 @@ def selection_case() -> ExperimentCase:
             embedding=(0.9, 0.43589),
             released_order=1,
             lifecycle_state=LifecycleState.CURRENT,
-            policy_allowed=True,
         ),
     )
     assessments = (
@@ -88,6 +87,24 @@ def test_dev_selection_prioritizes_feasibility_before_contamination() -> None:
 
     assert selected[RetrievalArm.GLOBAL_DENSE].setting_id == "long"
     assert selected[RetrievalArm.GLOBAL_DENSE].feasible_rate == 1.0
+
+
+def test_penalized_risk_decomposes_and_separates_irrelevance() -> None:
+    config = RetrievalConfig("long", RetrievalArm.GLOBAL_DENSE, top_k=2)
+    summary = summarize_setting(run_experiment((selection_case(),), (config,)))
+
+    assert summary.infeasibility_risk_component == 0.0
+    assert summary.penalized_non_usable_upper_risk == 0.5
+    assert summary.non_usable_conditional_risk_component == 0.5
+    assert summary.penalized_admissibility_upper_risk == 0.0
+    assert summary.admissibility_conditional_risk_component == 0.0
+    assert summary.conditional_admissibility_upper_risk == 0.0
+    assert summary.penalized_non_usable_upper_risk == (
+        summary.infeasibility_risk_component + summary.non_usable_conditional_risk_component
+    )
+    assert summary.penalized_admissibility_upper_risk == (
+        summary.infeasibility_risk_component + summary.admissibility_conditional_risk_component
+    )
 
 
 def test_dev_selection_rejects_incomplete_setting_coverage() -> None:

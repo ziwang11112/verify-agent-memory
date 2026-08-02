@@ -74,7 +74,38 @@ def test_incomplete_labels_produce_coverage_and_contamination_bounds() -> None:
     assert score.contamination_label_coverage == pytest.approx(2 / 3)
     assert score.contamination_lower_bound == pytest.approx(1 / 3)
     assert score.contamination_upper_bound == pytest.approx(2 / 3)
+    assert score.non_usable_known_rate == 0.5
+    assert score.admissibility_violation_known_rate == 0.0
+    assert score.admissibility_label_coverage == pytest.approx(2 / 3)
+    assert score.admissibility_violation_lower_bound == 0.0
+    assert score.admissibility_violation_upper_bound == pytest.approx(1 / 3)
     assert score.unresolved_admissibility_rate == pytest.approx(1 / 3)
+
+
+def test_relevance_noise_and_admissibility_violations_are_separate() -> None:
+    assessments = [
+        item("relevant-banned", relevance=Relevance.SUPPORTIVE, policy_allowed=False),
+        item("irrelevant-allowed", relevance=Relevance.NOT_USEFUL),
+        item(
+            "irrelevant-banned",
+            relevance=Relevance.NOT_USEFUL,
+            scope=Scope.DISALLOWED,
+        ),
+        item("anchor", relevance=Relevance.REQUIRED),
+    ]
+    score = score_route(
+        ["relevant-banned", "irrelevant-allowed", "irrelevant-banned", "anchor"],
+        assessments,
+        target_recall=1.0,
+    )
+
+    assert score.non_usable_known_rate == pytest.approx(3 / 4)
+    assert score.admissibility_violation_known_rate == pytest.approx(2 / 4)
+    assert score.known_relevant_admissible_rate == pytest.approx(1 / 4)
+    assert score.known_relevant_inadmissible_rate == pytest.approx(1 / 4)
+    assert score.known_irrelevant_admissible_rate == pytest.approx(1 / 4)
+    assert score.known_irrelevant_inadmissible_rate == pytest.approx(1 / 4)
+    assert score.joint_label_coverage == 1.0
 
 
 def test_no_usable_anchors_keeps_recall_and_matched_metrics_undefined() -> None:

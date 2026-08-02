@@ -7,7 +7,13 @@ import json
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from verify_agent_memory.experiment import run_experiment, select_dev_settings
+from verify_agent_memory.experiment import (
+    ExperimentCase,
+    SelectionRisk,
+    run_experiment,
+    select_dev_settings,
+)
+from verify_agent_memory.retrieval import RetrievalConfig
 from verify_agent_memory.serialization import (
     case_from_mapping,
     config_from_mapping,
@@ -23,7 +29,7 @@ def _json_object(path: Path) -> Mapping[str, object]:
     return value
 
 
-def _cases(path: Path) -> tuple[object, ...]:
+def load_cases(path: Path) -> tuple[ExperimentCase, ...]:
     rows = []
     for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         if not line.strip():
@@ -37,7 +43,7 @@ def _cases(path: Path) -> tuple[object, ...]:
     return tuple(rows)
 
 
-def _protocol(path: Path) -> tuple[float, tuple[object, ...]]:
+def load_protocol(path: Path) -> tuple[float, SelectionRisk, tuple[RetrievalConfig, ...]]:
     row = _json_object(path)
     if row.get("schema_version") != 1:
         raise ValueError("protocol schema_version must be 1")
@@ -51,7 +57,8 @@ def _protocol(path: Path) -> tuple[float, tuple[object, ...]]:
         target_recall = float(row.get("target_recall"))
     except (TypeError, ValueError) as error:
         raise TypeError("target_recall must be numeric") from error
-    return target_recall, configs
+    risk_target = SelectionRisk(str(row.get("selection_risk", "admissibility_upper_bound")))
+    return target_recall, risk_target, configs
 
 
 def _write_jsonl(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
@@ -77,14 +84,15 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
-    cases = _cases(args.cases)
-    target_recall, configs = _protocol(args.protocol)
+    cases = load_cases(args.cases)
+    target_recall, risk_target, configs = load_protocol(args.protocol)
     if args.command == "validate":
         print(
             json.dumps(
                 {
                     "cases": len(cases),
                     "settings": len(configs),
+                    "selection_risk": risk_target.value,
                     "target_recall": target_recall,
                     "status": "valid",
                 },
@@ -100,7 +108,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(json.dumps({"rows": len(runs), "status": "complete"}, sort_keys=True))
         return 0
 
-    selected = select_dev_settings(runs)
+    selected = select_dev_settings(runs, risk_target=risk_target)
     _write_jsonl(
         args.output,
         [setting_summary_to_mapping(summary) for summary in selected.values()],
