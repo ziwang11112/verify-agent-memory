@@ -15,6 +15,16 @@
     "heldout_access": false,
     "private_data": false
   },
+  "implementation": {
+    "runner": {
+      "path": "scripts/run_counterfactual_admissibility_experiment.py",
+      "sha256": "40b2308ad19ab391071e58cbcc8191560659e7a1cc2eb745fa1832263fded1f9"
+    },
+    "scoring_module": {
+      "path": "src/verify_agent_memory/counterfactual_admissibility.py",
+      "sha256": "664f529ff056b6c6c5988ed40a500abf0d25269d712794acb9fd1895abd2ea03"
+    }
+  },
   "sample": {
     "axes": [
       "principal_scope",

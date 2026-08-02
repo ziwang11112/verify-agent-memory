@@ -181,6 +181,25 @@ def load_protocol(path: Path) -> Protocol:
     dataset_hash = _string(dataset.get("sha256"), "protocol.dataset.sha256")
     if not dataset_path.is_file() or _sha256_file(dataset_path) != dataset_hash:
         raise ValueError("counterfactual dataset hash drifted")
+    implementation = _mapping(raw.get("implementation"), "protocol.implementation")
+    for component in ("runner", "scoring_module"):
+        identity = _mapping(
+            implementation.get(component),
+            f"protocol.implementation.{component}",
+        )
+        implementation_path = ROOT / _string(
+            identity.get("path"),
+            f"protocol.implementation.{component}.path",
+        )
+        implementation_hash = _string(
+            identity.get("sha256"),
+            f"protocol.implementation.{component}.sha256",
+        )
+        if (
+            not implementation_path.is_file()
+            or _sha256_file(implementation_path) != implementation_hash
+        ):
+            raise ValueError(f"counterfactual {component} hash drifted")
     scenarios = load_scenarios(dataset_path)
     sample = _mapping(raw.get("sample"), "protocol.sample")
     axes = tuple(_string(axis, "protocol.sample.axes[]") for axis in sample.get("axes", []))
