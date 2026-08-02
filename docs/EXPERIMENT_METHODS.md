@@ -177,10 +177,12 @@ byte-for-byte. Its deterministic, nested corruption channels cover:
 - policy false allows, false denies, and unknown decisions; and
 - current/history intent flips.
 
-Namespace and lifecycle corruption is sampled once per source-memory identity, so a
-record cannot acquire different metadata merely because another query references it.
-Policy corruption is sampled per source-query-memory decision, while intent corruption
-is sampled per source-query. Namespace swaps use one fixed source-level vocabulary.
+Namespace swap, missing-label, false-deny, and lifecycle corruption is sampled once
+per source-memory identity, so those record fields cannot change merely because
+another query references them. Namespace false-allow is instead a query-memory gate
+error and is sampled per source-query-memory identity, as are policy decisions;
+intent corruption is sampled per source-query. Namespace swaps use one fixed
+source-level vocabulary.
 
 For a fixed seed and channel, cases corrupted at rate `r1` are a subset of those
 corrupted at any larger rate `r2`. Retrieval settings never change along a curve. The

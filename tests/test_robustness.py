@@ -116,6 +116,29 @@ def test_record_metadata_corruption_is_stable_across_queries() -> None:
     }
 
 
+def test_namespace_false_allow_is_a_query_memory_gate_error() -> None:
+    case = load_cases(ROOT / "tests" / "fixtures" / "retrieval_cases.jsonl")[0]
+    memories = tuple(replace(memory, namespace="origin") for memory in case.memories)
+    first = replace(case, query=replace(case.query, namespace="target-a"), memories=memories)
+    second = replace(
+        case,
+        query=replace(case.query, query_id="second-query", namespace="target-b"),
+        memories=memories,
+    )
+    corruption = MetadataCorruption(
+        "query-memory-gate",
+        CorruptionChannel.NAMESPACE_FALSE_ALLOW,
+        1.0,
+        seed=11,
+    )
+
+    first_corrupted = corrupt_case(first, corruption)
+    second_corrupted = corrupt_case(second, corruption)
+
+    assert {memory.namespace for memory in first_corrupted.memories} == {"target-a"}
+    assert {memory.namespace for memory in second_corrupted.memories} == {"target-b"}
+
+
 def test_policy_corruption_is_separate_from_gold_policy_label() -> None:
     case = load_cases(ROOT / "tests" / "fixtures" / "retrieval_cases.jsonl")[0]
     corrupted = corrupt_case(

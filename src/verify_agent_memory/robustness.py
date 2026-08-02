@@ -127,9 +127,9 @@ def corrupt_case(
 ) -> ExperimentCase:
     """Corrupt route-visible metadata while preserving scorer assessments exactly.
 
-    Namespace and lifecycle channels are record-level: the same source memory gets
-    the same corrupted value in every query case. Policy channels remain
-    query-memory-level, and intent channels remain query-level.
+    Namespace swap/missing/false-deny and lifecycle channels are record-level.
+    Namespace false-allow is a query-memory gate error, policy channels are
+    query-memory-level, and intent channels are query-level.
     """
     if config.rate == 0:
         return case
@@ -142,19 +142,24 @@ def corrupt_case(
     for memory in case.memories:
         namespace = memory.namespace
         state = memory.lifecycle_state
-        selected = _selected(
+        record_selected = _selected(
             config,
             case.source,
             memory.memory_id,
             "memory",
         )
-        if selected:
-            if (
-                config.channel is CorruptionChannel.NAMESPACE_FALSE_ALLOW
-                and namespace != case.query.namespace
-            ):
+        false_allow_selected = _selected(
+            config,
+            case.source,
+            case.query.query_id,
+            memory.memory_id,
+            "namespace_gate",
+        )
+        if config.channel is CorruptionChannel.NAMESPACE_FALSE_ALLOW:
+            if false_allow_selected and namespace != case.query.namespace:
                 namespace = case.query.namespace
-            elif (
+        elif record_selected:
+            if (
                 config.channel is CorruptionChannel.NAMESPACE_FALSE_DENY
                 and namespace == case.query.namespace
             ):
