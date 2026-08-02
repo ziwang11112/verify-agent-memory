@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "protocol_id": "controlled-counterfactual-admissibility-v1",
+  "status": "controlled_public_dev_diagnostic_not_official_benchmark_result",
+  "objective": "test_query_conditioned_admissibility_under_fixed_candidate_pools",
+  "prompt": {
+    "path": "experiments/prompts/counterfactual_admissibility_v1.txt",
+    "sha256": "1c1f5e9998635a3c716a20066dc6d4753a2a1741a0379b40c7f8f07f77d9d71f"
+  },
+  "dataset": {
+    "path": "experiments/counterfactual_admissibility_cases.json",
+    "sha256": "86af56417cc538600052cf76bbf0e3b8bb2e0d6f22d4f50c4112b6ae306a442f",
+    "construction": "controlled_public_example_derived_and_synthetic",
+    "benchmark_split": null,
+    "heldout_access": false,
+    "private_data": false
+  },
+  "sample": {
+    "axes": [
+      "principal_scope",
+      "lifecycle_intent",
+      "policy_purpose",
+      "as_of_time"
+    ],
+    "scenarios_per_axis": 4,
+    "query_pairs_per_scenario": 2,
+    "scenario_count": 16,
+    "pair_count": 32,
+    "condition_case_count": 64,
+    "candidates_per_case": 3,
+    "candidate_roles": [
+      "focal",
+      "stable_admissible",
+      "stable_inadmissible"
+    ],
+    "minimum_query_token_jaccard": 0.5,
+    "candidate_pool_identical_within_pair": true,
+    "exactly_one_focal_label_flip_per_pair": true
+  },
+  "model_visible_fields": [
+    "query_text",
+    "candidate_key",
+    "candidate_text"
+  ],
+  "model_hidden_fields": [
+    "scenario_id",
+    "pair_id",
+    "axis",
+    "source_basis",
+    "candidate_role",
+    "gold_admissibility"
+  ],
+  "targets": {
+    "admissibility": [
+      "admissible",
+      "inadmissible",
+      "unknown"
+    ],
+    "probability_sum_tolerance": 0.0001
+  },
+  "baselines": [
+    "released_oracle",
+    "no_verifier_keep_all"
+  ],
+  "evaluation": {
+    "selection_or_tuning": false,
+    "primary_metric": "strict_focal_pair_consistency",
+    "metrics": [
+      "strict_focal_pair_consistency",
+      "focal_direction_accuracy",
+      "focal_directional_margin",
+      "focal_unknown_argmax_rate",
+      "stable_control_accuracy",
+      "stable_control_overflip_rate",
+      "candidate_accuracy",
+      "candidate_multiclass_brier",
+      "candidate_unknown_argmax_rate"
+    ],
+    "report_global_and_by_axis": true,
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 20260802,
+    "bootstrap_unit": "scenario",
+    "bootstrap_stratification": "axis",
+    "provider_comparison_requires_all_64_cases": true,
+    "prefix_scoring": false
+  },
+  "interpretation": {
+    "supportive_pattern": {
+      "strict_focal_pair_consistency": ">=0.80",
+      "each_axis_strict_focal_pair_consistency": ">=0.75",
+      "stable_control_overflip_rate": "<=0.05",
+      "mean_focal_directional_margin": ">0"
+    },
+    "scope": "controlled_explicit_evidence_verification_only",
+    "not_established": [
+      "latent_metadata_inference",
+      "population_benchmark_performance",
+      "causal_reader_safety",
+      "official_E6_or_M2_gate"
+    ]
+  },
+  "providers": [
+    {
+      "provider": "OpenAI",
+      "model": "gpt-5.6-sol",
+      "api_surface": "responses",
+      "effort": "low",
+      "input_usd_per_million": 5.0,
+      "output_usd_per_million": 30.0,
+      "hard_cap_usd": 2.5
+    },
+    {
+      "provider": "DeepSeek",
+      "model": "deepseek-v4-pro",
+      "api_surface": "chat_completions",
+      "thinking": "disabled",
+      "input_usd_per_million": 0.435,
+      "output_usd_per_million": 0.87,
+      "hard_cap_usd": 1.0
+    },
+    {
+      "provider": "Gemini",
+      "model": "gemini-3.6-flash",
+      "api_surface": "generate_content",
+      "thinking_level": "low",
+      "input_usd_per_million": 1.5,
+      "output_usd_per_million": 7.5,
+      "hard_cap_usd": 1.5
+    },
+    {
+      "provider": "Anthropic",
+      "model": "claude-sonnet-5",
+      "api_surface": "messages",
+      "effort": "low",
+      "input_usd_per_million": 3.0,
+      "output_usd_per_million": 15.0,
+      "hard_cap_usd": 2.0
+    }
+  ],
+  "execution": {
+    "total_hard_cap_usd": 7.5,
+    "fixture_total_hard_cap_usd": 0.5,
+    "fixture_hard_cap_usd_per_provider": 0.125,
+    "max_output_tokens_per_case": 768,
+    "timeout_seconds": 120,
+    "max_transport_retries": 1,
+    "semantic_or_output_repair": false,
+    "checkpoint_after_each_case": true,
+    "same_cases_and_prompt_across_models": true,
+    "provider_schema_adapters": "shared_frozen_transport_with_original_contract_client_validation",
+    "reader_or_answer_generation": false,
+    "judge_calls": 0,
+    "official_result": false
+  }
+}
