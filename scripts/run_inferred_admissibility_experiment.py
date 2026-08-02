@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import inspect
 import json
 import os
 import time
@@ -535,6 +536,22 @@ def _gemini_request(
     )
 
 
+def _anthropic_schema(value: object) -> object:
+    """Mirror Anthropic SDK constraint stripping; strict parsing uses the original schema."""
+    if isinstance(value, Mapping):
+        cleaned = {
+            key: _anthropic_schema(item)
+            for key, item in value.items()
+            if key not in {"minimum", "maximum", "minItems", "maxItems"}
+        }
+        if value.get("type") == "array" and int(value.get("minItems", 0)) > 0:
+            cleaned["minItems"] = 1
+        return cleaned
+    if isinstance(value, list):
+        return [_anthropic_schema(item) for item in value]
+    return value
+
+
 def _anthropic_request(
     binding: ProviderBinding,
     *,
@@ -554,7 +571,7 @@ def _anthropic_request(
         "thinking": {"type": "disabled"},
         "output_config": {
             "effort": binding.controls["effort"],
-            "format": {"type": "json_schema", "schema": schema},
+            "format": {"type": "json_schema", "schema": _anthropic_schema(schema)},
         },
     }
     response, attempts, latency_ms = _http_json(
@@ -596,6 +613,13 @@ PROVIDER_CALLS = {
     "Gemini": _gemini_request,
     "Anthropic": _anthropic_request,
 }
+
+
+def _provider_adapter_sha256(provider: str) -> str:
+    functions = [_http_json, PROVIDER_CALLS[provider]]
+    if provider == "Anthropic":
+        functions.append(_anthropic_schema)
+    return _sha256_text("\n\n".join(inspect.getsource(function) for function in functions))
 
 
 def _provider_fixture_case() -> InferenceCase:
@@ -641,22 +665,15 @@ def run_provider_fixture(
     """Exercise one provider adapter on synthetic text and save a content-free receipt."""
     case = _provider_fixture_case()
     fixture_hash = _sha256_text(prompt_payload(case))
-    adapter_hash = sha256_file(Path(__file__).resolve())
+    adapter_hash = _provider_adapter_sha256(binding.provider)
     output_path = output_dir / f"fixture-{binding.provider.lower()}.json"
     if output_path.is_file():
-        receipt = _read_json(output_path)
-        expected = {
-            "provider": binding.provider,
-            "model": binding.model,
-            "protocol_sha256": sha256_file(protocol.path),
-            "prompt_sha256": protocol.prompt_sha256,
-            "fixture_payload_sha256": fixture_hash,
-            "adapter_sha256": adapter_hash,
-            "prediction_shape_valid": True,
-        }
-        if all(receipt.get(key) == value for key, value in expected.items()):
-            return {**receipt, "checkpoint_reused": True}
-        raise ValueError(f"stale provider fixture receipt: {output_path}")
+        receipt = validate_provider_fixture_receipt(
+            protocol,
+            binding=binding,
+            output_dir=output_dir,
+        )
+        return {**receipt, "checkpoint_reused": True}
 
     credentials = _load_dotenv(dotenv)
     credential_key = _credential_key(binding.provider)
@@ -712,6 +729,33 @@ def run_provider_fixture(
     _write_json(output_path, receipt)
     if cost > fixture_cap:
         raise RuntimeError(f"{binding.provider} fixture exceeded its hard cap")
+    return receipt
+
+
+def validate_provider_fixture_receipt(
+    protocol: Protocol,
+    *,
+    binding: ProviderBinding,
+    output_dir: Path,
+) -> Mapping[str, Any]:
+    """Require a current, successful, content-free provider fixture receipt."""
+    case = _provider_fixture_case()
+    output_path = output_dir / f"fixture-{binding.provider.lower()}.json"
+    if not output_path.is_file():
+        raise FileNotFoundError(f"provider fixture receipt is absent: {output_path}")
+    receipt = _read_json(output_path)
+    expected = {
+        "provider": binding.provider,
+        "model": binding.model,
+        "protocol_sha256": sha256_file(protocol.path),
+        "prompt_sha256": protocol.prompt_sha256,
+        "fixture_payload_sha256": _sha256_text(prompt_payload(case)),
+        "adapter_sha256": _provider_adapter_sha256(binding.provider),
+        "prediction_shape_valid": True,
+        "raw_text_or_response_saved": False,
+    }
+    if not all(receipt.get(key) == value for key, value in expected.items()):
+        raise ValueError(f"stale or invalid provider fixture receipt: {output_path}")
     return receipt
 
 
@@ -1447,6 +1491,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(json.dumps({"status": "valid", **validation}, sort_keys=True))
         return 0
     if args.command == "execute":
+        for binding in selected:
+            validate_provider_fixture_receipt(
+                protocol,
+                binding=binding,
+                output_dir=args.fixture_dir.resolve(),
+            )
         results = [
             execute_provider(
                 protocol,

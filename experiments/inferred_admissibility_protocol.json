@@ -187,6 +187,7 @@
     "semantic_or_output_repair": false,
     "checkpoint_after_each_case": true,
     "same_cases_and_prompt_across_models": true,
+    "provider_schema_adapters": "syntax_only_with_original_contract_client_validation",
     "reader_or_answer_generation": false,
     "judge_calls": 0,
     "official_result": false

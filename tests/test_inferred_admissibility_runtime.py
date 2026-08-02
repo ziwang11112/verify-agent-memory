@@ -147,6 +147,13 @@ def test_non_openai_adapters_parse_frozen_shapes(
     else:
         assert body["output_config"]["format"]["type"] == "json_schema"
         assert body["output_config"]["effort"] == "low"
+        sent_schema = body["output_config"]["format"]["schema"]
+        sent_candidates = sent_schema["properties"]["candidates"]
+        assert sent_candidates["minItems"] == 1
+        assert "maxItems" not in sent_candidates
+        probability = sent_candidates["items"]["properties"]["policy"]["properties"]["allowed"]
+        assert "minimum" not in probability
+        assert "maximum" not in probability
 
 
 def test_checkpoint_is_bound_to_exact_visible_payload(

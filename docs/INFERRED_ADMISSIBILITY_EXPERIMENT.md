@@ -63,8 +63,10 @@ and filter summaries are also reported per stratum and as a true equal-stratum m
 The exact provider/model bindings are frozen in
 `experiments/inferred_admissibility_protocol.json`. The current cross-provider panel is
 GPT-5.6 Sol, DeepSeek-V4-Pro, Gemini 3.6 Flash, and Claude Sonnet 5. All receive the
-same semantic prompt and JSON schema. Provider-specific request encodings are adapters,
-not prompt variants.
+same semantic prompt and output contract. Provider-specific request encodings are
+adapters, not prompt variants. When a provider does not support a syntactic JSON Schema
+constraint, its adapter removes only that constraint and the client still validates the
+response against the original candidate-count, order, and probability contract.
 
 Before the development sample is sent, a two-candidate synthetic fixture exercises
 each provider adapter. Fixture receipts are bound to the protocol, prompt, fixture
@@ -72,6 +74,7 @@ payload, and adapter hashes; they contain no model output. Full execution checkp
 are additionally bound to the exact protocol and per-case visible payload so stale
 responses cannot be silently reused after input drift. Provider usage reporting keeps
 token counts, paid cost, call counts, and latency percentiles alongside quality.
+The execution command refuses to run a provider without its current fixture receipt.
 
 Raw public-source text and provider responses remain local and ignored by Git. Only
 content-free aggregate tables, model IDs, usage, hashes, and failure counts may be
