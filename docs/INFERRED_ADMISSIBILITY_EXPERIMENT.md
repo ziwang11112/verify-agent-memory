@@ -75,6 +75,9 @@ are additionally bound to the exact protocol and per-case visible payload so sta
 responses cannot be silently reused after input drift. Provider usage reporting keeps
 token counts, paid cost, call counts, and latency percentiles alongside quality.
 The execution command refuses to run a provider without its current fixture receipt.
+The common 4,096-token output ceiling was selected before development execution after
+the 20-candidate fixture showed that a 2,500-token ceiling truncated a valid provider
+response; the ceiling is identical across all four models.
 
 Raw public-source text and provider responses remain local and ignored by Git. Only
 content-free aggregate tables, model IDs, usage, hashes, and failure counts may be

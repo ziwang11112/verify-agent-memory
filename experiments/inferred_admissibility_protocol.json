@@ -181,7 +181,7 @@
     "total_hard_cap_usd": 46.0,
     "fixture_total_hard_cap_usd": 1.0,
     "fixture_hard_cap_usd_per_provider": 0.25,
-    "max_output_tokens_per_case": 2500,
+    "max_output_tokens_per_case": 4096,
     "timeout_seconds": 120,
     "max_transport_retries": 1,
     "semantic_or_output_repair": false,
