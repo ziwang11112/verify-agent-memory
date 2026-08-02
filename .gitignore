@@ -26,6 +26,8 @@ private/
 model_responses/
 responses/
 prompts/
+!experiments/prompts/
+!experiments/prompts/**
 
 # Large generated runtime artifacts
 embeddings/

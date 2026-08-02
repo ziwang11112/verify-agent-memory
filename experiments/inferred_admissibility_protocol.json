@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-dev-text-inferred-admissibility-v1",
+  "status": "public_dev_diagnostic_not_official_benchmark_result",
+  "objective": "measure_the_gap_between_released_oracle_and_text_inferred_admissibility",
+  "prompt": {
+    "path": "experiments/prompts/inferred_admissibility_v1.txt",
+    "sha256": "933d2f15971f59e4fd1dcdee87539248b26f47018eaca9eb0aa13ca548fa43b1"
+  },
+  "source_contract": {
+    "rhelm_revision": "726fc42ea0d5c11085c1a961ade10d702ba187d3",
+    "memops_revision": "0b85a27bba856c287405a36e53a39e59e424c4e9",
+    "split": "dev_only",
+    "evaluation_or_heldout_access": false,
+    "raw_text_in_repository": false
+  },
+  "sample": {
+    "selection_salt": "verify-agent-memory/inferred-admissibility/v1",
+    "strata": [
+      "rhelm/current_state",
+      "memops/current_state",
+      "memops/history"
+    ],
+    "queries_per_stratum": 32,
+    "calibration_queries_per_stratum": 8,
+    "analysis_queries_per_stratum": 24,
+    "candidate_arm": "namespace_dense",
+    "ranking_config_id": "ed4a7e3ae49d",
+    "candidate_depth": 20,
+    "visible_text_max_utf8_bytes": 2048,
+    "visible_text_truncation": "utf8_prefix",
+    "positive_injection": false,
+    "candidate_reranking": false
+  },
+  "model_visible_fields": [
+    "query_text",
+    "query_visible_time",
+    "candidate_key",
+    "candidate_rank",
+    "candidate_text",
+    "candidate_visible_order"
+  ],
+  "model_hidden_fields": [
+    "source",
+    "group_id",
+    "query_id",
+    "memory_id",
+    "namespace_id",
+    "embedding",
+    "required_evidence",
+    "released_query_intent",
+    "released_policy_allowed",
+    "released_lifecycle_state",
+    "released_distractor"
+  ],
+  "targets": {
+    "query_intent": [
+      "current_state",
+      "history",
+      "unknown"
+    ],
+    "policy": [
+      "allowed",
+      "disallowed",
+      "unknown"
+    ],
+    "lifecycle": [
+      "compatible",
+      "incompatible",
+      "unknown"
+    ],
+    "admissibility": [
+      "admissible",
+      "inadmissible",
+      "unknown"
+    ],
+    "probability_sum_tolerance": 0.0001
+  },
+  "route_arms": [
+    "namespace_dense",
+    "released_oracle",
+    "text_inferred",
+    "abstaining_verifier"
+  ],
+  "selection": {
+    "split": "calibration_only",
+    "violation_threshold_grid": [
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      0.95
+    ],
+    "unknown_threshold_grid": [
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "maximum_required_anchor_false_deny_rate": 0.01,
+    "objective": [
+      "maximize_known_violation_recall",
+      "maximize_known_violation_precision",
+      "minimize_required_anchor_false_deny_rate",
+      "maximize_threshold",
+      "minimize_unknown_threshold"
+    ],
+    "no_feasible_setting": "retain_all_candidates"
+  },
+  "evaluation": {
+    "split": "analysis_only",
+    "target_recall": 0.8,
+    "classification_metrics": [
+      "accuracy",
+      "balanced_accuracy",
+      "brier",
+      "ece_10",
+      "roc_auc",
+      "pr_auc"
+    ],
+    "filter_metrics": [
+      "abstention_coverage",
+      "violation_precision",
+      "violation_recall",
+      "required_anchor_false_deny_rate"
+    ],
+    "downstream_metrics": [
+      "evidence_recall",
+      "feasible_rate",
+      "penalized_admissibility_upper_risk",
+      "conditional_admissibility_upper_risk",
+      "known_admissibility_violation_rate",
+      "mean_route_width",
+      "oracle_gap_closed"
+    ],
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 20260802,
+    "bootstrap_unit": "namespace_group",
+    "bootstrap_stratification": "source_query_intent"
+  },
+  "providers": [
+    {
+      "provider": "OpenAI",
+      "model": "gpt-5.6-sol",
+      "api_surface": "responses",
+      "effort": "low",
+      "input_usd_per_million": 5.0,
+      "output_usd_per_million": 30.0,
+      "hard_cap_usd": 15.0
+    },
+    {
+      "provider": "DeepSeek",
+      "model": "deepseek-v4-pro",
+      "api_surface": "chat_completions",
+      "thinking": "disabled",
+      "input_usd_per_million": 0.435,
+      "output_usd_per_million": 0.87,
+      "hard_cap_usd": 5.0
+    },
+    {
+      "provider": "Gemini",
+      "model": "gemini-3.6-flash",
+      "api_surface": "generate_content",
+      "thinking_level": "low",
+      "input_usd_per_million": 1.5,
+      "output_usd_per_million": 7.5,
+      "hard_cap_usd": 10.0
+    },
+    {
+      "provider": "Anthropic",
+      "model": "claude-sonnet-5",
+      "api_surface": "messages",
+      "effort": "low",
+      "input_usd_per_million": 3.0,
+      "output_usd_per_million": 15.0,
+      "hard_cap_usd": 15.0
+    }
+  ],
+  "execution": {
+    "total_hard_cap_usd": 46.0,
+    "fixture_total_hard_cap_usd": 1.0,
+    "fixture_hard_cap_usd_per_provider": 0.25,
+    "max_output_tokens_per_case": 2500,
+    "timeout_seconds": 120,
+    "max_transport_retries": 1,
+    "semantic_or_output_repair": false,
+    "checkpoint_after_each_case": true,
+    "same_cases_and_prompt_across_models": true,
+    "reader_or_answer_generation": false,
+    "judge_calls": 0,
+    "official_result": false
+  }
+}
