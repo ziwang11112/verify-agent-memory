@@ -1,0 +1,17 @@
+provider,model,arm,stratum,violation_threshold,unknown_threshold,retains_all,candidate_count,known_count,known_violation_count,dropped_count,dropped_known_count,dropped_unknown_gold_count,violation_precision,violation_recall,required_anchor_count,required_anchor_false_denies,required_anchor_false_deny_rate,abstention_coverage,aggregation_note
+OpenAI,gpt-5.6-sol,text_inferred,memops/current_state,0.95,,False,480,468,114,118,116,2,0.3448275862068966,0.3508771929824561,34,6,0.17647058823529413,1.0,candidate_micro_within_stratum
+OpenAI,gpt-5.6-sol,text_inferred,memops/history,0.95,,False,480,463,106,17,17,0,0.7058823529411765,0.11320754716981132,45,0,0.0,1.0,candidate_micro_within_stratum
+OpenAI,gpt-5.6-sol,text_inferred,rhelm/current_state,0.95,,False,480,480,0,4,4,0,0.0,,34,0,0.0,1.0,candidate_micro_within_stratum
+OpenAI,gpt-5.6-sol,text_inferred,equal_stratum_macro,0.95,,False,1440,1411,220,139,137,2,0.350236646382691,0.2320423700761337,113,6,0.05882352941176471,1.0,equal_stratum_macro
+OpenAI,gpt-5.6-sol,abstaining_verifier,memops/current_state,0.95,0.2,False,480,468,114,118,116,2,0.3448275862068966,0.3508771929824561,34,6,0.17647058823529413,0.9708333333333333,candidate_micro_within_stratum
+OpenAI,gpt-5.6-sol,abstaining_verifier,memops/history,0.95,0.2,False,480,463,106,17,17,0,0.7058823529411765,0.11320754716981132,45,0,0.0,0.9958333333333333,candidate_micro_within_stratum
+OpenAI,gpt-5.6-sol,abstaining_verifier,rhelm/current_state,0.95,0.2,False,480,480,0,4,4,0,0.0,,34,0,0.0,0.9791666666666666,candidate_micro_within_stratum
+OpenAI,gpt-5.6-sol,abstaining_verifier,equal_stratum_macro,0.95,0.2,False,1440,1411,220,139,137,2,0.350236646382691,0.2320423700761337,113,6,0.05882352941176471,0.9819444444444444,equal_stratum_macro
+Gemini,gemini-3.6-flash,text_inferred,memops/current_state,0.95,,False,480,468,114,28,28,0,0.35714285714285715,0.08771929824561403,34,2,0.058823529411764705,1.0,candidate_micro_within_stratum
+Gemini,gemini-3.6-flash,text_inferred,memops/history,0.95,,False,480,463,106,1,1,0,1.0,0.009433962264150943,45,0,0.0,1.0,candidate_micro_within_stratum
+Gemini,gemini-3.6-flash,text_inferred,rhelm/current_state,0.95,,False,480,480,0,0,0,0,,,34,0,0.0,1.0,candidate_micro_within_stratum
+Gemini,gemini-3.6-flash,text_inferred,equal_stratum_macro,0.95,,False,1440,1411,220,29,29,0,0.6785714285714286,0.048576630254882486,113,2,0.0196078431372549,1.0,equal_stratum_macro
+Gemini,gemini-3.6-flash,abstaining_verifier,memops/current_state,0.95,0.2,False,480,468,114,28,28,0,0.35714285714285715,0.08771929824561403,34,2,0.058823529411764705,1.0,candidate_micro_within_stratum
+Gemini,gemini-3.6-flash,abstaining_verifier,memops/history,0.95,0.2,False,480,463,106,1,1,0,1.0,0.009433962264150943,45,0,0.0,1.0,candidate_micro_within_stratum
+Gemini,gemini-3.6-flash,abstaining_verifier,rhelm/current_state,0.95,0.2,False,480,480,0,0,0,0,,,34,0,0.0,1.0,candidate_micro_within_stratum
+Gemini,gemini-3.6-flash,abstaining_verifier,equal_stratum_macro,0.95,0.2,False,1440,1411,220,29,29,0,0.6785714285714286,0.048576630254882486,113,2,0.0196078431372549,1.0,equal_stratum_macro

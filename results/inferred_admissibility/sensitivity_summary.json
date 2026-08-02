@@ -1,0 +1,14 @@
+{
+  "classification_metrics_identical": false,
+  "downstream_conclusion_changed": false,
+  "invariant_output_hashes": {
+    "filter_metrics.csv": true,
+    "paired_route_deltas.csv": true,
+    "route_metrics.csv": true,
+    "selected_thresholds.csv": true
+  },
+  "primary_rule": "first_response_committed_to_append_only_checkpoint",
+  "provider_usage_identical": false,
+  "schema_version": 1,
+  "sensitivity_rule": "last_response_committed_for_duplicate_cases_only"
+}
