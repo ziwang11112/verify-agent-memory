@@ -22,6 +22,8 @@ this repository.
 | Frozen settings | `experiments/frozen_natural_protocol.json` | Embedding, split, selection, and selected-arm configuration |
 | Robustness grid | `experiments/metadata_robustness_protocol.json` | Corruption channels, rates, seeds, invariants, and break-even definition |
 | Pareto grid | `experiments/top_k_pareto_protocol.json` | Frozen arms and `top_k` depths for recall-risk-cost analysis |
+| Supplemental results | `results/supplemental_natural/` | Content-free top-k, attribution, and metadata break-even diagnostics |
+| Supplemental verifier | `scripts/publish_supplemental_results.py` | Hash, schema, row-count, and content-boundary checks for the result package |
 
 No Bayesian mixture, CRP/PYP, split-merge, reader, judge, provider client, or model
 call is present in this execution path.
@@ -230,6 +232,7 @@ uv run --extra dev python -m scripts.run_top_k_pareto `
   --retrieval-protocol experiments/frozen_natural_protocol.json `
   --pareto-protocol experiments/top_k_pareto_protocol.json `
   --output tmp/top_k_pareto.jsonl
+uv run --extra dev python -m scripts.publish_supplemental_results verify
 ```
 
 The fixture is only a code-path smoke. It is not a benchmark result. Reproducing the
