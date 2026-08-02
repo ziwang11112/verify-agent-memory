@@ -106,3 +106,57 @@ def test_published_bundle_contains_no_raw_prompt_or_response_text() -> None:
         if path.suffix in {".csv", ".json", ".md"}
     )
     assert all(value not in text for value in forbidden)
+
+
+def test_posthoc_taxonomy_is_zero_call_and_hash_bound() -> None:
+    manifest = json.loads((RESULTS / "posthoc_manifest.json").read_text(encoding="utf-8"))
+
+    assert manifest["status"] == "posthoc_descriptive_error_taxonomy"
+    assert manifest["comparison_eligible_provider_count"] == 3
+    assert manifest["provider_call_count"] == 0
+    assert manifest["prompt_or_prediction_modified"] is False
+    assert manifest["individual_case_rows_published"] is False
+    assert manifest["query_or_candidate_text_published"] is False
+    assert manifest["official_result"] is False
+    assert len(manifest["checkpoints"]) == 3
+    assert all(checkpoint["case_count"] == 64 for checkpoint in manifest["checkpoints"])
+    for output in manifest["outputs"]:
+        path = RESULTS / output["path"]
+        assert path.is_file()
+        assert _sha256(path) == output["sha256"]
+
+
+def test_posthoc_taxonomy_identifies_false_denial_as_dominant_error() -> None:
+    rows = _csv(RESULTS / "error_taxonomy.csv")
+    overall = {
+        (row["model"], row["role"]): row
+        for row in rows
+        if row["axis"] == "all" and row["condition"] == "all"
+    }
+    expected = {
+        "OpenAI/gpt-5.6-sol": (0.265625, 0.03125),
+        "DeepSeek/deepseek-v4-pro": (0.59375, 0.015625),
+        "Gemini/gemini-3.6-flash": (0.53125, 0.0),
+    }
+    for model, (false_deny, false_admit) in expected.items():
+        assert float(overall[(model, "stable_admissible")]["false_deny_rate"]) == pytest.approx(
+            false_deny
+        )
+        assert float(overall[(model, "stable_inadmissible")]["false_admit_rate"]) == pytest.approx(
+            false_admit
+        )
+        assert false_deny > false_admit
+
+
+def test_posthoc_outputs_publish_no_individual_identifiers() -> None:
+    for name in (
+        "error_taxonomy.csv",
+        "stable_control_outcomes.csv",
+        "overflip_transitions.csv",
+    ):
+        rows = _csv(RESULTS / name)
+        assert rows
+        assert "pair_id" not in rows[0]
+        assert "scenario_id" not in rows[0]
+        assert "query" not in rows[0]
+        assert "text" not in rows[0]

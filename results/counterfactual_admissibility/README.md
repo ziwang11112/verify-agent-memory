@@ -42,3 +42,9 @@ Known fixture and execution cost across all four providers was approximately
 not expose validated usage. This remains a controlled public-development diagnostic,
 not an official benchmark result or a claim that an LLM verifier can replace trusted
 namespace, policy, or lifecycle controls.
+
+A frozen-checkpoint, zero-call posthoc breakdown is reported in
+[`error_taxonomy_summary.md`](error_taxonomy_summary.md). It shows that errors are
+dominated by false denial of stable-admissible memories, not false admission of
+stable-inadmissible memories, with lifecycle intent the worst overflip axis for all
+three complete providers.

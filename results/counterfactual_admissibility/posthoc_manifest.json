@@ -1,0 +1,54 @@
+{
+  "analyzer_sha256": "66d8a960885eb076bac3e1f7484ee62bdff41f855e5ac360ef05bfd1dca23d04",
+  "base_manifest_sha256": "d3d7b468eda4dd388b5a0d8a9df32d7404f94a676f37dd7224db2776cc2800e6",
+  "checkpoints": [
+    {
+      "case_count": 64,
+      "checkpoint_sha256": "a437dea844b0da6ab8df0cfe15eecb94f7fd6ccf9fc7d24aceb1ef5659201ef6",
+      "completion_sha256": "4dfa3fb3f636126514c94b39839d814d7d1ab78af74c226979bd8a7fe41a0056",
+      "model": "gpt-5.6-sol",
+      "provider": "OpenAI"
+    },
+    {
+      "case_count": 64,
+      "checkpoint_sha256": "aeb4078b905c301d69571406db42dbf1d3d249f85b99c1cd193c26a2d260c936",
+      "completion_sha256": "bb8f607f1de3dd33a43d60532178ef0c26030bbf3463dfad632b86b5e3523fa8",
+      "model": "deepseek-v4-pro",
+      "provider": "DeepSeek"
+    },
+    {
+      "case_count": 64,
+      "checkpoint_sha256": "a62aec812fe49486a8e9d2adf7dcddd15b3e73d583927035e7ee222220244a03",
+      "completion_sha256": "40018ccda1b71dfe36509187f00ce07e6e8584d25566a229740c190bcac9711a",
+      "model": "gemini-3.6-flash",
+      "provider": "Gemini"
+    }
+  ],
+  "comparison_eligible_provider_count": 3,
+  "individual_case_rows_published": false,
+  "official_result": false,
+  "outputs": [
+    {
+      "path": "error_taxonomy.csv",
+      "sha256": "48cb67a351023094517079f501f124974ea6a5c50a6bdcea7cb9a0e03de2cb88"
+    },
+    {
+      "path": "stable_control_outcomes.csv",
+      "sha256": "278507ecea6e82a29db8c10d98d10657b6cca3988ddc4352845abf702a34c3b7"
+    },
+    {
+      "path": "overflip_transitions.csv",
+      "sha256": "8680ecb218a2e1ce8d191826c10c1e74b2396327f3719794bfa0282bbd162fcc"
+    },
+    {
+      "path": "error_taxonomy_summary.md",
+      "sha256": "9508ddb95e24788413e1a69265634a78caa320e9b2cdaef92380ea2ea35bda23"
+    }
+  ],
+  "prompt_or_prediction_modified": false,
+  "protocol_sha256": "b41376b8bb422a29cb197511bb248e6ef455af51dc940a321b437bf49b62eb66",
+  "provider_call_count": 0,
+  "query_or_candidate_text_published": false,
+  "schema_version": 1,
+  "status": "posthoc_descriptive_error_taxonomy"
+}
