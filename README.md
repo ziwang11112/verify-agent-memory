@@ -40,6 +40,12 @@ dev-only setting-selection objective, and local smoke commands, see
 [docs/EXPERIMENT_METHODS.md](docs/EXPERIMENT_METHODS.md). This technical path is
 independent of the manuscript build.
 
+The controlled counterfactual diagnostic holds each candidate pool fixed while
+changing only principal, intent, purpose, or as-of time. Its frozen protocol, pure
+scorer, and content-free results are documented in
+[docs/COUNTERFACTUAL_ADMISSIBILITY_EXPERIMENT.md](docs/COUNTERFACTUAL_ADMISSIBILITY_EXPERIMENT.md)
+and [results/counterfactual_admissibility/](results/counterfactual_admissibility/).
+
 ## Current Scope
 
 - Define retrieval admissibility without equating all inadmissible context with
@@ -65,6 +71,10 @@ and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
   beyond namespace support.
 - Released intent and lifecycle fields show upper-bound headroom, not deployable
   blind inference performance.
+- In controlled counterfactual pairs, GPT-5.6 Sol and Gemini 3.6 Flash follow every
+  focal eligibility flip, but all three complete providers fail the preregistered
+  stable-control overflip ceiling. Explicit LLM verification is therefore not yet a
+  selective replacement for trusted controls.
 
 The normalized values and their source receipts are documented in
 [evidence/README.md](evidence/README.md).
