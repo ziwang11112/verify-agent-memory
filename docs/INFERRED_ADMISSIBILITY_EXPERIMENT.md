@@ -83,3 +83,19 @@ Raw public-source text and provider responses remain local and ignored by Git. O
 content-free aggregate tables, model IDs, usage, hashes, and failure counts may be
 published. There is no answer generation, reader, judge, held-out access, evaluation
 retuning, or official benchmark claim.
+
+## Checkpoint Recovery
+
+Provider checkpoints are append-only and their raw hashes are preserved. If concurrent
+resume processes append more than one valid response for the same bound request, the
+primary analysis uses the first response committed to the checkpoint. A separate
+last-committed view is scored as a sensitivity analysis whenever duplicate predictions
+differ. The recovery audit reports duplicate calls, differing predictions, and all
+associated cost; it never overwrites the raw response file or selects a response by its
+measured quality.
+
+Provider comparison requires all 96 frozen cases. A provider with any missing or
+structurally invalid response is marked contract-incomplete: its valid prefix is kept
+for execution auditing but is neither scored nor selectively rerun. The score manifest
+must list the complete protocol panel, the comparison-eligible complete providers, and
+every excluded provider.

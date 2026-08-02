@@ -132,6 +132,15 @@ def _append_jsonl(path: Path, value: object) -> None:
         os.fsync(handle.fileno())
 
 
+def _write_jsonl(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp")
+    with temporary.open("wb") as handle:
+        for row in rows:
+            handle.write(_canonical_bytes(row) + b"\n")
+    os.replace(temporary, path)
+
+
 def _load_dotenv(path: Path) -> dict[str, str]:
     if not path.is_file():
         raise FileNotFoundError(f"dotenv file not found: {path}")
@@ -552,6 +561,44 @@ def _limited_provider_schema(value: object) -> object:
     return value
 
 
+def _anthropic_schema(value: object) -> object:
+    """Transform unsupported constraints into descriptions, as Anthropic SDKs do."""
+    if isinstance(value, Mapping):
+        cleaned = {
+            key: _anthropic_schema(item)
+            for key, item in value.items()
+            if key not in {"minimum", "maximum", "minItems", "maxItems"}
+        }
+        notes = []
+        minimum = value.get("minimum")
+        maximum = value.get("maximum")
+        if minimum is not None and maximum is not None:
+            notes.append(f"Value must be between {minimum} and {maximum}, inclusive.")
+        elif minimum is not None:
+            notes.append(f"Value must be at least {minimum}.")
+        elif maximum is not None:
+            notes.append(f"Value must be at most {maximum}.")
+        min_items = value.get("minItems")
+        max_items = value.get("maxItems")
+        if min_items is not None and min_items == max_items:
+            notes.append(f"Array must contain exactly {min_items} items.")
+        elif min_items is not None:
+            notes.append(f"Array must contain at least {min_items} items.")
+        elif max_items is not None:
+            notes.append(f"Array must contain at most {max_items} items.")
+        if value.get("type") == "array" and int(value.get("minItems", 0)) > 0:
+            cleaned["minItems"] = 1
+        if notes:
+            existing = cleaned.get("description")
+            cleaned["description"] = " ".join(
+                ([str(existing)] if existing is not None else []) + notes
+            )
+        return cleaned
+    if isinstance(value, list):
+        return [_anthropic_schema(item) for item in value]
+    return value
+
+
 def _anthropic_request(
     binding: ProviderBinding,
     *,
@@ -571,7 +618,7 @@ def _anthropic_request(
         "thinking": {"type": "disabled"},
         "output_config": {
             "effort": binding.controls["effort"],
-            "format": {"type": "json_schema", "schema": _limited_provider_schema(schema)},
+            "format": {"type": "json_schema", "schema": _anthropic_schema(schema)},
         },
     }
     response, attempts, latency_ms = _http_json(
@@ -617,8 +664,10 @@ PROVIDER_CALLS = {
 
 def _provider_adapter_sha256(provider: str) -> str:
     functions = [_http_json, PROVIDER_CALLS[provider]]
-    if provider in {"Gemini", "Anthropic"}:
+    if provider == "Gemini":
         functions.append(_limited_provider_schema)
+    elif provider == "Anthropic":
+        functions.append(_anthropic_schema)
     return _sha256_text("\n\n".join(inspect.getsource(function) for function in functions))
 
 
@@ -779,18 +828,102 @@ def _failure_path(output_dir: Path, binding: ProviderBinding) -> Path:
     return output_dir / f"failures-{slug}.jsonl"
 
 
-def _load_response_records(path: Path) -> tuple[Mapping[str, Any], ...]:
+def _read_response_records(path: Path) -> tuple[Mapping[str, Any], ...]:
     if not path.is_file():
         return ()
-    rows = tuple(
+    return tuple(
         _mapping(json.loads(line), str(path))
         for line in path.read_text(encoding="utf-8").splitlines()
         if line.strip()
     )
+
+
+def _load_response_records(path: Path) -> tuple[Mapping[str, Any], ...]:
+    rows = _read_response_records(path)
     case_ids = [_string(row.get("case_id"), "response.case_id") for row in rows]
     if len(set(case_ids)) != len(case_ids):
         raise ValueError(f"response checkpoint has duplicate case IDs: {path}")
     return rows
+
+
+def canonicalize_response_checkpoints(
+    protocol: Protocol,
+    cases: Sequence[InferenceCase],
+    *,
+    bindings: Sequence[ProviderBinding],
+    response_dir: Path,
+    output_dir: Path,
+) -> dict[str, object]:
+    """Preserve raw checkpoints and emit deterministic first/last-response views."""
+    by_case = {case.case_id: case for case in cases}
+    expected_case_ids = set(by_case)
+    primary_dir = output_dir / "primary_first_committed"
+    sensitivity_dir = output_dir / "sensitivity_last_committed"
+    provider_audits = []
+    for binding in bindings:
+        source_path = _response_path(response_dir, binding)
+        records = _read_response_records(source_path)
+        grouped: dict[str, list[Mapping[str, Any]]] = {}
+        for row in records:
+            case_id = _string(row.get("case_id"), "response.case_id")
+            case = by_case.get(case_id)
+            if case is None:
+                raise ValueError(f"response references unknown case {case_id!r}")
+            _validate_response_record(row, case, binding, protocol)
+            grouped.setdefault(case_id, []).append(row)
+        if set(grouped) != expected_case_ids:
+            missing = sorted(expected_case_ids - set(grouped))
+            raise ValueError(
+                f"{binding.provider} checkpoint is incomplete; missing {len(missing)} cases"
+            )
+
+        ordered_ids = [case.case_id for case in cases]
+        primary = tuple(grouped[case_id][0] for case_id in ordered_ids)
+        sensitivity = tuple(grouped[case_id][-1] for case_id in ordered_ids)
+        primary_path = _response_path(primary_dir, binding)
+        sensitivity_path = _response_path(sensitivity_dir, binding)
+        _write_jsonl(primary_path, primary)
+        _write_jsonl(sensitivity_path, sensitivity)
+
+        duplicate_groups = [group for group in grouped.values() if len(group) > 1]
+        differing_predictions = sum(
+            len({_sha256_object(row.get("prediction")) for row in group}) > 1
+            for group in duplicate_groups
+        )
+        raw_cost = sum(_number(row.get("cost_usd"), "response.cost_usd") for row in records)
+        selected_cost = sum(_number(row.get("cost_usd"), "response.cost_usd") for row in primary)
+        provider_audits.append(
+            {
+                "provider": binding.provider,
+                "model": binding.model,
+                "source_checkpoint": source_path.as_posix(),
+                "source_sha256": sha256_file(source_path),
+                "raw_rows": len(records),
+                "unique_cases": len(grouped),
+                "duplicate_case_groups": len(duplicate_groups),
+                "duplicate_calls": len(records) - len(grouped),
+                "duplicate_groups_with_different_predictions": differing_predictions,
+                "raw_cost_usd": raw_cost,
+                "primary_selected_cost_usd": selected_cost,
+                "duplicate_call_cost_usd": raw_cost - selected_cost,
+                "primary_checkpoint": primary_path.as_posix(),
+                "primary_sha256": sha256_file(primary_path),
+                "sensitivity_checkpoint": sensitivity_path.as_posix(),
+                "sensitivity_sha256": sha256_file(sensitivity_path),
+            }
+        )
+
+    audit = {
+        "schema_version": 1,
+        "protocol_sha256": sha256_file(protocol.path),
+        "case_count": len(cases),
+        "raw_checkpoints_modified": False,
+        "primary_rule": "first_response_committed_to_append_only_checkpoint",
+        "sensitivity_rule": "last_response_committed_for_duplicate_cases_only",
+        "providers": provider_audits,
+    }
+    _write_json(output_dir / "checkpoint_canonicalization_audit.json", audit)
+    return audit
 
 
 def _validate_response_record(
@@ -900,6 +1033,7 @@ def execute_provider(
                     "provider": binding.provider,
                     "model": binding.model,
                     "error_type": type(error).__name__,
+                    "error_message": str(error)[:300],
                     "semantic_or_output_repair_attempted": False,
                 },
             )
@@ -1265,6 +1399,7 @@ def score_responses(
     *,
     response_dir: Path,
     output_dir: Path,
+    bindings: Sequence[ProviderBinding] | None = None,
 ) -> dict[str, object]:
     """Select on calibration and publish content-free analysis aggregates."""
     calibration = tuple(case for case in cases if case.role == "calibration")
@@ -1298,7 +1433,12 @@ def score_responses(
     paired_rows = []
     usage_rows = []
     response_receipts = {}
-    for binding in protocol.providers:
+    scored_bindings = tuple(protocol.providers if bindings is None else bindings)
+    if not scored_bindings:
+        raise ValueError("at least one complete provider is required for scoring")
+    if any(binding not in protocol.providers for binding in scored_bindings):
+        raise ValueError("scored providers must come from the frozen protocol")
+    for binding in scored_bindings:
         response_path = _response_path(response_dir, binding)
         records = _load_response_records(response_path)
         predictions = _predictions_from_records(records, cases, binding, protocol)
@@ -1430,6 +1570,11 @@ def score_responses(
         "case_count": len(cases),
         "calibration_cases": len(calibration),
         "analysis_cases": len(analysis),
+        "protocol_providers": [binding.provider for binding in protocol.providers],
+        "scored_complete_providers": [binding.provider for binding in scored_bindings],
+        "excluded_providers": [
+            binding.provider for binding in protocol.providers if binding not in scored_bindings
+        ],
         "response_receipts": response_receipts,
         "outputs": {
             name: sha256_file(output_dir / name)
@@ -1452,7 +1597,9 @@ def score_responses(
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("validate", "provider-fixture", "execute", "score"))
+    parser.add_argument(
+        "command", choices=("validate", "provider-fixture", "execute", "canonicalize", "score")
+    )
     parser.add_argument("--protocol", type=Path, default=DEFAULT_PROTOCOL)
     parser.add_argument("--cases", type=Path)
     parser.add_argument("--dotenv", type=Path, default=DEFAULT_DOTENV)
@@ -1460,10 +1607,21 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--provider", choices=("all", "OpenAI", "DeepSeek", "Gemini", "Anthropic"), default="all"
     )
     parser.add_argument(
+        "--exclude-provider",
+        action="append",
+        choices=("OpenAI", "DeepSeek", "Gemini", "Anthropic"),
+        default=[],
+    )
+    parser.add_argument(
         "--response-dir", type=Path, default=ROOT / "tmp" / "inferred_admissibility"
     )
     parser.add_argument(
         "--output-dir", type=Path, default=ROOT / "tmp" / "inferred_admissibility_scores"
+    )
+    parser.add_argument(
+        "--canonical-dir",
+        type=Path,
+        default=ROOT / "tmp" / "inferred_admissibility_canonical",
     )
     parser.add_argument(
         "--fixture-dir",
@@ -1481,6 +1639,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         for binding in protocol.providers
         if args.provider == "all" or binding.provider == args.provider
     ]
+    selected = [binding for binding in selected if binding.provider not in args.exclude_provider]
+    if not selected:
+        raise ValueError("provider selection is empty")
     if args.command == "provider-fixture":
         results = [
             run_provider_fixture(
@@ -1519,11 +1680,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         ]
         print(json.dumps({"status": "complete", "providers": results}, sort_keys=True))
         return 0
+    if args.command == "canonicalize":
+        audit = canonicalize_response_checkpoints(
+            protocol,
+            cases,
+            bindings=selected,
+            response_dir=args.response_dir.resolve(),
+            output_dir=args.canonical_dir.resolve(),
+        )
+        print(json.dumps({"status": "canonicalized", "audit": audit}, sort_keys=True))
+        return 0
     manifest = score_responses(
         protocol,
         cases,
         response_dir=args.response_dir.resolve(),
         output_dir=args.output_dir.resolve(),
+        bindings=selected,
     )
     print(json.dumps({"status": "scored", "manifest": manifest}, sort_keys=True))
     return 0

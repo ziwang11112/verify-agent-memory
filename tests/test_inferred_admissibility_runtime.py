@@ -159,9 +159,11 @@ def test_non_openai_adapters_parse_frozen_shapes(
         sent_candidates = sent_schema["properties"]["candidates"]
         assert sent_candidates["minItems"] == 1
         assert "maxItems" not in sent_candidates
+        assert "exactly 2 items" in sent_candidates["description"]
         probability = sent_candidates["items"]["properties"]["policy"]["properties"]["allowed"]
         assert "minimum" not in probability
         assert "maximum" not in probability
+        assert "between 0 and 1" in probability["description"]
 
 
 def test_checkpoint_is_bound_to_exact_visible_payload(
@@ -209,6 +211,90 @@ def test_checkpoint_is_bound_to_exact_visible_payload(
             dotenv=dotenv,
             output_dir=tmp_path,
         )
+
+
+def test_provider_failure_marker_records_content_free_reason(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol = runtime.load_protocol(runtime.DEFAULT_PROTOCOL)
+    binding = protocol.providers[0]
+    case = runtime._provider_fixture_case()
+    dotenv = tmp_path / ".env"
+    dotenv.write_text("OPENAI_API_KEY=not-a-real-key\n", encoding="utf-8")
+
+    def invalid_provider(*_args: object, **_kwargs: object) -> tuple[object, ...]:
+        raise ValueError("prediction candidate count differs from request")
+
+    monkeypatch.setitem(runtime.PROVIDER_CALLS, "OpenAI", invalid_provider)
+    with pytest.raises(ValueError, match="candidate count"):
+        runtime.execute_provider(
+            protocol,
+            (case,),
+            binding=binding,
+            dotenv=dotenv,
+            output_dir=tmp_path,
+        )
+
+    failure = json.loads(runtime._failure_path(tmp_path, binding).read_text(encoding="utf-8"))
+    assert failure["error_type"] == "ValueError"
+    assert failure["error_message"] == "prediction candidate count differs from request"
+    assert failure["semantic_or_output_repair_attempted"] is False
+
+
+def test_duplicate_checkpoint_recovery_is_first_committed_with_last_sensitivity(
+    tmp_path: Path,
+) -> None:
+    protocol = runtime.load_protocol(runtime.DEFAULT_PROTOCOL)
+    binding = protocol.providers[0]
+    case = runtime._provider_fixture_case()
+    source_dir = tmp_path / "raw"
+    source_path = runtime._response_path(source_dir, binding)
+    base = {
+        "case_id": case.case_id,
+        "provider": binding.provider,
+        "model": binding.model,
+        "input_tokens": 10,
+        "output_tokens": 20,
+        "cost_usd": 0.001,
+        "attempts": 1,
+        "latency_ms": 5.0,
+        "request_sha256": "same-request",
+        "protocol_sha256": runtime.sha256_file(protocol.path),
+        "prompt_sha256": protocol.prompt_sha256,
+        "case_payload_sha256": runtime._sha256_text(runtime.prompt_payload(case)),
+        "raw_query_or_memory_text_saved": False,
+    }
+    first = _prediction(20)
+    last = _prediction(20)
+    last["query_intent"] = {"current_state": 0.8, "history": 0.1, "unknown": 0.1}
+    runtime._append_jsonl(source_path, {**base, "prediction": first})
+    runtime._append_jsonl(source_path, {**base, "prediction": last})
+    source_hash = runtime.sha256_file(source_path)
+
+    output_dir = tmp_path / "canonical"
+    audit = runtime.canonicalize_response_checkpoints(
+        protocol,
+        (case,),
+        bindings=(binding,),
+        response_dir=source_dir,
+        output_dir=output_dir,
+    )
+
+    primary = runtime._load_response_records(
+        runtime._response_path(output_dir / "primary_first_committed", binding)
+    )
+    sensitivity = runtime._load_response_records(
+        runtime._response_path(output_dir / "sensitivity_last_committed", binding)
+    )
+    assert primary[0]["prediction"] == first
+    assert sensitivity[0]["prediction"] == last
+    assert runtime.sha256_file(source_path) == source_hash
+    provider_audit = audit["providers"][0]
+    assert provider_audit["duplicate_case_groups"] == 1
+    assert provider_audit["duplicate_calls"] == 1
+    assert provider_audit["duplicate_groups_with_different_predictions"] == 1
+    assert audit["raw_checkpoints_modified"] is False
 
 
 def test_score_pipeline_writes_all_content_free_outputs(tmp_path: Path) -> None:
@@ -290,3 +376,14 @@ def test_score_pipeline_writes_all_content_free_outputs(tmp_path: Path) -> None:
         paired = list(csv.DictReader(handle))
     assert len(paired) == 64
     assert {row["bootstrap_stratification"] for row in paired} == {"source_query_intent"}
+
+    subset_dir = tmp_path / "subset-scores"
+    subset = runtime.score_responses(
+        protocol,
+        tuple(cases),
+        response_dir=response_dir,
+        output_dir=subset_dir,
+        bindings=(protocol.providers[0], protocol.providers[2]),
+    )
+    assert subset["scored_complete_providers"] == ["OpenAI", "Gemini"]
+    assert subset["excluded_providers"] == ["DeepSeek", "Anthropic"]
