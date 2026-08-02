@@ -1361,35 +1361,41 @@ def _paired_bootstrap_rows(
         ("route_width", "mean_route_width"),
     )
     rows = []
-    for arm in ("text_inferred", "abstaining_verifier"):
-        for comparator in ("namespace_dense", "released_oracle"):
-            for internal_metric, output_metric in metrics:
-                result = stratified_group_paired_bootstrap(
-                    cases,
-                    arm_scores[arm],
-                    arm_scores[comparator],
-                    metric=internal_metric,
-                    replicates=replicates,
-                    seed=seed,
-                )
-                rows.append(
-                    {
-                        "provider": provider,
-                        "model": model,
-                        "arm": arm,
-                        "comparator": comparator,
-                        "metric": output_metric,
-                        "delta_direction": "arm_minus_comparator",
-                        "estimate": result["estimate"],
-                        "ci_lower": result["ci_lower"],
-                        "ci_upper": result["ci_upper"],
-                        "bootstrap_replicates": result["bootstrap_replicates"],
-                        "bootstrap_unit": result["bootstrap_unit"],
-                        "bootstrap_stratification": result["bootstrap_stratification"],
-                        "analysis_queries": result["analysis_queries"],
-                        "stratum_group_count": result["stratum_group_count"],
-                    }
-                )
+    comparisons = (
+        ("released_oracle", "namespace_dense"),
+        ("text_inferred", "namespace_dense"),
+        ("text_inferred", "released_oracle"),
+        ("abstaining_verifier", "namespace_dense"),
+        ("abstaining_verifier", "released_oracle"),
+    )
+    for arm, comparator in comparisons:
+        for internal_metric, output_metric in metrics:
+            result = stratified_group_paired_bootstrap(
+                cases,
+                arm_scores[arm],
+                arm_scores[comparator],
+                metric=internal_metric,
+                replicates=replicates,
+                seed=seed,
+            )
+            rows.append(
+                {
+                    "provider": provider,
+                    "model": model,
+                    "arm": arm,
+                    "comparator": comparator,
+                    "metric": output_metric,
+                    "delta_direction": "arm_minus_comparator",
+                    "estimate": result["estimate"],
+                    "ci_lower": result["ci_lower"],
+                    "ci_upper": result["ci_upper"],
+                    "bootstrap_replicates": result["bootstrap_replicates"],
+                    "bootstrap_unit": result["bootstrap_unit"],
+                    "bootstrap_stratification": result["bootstrap_stratification"],
+                    "analysis_queries": result["analysis_queries"],
+                    "stratum_group_count": result["stratum_group_count"],
+                }
+            )
     return rows
 
 

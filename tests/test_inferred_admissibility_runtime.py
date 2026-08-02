@@ -374,7 +374,10 @@ def test_score_pipeline_writes_all_content_free_outputs(tmp_path: Path) -> None:
     assert set(manifest["outputs"]) == expected
     with (output_dir / "paired_route_deltas.csv").open(encoding="utf-8", newline="") as handle:
         paired = list(csv.DictReader(handle))
-    assert len(paired) == 64
+    assert len(paired) == 80
+    assert any(
+        row["arm"] == "released_oracle" and row["comparator"] == "namespace_dense" for row in paired
+    )
     assert {row["bootstrap_stratification"] for row in paired} == {"source_query_intent"}
 
     subset_dir = tmp_path / "subset-scores"
