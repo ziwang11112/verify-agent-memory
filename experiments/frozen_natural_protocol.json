@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-retrieval-admissibility-v1",
+  "target_recall": 0.8,
+  "embedding_contract": {
+    "model": "Qwen/Qwen3-Embedding-8B",
+    "revision": "1d8ad4ca9b3dd8059ad90a75d4983776a23d44af",
+    "dimension": 4096,
+    "maximum_tokens": 512,
+    "pooling": "last_token",
+    "normalization": "unit_l2",
+    "storage_dtype": "float32",
+    "ranking": "exact_inner_product",
+    "tie_break": "memory_id_ascending"
+  },
+  "candidate_contract": {
+    "rhelm": {
+      "group_key": "persona_hash",
+      "development_groups": 3,
+      "evaluation_groups": 7,
+      "visibility": "conversation turns strictly earlier than the query date"
+    },
+    "memops": {
+      "group_key": "profile_hash",
+      "development_fraction": 0.2,
+      "evaluation_groups": 80,
+      "visibility": "all method-visible dialogue memories in the split"
+    },
+    "positive_injection": false,
+    "candidate_subsampling": false
+  },
+  "development_selection": {
+    "setting_count": 165,
+    "top_k_grid": [5, 10, 20, 50, 100],
+    "source_aggregation": "query_macro_then_equal_weight_sources",
+    "lexicographic_objective": [
+      "maximize_feasible_rate",
+      "minimize_penalized_conservative_risk",
+      "minimize_penalized_resolved_contamination",
+      "maximize_evidence_recall",
+      "minimize_candidates_scored",
+      "minimize_stable_setting_id"
+    ],
+    "evaluation_retuning": false
+  },
+  "settings": [
+    {
+      "setting_id": "e4d905f89eee",
+      "arm": "global_bm25",
+      "top_k": 100,
+      "bm25_k1": 1.5,
+      "bm25_b": 0.75
+    },
+    {
+      "setting_id": "a37347ceb645",
+      "arm": "global_dense",
+      "top_k": 100
+    },
+    {
+      "setting_id": "ba102b0d0a0d",
+      "arm": "global_bm25_dense_rrf",
+      "top_k": 100,
+      "bm25_k1": 0.9,
+      "bm25_b": 0.75,
+      "rrf_k": 60
+    },
+    {
+      "setting_id": "5998e51f512b",
+      "arm": "global_recency_dense",
+      "top_k": 100,
+      "recency_gamma": 0.1
+    },
+    {
+      "setting_id": "84f149246738",
+      "arm": "namespace_dense",
+      "top_k": 100
+    },
+    {
+      "setting_id": "9ea32bcd6b5a",
+      "arm": "namespace_current_only",
+      "top_k": 100
+    },
+    {
+      "setting_id": "397792e30e1a",
+      "arm": "released_intent_lifecycle_upper_bound",
+      "top_k": 100
+    },
+    {
+      "setting_id": "03db67ec9e7c",
+      "arm": "threshold_router",
+      "top_k": 100,
+      "theta": 0.8,
+      "top_l": 3
+    },
+    {
+      "setting_id": "03378deb3391",
+      "arm": "cluster_router",
+      "top_k": 100,
+      "top_l": 1,
+      "alpha_like": 1.0,
+      "cluster_beta": 1.0,
+      "cluster_gamma": 0.5,
+      "cluster_tau": 0.1,
+      "cluster_tau_new": 0.4
+    }
+  ],
+  "execution_boundaries": {
+    "provider_calls": 0,
+    "reader_calls": 0,
+    "judge_calls": 0,
+    "benchmark_payloads_in_repository": false,
+    "released_lifecycle_fields_are_inferred": false
+  }
+}

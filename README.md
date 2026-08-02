@@ -35,6 +35,11 @@ hash-bound normalized aggregate evidence. It contains no benchmark payloads, raw
 prompts, model responses, embeddings, checkpoints, or provider
 runtime.
 
+For the code-level experiment contract, all nine non-Bayesian retrieval arms, the
+dev-only setting-selection objective, and local smoke commands, see
+[docs/EXPERIMENT_METHODS.md](docs/EXPERIMENT_METHODS.md). This technical path is
+independent of the manuscript build.
+
 ## Current Scope
 
 - Define retrieval admissibility without equating all inadmissible context with
