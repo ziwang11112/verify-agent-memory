@@ -11,23 +11,28 @@ from scripts import run_inferred_admissibility_experiment as runtime
 from verify_agent_memory.inferred_admissibility import response_json_schema
 
 
-def _prediction() -> dict[str, object]:
+def _prediction(candidate_count: int = 2) -> dict[str, object]:
+    candidates = []
+    for rank in range(1, candidate_count + 1):
+        if rank == 1:
+            policy = {"allowed": 0.8, "disallowed": 0.1, "unknown": 0.1}
+            lifecycle = {"compatible": 0.1, "incompatible": 0.8, "unknown": 0.1}
+            admissibility = {"admissible": 0.1, "inadmissible": 0.8, "unknown": 0.1}
+        else:
+            policy = {"allowed": 0.9, "disallowed": 0.05, "unknown": 0.05}
+            lifecycle = {"compatible": 0.9, "incompatible": 0.05, "unknown": 0.05}
+            admissibility = {"admissible": 0.9, "inadmissible": 0.05, "unknown": 0.05}
+        candidates.append(
+            {
+                "candidate_key": f"c{rank:02d}",
+                "policy": policy,
+                "lifecycle": lifecycle,
+                "admissibility": admissibility,
+            }
+        )
     return {
         "query_intent": {"current_state": 0.9, "history": 0.05, "unknown": 0.05},
-        "candidates": [
-            {
-                "candidate_key": "c01",
-                "policy": {"allowed": 0.8, "disallowed": 0.1, "unknown": 0.1},
-                "lifecycle": {"compatible": 0.1, "incompatible": 0.8, "unknown": 0.1},
-                "admissibility": {"admissible": 0.1, "inadmissible": 0.8, "unknown": 0.1},
-            },
-            {
-                "candidate_key": "c02",
-                "policy": {"allowed": 0.9, "disallowed": 0.05, "unknown": 0.05},
-                "lifecycle": {"compatible": 0.9, "incompatible": 0.05, "unknown": 0.05},
-                "admissibility": {"admissible": 0.9, "inadmissible": 0.05, "unknown": 0.05},
-            },
-        ],
+        "candidates": candidates,
     }
 
 
@@ -142,8 +147,11 @@ def test_non_openai_adapters_parse_frozen_shapes(
         assert body["response_format"] == {"type": "json_object"}
         assert body["thinking"] == {"type": "disabled"}
     elif provider == "Gemini":
-        assert body["generationConfig"]["responseJsonSchema"] == response_json_schema(2)
         assert body["generationConfig"]["thinkingConfig"] == {"thinkingLevel": "LOW"}
+        sent_schema = body["generationConfig"]["responseJsonSchema"]
+        sent_candidates = sent_schema["properties"]["candidates"]
+        assert sent_candidates["minItems"] == 1
+        assert "maxItems" not in sent_candidates
     else:
         assert body["output_config"]["format"]["type"] == "json_schema"
         assert body["output_config"]["effort"] == "low"
@@ -170,7 +178,7 @@ def test_checkpoint_is_bound_to_exact_visible_payload(
     def fake_provider(*_args: object, **_kwargs: object) -> tuple[object, ...]:
         nonlocal calls
         calls += 1
-        return _prediction(), {"input_tokens": 10, "output_tokens": 20}, 1, 5.0, "request"
+        return _prediction(20), {"input_tokens": 10, "output_tokens": 20}, 1, 5.0, "request"
 
     monkeypatch.setitem(runtime.PROVIDER_CALLS, "OpenAI", fake_provider)
     first = runtime.execute_provider(
@@ -234,7 +242,7 @@ def test_score_pipeline_writes_all_content_free_outputs(tmp_path: Path) -> None:
     for binding in protocol.providers:
         path = runtime._response_path(response_dir, binding)
         for case in cases:
-            prediction = _prediction()
+            prediction = _prediction(20)
             if case.released_query_intent == "history":
                 prediction["query_intent"] = {
                     "current_state": 0.05,

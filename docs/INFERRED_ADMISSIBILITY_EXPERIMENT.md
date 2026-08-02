@@ -68,7 +68,7 @@ adapters, not prompt variants. When a provider does not support a syntactic JSON
 constraint, its adapter removes only that constraint and the client still validates the
 response against the original candidate-count, order, and probability contract.
 
-Before the development sample is sent, a two-candidate synthetic fixture exercises
+Before the development sample is sent, a 20-candidate synthetic fixture exercises
 each provider adapter. Fixture receipts are bound to the protocol, prompt, fixture
 payload, and adapter hashes; they contain no model output. Full execution checkpoints
 are additionally bound to the exact protocol and per-case visible payload so stale

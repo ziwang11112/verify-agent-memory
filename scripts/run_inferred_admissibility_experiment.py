@@ -487,7 +487,7 @@ def _gemini_request(
         "generationConfig": {
             "maxOutputTokens": max_output_tokens,
             "responseMimeType": "application/json",
-            "responseJsonSchema": schema,
+            "responseJsonSchema": _limited_provider_schema(schema),
             "thinkingConfig": {"thinkingLevel": binding.controls["thinking_level"].upper()},
         },
     }
@@ -536,11 +536,11 @@ def _gemini_request(
     )
 
 
-def _anthropic_schema(value: object) -> object:
-    """Mirror Anthropic SDK constraint stripping; strict parsing uses the original schema."""
+def _limited_provider_schema(value: object) -> object:
+    """Strip unsupported sampling constraints; strict parsing uses the original schema."""
     if isinstance(value, Mapping):
         cleaned = {
-            key: _anthropic_schema(item)
+            key: _limited_provider_schema(item)
             for key, item in value.items()
             if key not in {"minimum", "maximum", "minItems", "maxItems"}
         }
@@ -548,7 +548,7 @@ def _anthropic_schema(value: object) -> object:
             cleaned["minItems"] = 1
         return cleaned
     if isinstance(value, list):
-        return [_anthropic_schema(item) for item in value]
+        return [_limited_provider_schema(item) for item in value]
     return value
 
 
@@ -571,7 +571,7 @@ def _anthropic_request(
         "thinking": {"type": "disabled"},
         "output_config": {
             "effort": binding.controls["effort"],
-            "format": {"type": "json_schema", "schema": _anthropic_schema(schema)},
+            "format": {"type": "json_schema", "schema": _limited_provider_schema(schema)},
         },
     }
     response, attempts, latency_ms = _http_json(
@@ -617,12 +617,37 @@ PROVIDER_CALLS = {
 
 def _provider_adapter_sha256(provider: str) -> str:
     functions = [_http_json, PROVIDER_CALLS[provider]]
-    if provider == "Anthropic":
-        functions.append(_anthropic_schema)
+    if provider in {"Gemini", "Anthropic"}:
+        functions.append(_limited_provider_schema)
     return _sha256_text("\n\n".join(inspect.getsource(function) for function in functions))
 
 
 def _provider_fixture_case() -> InferenceCase:
+    candidates = []
+    for rank in range(1, 21):
+        if rank == 1:
+            text = "The former shipping address was 456 Old Street."
+            required = False
+            lifecycle_compatible = False
+        elif rank == 2:
+            text = "The current shipping address is 123 Market Street."
+            required = True
+            lifecycle_compatible = True
+        else:
+            text = f"Synthetic same-namespace memory record {rank}."
+            required = False
+            lifecycle_compatible = True
+        candidates.append(
+            InferenceCandidate(
+                candidate_key=f"c{rank:02d}",
+                rank=rank,
+                text=text,
+                visible_order=f"record-{rank:05d}",
+                required_evidence=required,
+                released_policy_allowed=True,
+                released_lifecycle_compatible=lifecycle_compatible,
+            )
+        )
     return InferenceCase(
         case_id="synthetic-provider-fixture",
         source="synthetic",
@@ -632,26 +657,7 @@ def _provider_fixture_case() -> InferenceCase:
         query_visible_time="2026-08-02",
         released_query_intent="current_state",
         anchor_total=1,
-        candidates=(
-            InferenceCandidate(
-                candidate_key="c01",
-                rank=1,
-                text="The former shipping address was 456 Old Street.",
-                visible_order="record-00001",
-                required_evidence=False,
-                released_policy_allowed=True,
-                released_lifecycle_compatible=False,
-            ),
-            InferenceCandidate(
-                candidate_key="c02",
-                rank=2,
-                text="The current shipping address is 123 Market Street.",
-                visible_order="record-00002",
-                required_evidence=True,
-                released_policy_allowed=True,
-                released_lifecycle_compatible=True,
-            ),
-        ),
+        candidates=tuple(candidates),
     )
 
 
@@ -692,7 +698,11 @@ def run_provider_fixture(
         system_prompt=protocol.prompt_text,
         user_prompt=prompt_payload(case),
         schema=response_json_schema(len(case.candidates)),
-        max_output_tokens=800,
+        max_output_tokens=_integer(
+            execution.get("max_output_tokens_per_case"),
+            "protocol.execution.max_output_tokens_per_case",
+            minimum=1,
+        ),
         timeout_seconds=_integer(
             execution.get("timeout_seconds"),
             "protocol.execution.timeout_seconds",
