@@ -119,12 +119,25 @@ def _corrupt_policy(
     )
 
 
-def corrupt_case(case: ExperimentCase, config: MetadataCorruption) -> ExperimentCase:
-    """Corrupt route-visible metadata while preserving scorer assessments exactly."""
+def corrupt_case(
+    case: ExperimentCase,
+    config: MetadataCorruption,
+    *,
+    namespace_vocabulary: Sequence[str] | None = None,
+) -> ExperimentCase:
+    """Corrupt route-visible metadata while preserving scorer assessments exactly.
+
+    Namespace and lifecycle channels are record-level: the same source memory gets
+    the same corrupted value in every query case. Policy channels remain
+    query-memory-level, and intent channels remain query-level.
+    """
     if config.rate == 0:
         return case
 
-    namespaces = [case.query.namespace, *(memory.namespace for memory in case.memories)]
+    namespaces = tuple(
+        namespace_vocabulary
+        or (case.query.namespace, *(memory.namespace for memory in case.memories))
+    )
     memories = []
     for memory in case.memories:
         namespace = memory.namespace
@@ -132,7 +145,6 @@ def corrupt_case(case: ExperimentCase, config: MetadataCorruption) -> Experiment
         selected = _selected(
             config,
             case.source,
-            case.query.query_id,
             memory.memory_id,
             "memory",
         )
@@ -155,7 +167,6 @@ def corrupt_case(case: ExperimentCase, config: MetadataCorruption) -> Experiment
                     namespaces,
                     config,
                     case.source,
-                    case.query.query_id,
                     memory.memory_id,
                 )
             elif config.channel is CorruptionChannel.LIFECYCLE_FALSE_CURRENT and state in {
@@ -212,9 +223,21 @@ def run_corruption_curve(
     if len(set(identities)) != len(identities):
         raise ValueError("corruption IDs must be unique")
 
+    namespaces_by_source: defaultdict[str, set[str]] = defaultdict(set)
+    for case in cases:
+        namespaces_by_source[case.source].add(case.query.namespace)
+        namespaces_by_source[case.source].update(memory.namespace for memory in case.memories)
+
     points: list[RobustnessPoint] = []
     for corruption in corruptions:
-        corrupted_cases = tuple(corrupt_case(case, corruption) for case in cases)
+        corrupted_cases = tuple(
+            corrupt_case(
+                case,
+                corruption,
+                namespace_vocabulary=tuple(sorted(namespaces_by_source[case.source])),
+            )
+            for case in cases
+        )
         runs = run_experiment(corrupted_cases, configs, target_recall=target_recall)
         by_setting: defaultdict[str, list[QueryRun]] = defaultdict(list)
         for run in runs:

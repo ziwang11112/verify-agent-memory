@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -86,6 +87,33 @@ def test_corruption_samples_are_nested_across_rates() -> None:
         }
 
     assert changed_ids(low) <= changed_ids(high)
+
+
+def test_record_metadata_corruption_is_stable_across_queries() -> None:
+    case = load_cases(ROOT / "tests" / "fixtures" / "retrieval_cases.jsonl")[0]
+    second = replace(case, query=replace(case.query, query_id="second-query"))
+    corruption = MetadataCorruption(
+        "record-level",
+        CorruptionChannel.NAMESPACE_SWAP,
+        0.5,
+        seed=11,
+    )
+    vocabulary = ("person-a", "person-b", "person-c")
+
+    first_corrupted = corrupt_case(
+        case,
+        corruption,
+        namespace_vocabulary=vocabulary,
+    )
+    second_corrupted = corrupt_case(
+        second,
+        corruption,
+        namespace_vocabulary=vocabulary,
+    )
+
+    assert {memory.memory_id: memory.namespace for memory in first_corrupted.memories} == {
+        memory.memory_id: memory.namespace for memory in second_corrupted.memories
+    }
 
 
 def test_policy_corruption_is_separate_from_gold_policy_label() -> None:

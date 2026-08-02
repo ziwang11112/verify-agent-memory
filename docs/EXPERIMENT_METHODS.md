@@ -14,11 +14,14 @@ this repository.
 | Query scoring | `src/verify_agent_memory/metrics.py` | Recall, feasibility, non-usable exposure, admissibility violations, bounds, and typed violations |
 | Experiment runner | `src/verify_agent_memory/experiment.py` | Setting-by-query execution, source-macro summaries, and dev-only selection |
 | Robustness | `src/verify_agent_memory/robustness.py` | Deterministic metadata corruption and observed break-even brackets |
+| Pareto analysis | `src/verify_agent_memory/pareto.py` | Fixed-ranking top-k recall, risk, and route-cost frontiers |
 | JSON contract | `src/verify_agent_memory/serialization.py` | Strict normalized input and output schemas |
 | CLI | `scripts/run_retrieval_experiment.py` | Validation, execution, and setting selection |
 | Robustness CLI | `scripts/run_metadata_robustness.py` | Released-to-corrupted metadata curves with fixed retrieval settings |
+| Pareto CLI | `scripts/run_top_k_pareto.py` | Exact nested-prefix analysis without reranking or retuning |
 | Frozen settings | `experiments/frozen_natural_protocol.json` | Embedding, split, selection, and selected-arm configuration |
 | Robustness grid | `experiments/metadata_robustness_protocol.json` | Corruption channels, rates, seeds, invariants, and break-even definition |
+| Pareto grid | `experiments/top_k_pareto_protocol.json` | Frozen arms and `top_k` depths for recall-risk-cost analysis |
 
 No Bayesian mixture, CRP/PYP, split-merge, reader, judge, provider client, or model
 call is present in this execution path.
@@ -75,7 +78,9 @@ outside the evaluator.
 
 ## Retrieval Arms
 
-All selected arms return at most `top_k=100` memories.
+The frozen public evaluation contains nine selected arms, all returning at most
+`top_k=100` memories. The two `*_only` arms added below are post-hoc attribution
+diagnostics with no development tuning; they do not alter the frozen nine-arm run.
 
 | Arm | Candidate support and score |
 | --- | --- |
@@ -85,6 +90,8 @@ All selected arms return at most `top_k=100` memories.
 | `global_recency_dense` | Global dense score plus `gamma * normalized_released_order` |
 | `namespace_dense` | Exact dense ranking after trusted namespace support restriction |
 | `query_agnostic_current_only` | Deliberately misspecified ablation that removes released stale and superseded records for every query |
+| `namespace_policy_only` | Namespace support plus query-memory policy filtering, without lifecycle filtering |
+| `namespace_lifecycle_only` | Namespace support plus query-intent lifecycle filtering, without policy filtering |
 | `released_intent_lifecycle_upper_bound` | Namespace support; policy-disallowed records are removed for every query; current-state queries additionally remove released stale and superseded records, while history queries retain lifecycle states |
 | `threshold_router` | Online namespace-local centroid assignment at cosine threshold `theta`; route to at most `top_l` qualifying clusters |
 | `cluster_router` | Online namespace-local A5 centroid assignment and routing with size, cosine, and new-cluster scores |
@@ -170,6 +177,11 @@ byte-for-byte. Its deterministic, nested corruption channels cover:
 - policy false allows, false denies, and unknown decisions; and
 - current/history intent flips.
 
+Namespace and lifecycle corruption is sampled once per source-memory identity, so a
+record cannot acquire different metadata merely because another query references it.
+Policy corruption is sampled per source-query-memory decision, while intent corruption
+is sampled per source-query. Namespace swaps use one fixed source-level vocabulary.
+
 For a fixed seed and channel, cases corrupted at rate `r1` are a subset of those
 corrupted at any larger rate `r2`. Retrieval settings never change along a curve. The
 break-even utility reports the last contiguous observed rate where namespace dense
@@ -180,6 +192,15 @@ interpolated population threshold.
 The lifecycle rule remains a two-intent released-field approximation. It does not
 claim that every stale record is valid for every historical question, and corruption
 experiments do not turn it into temporal inference.
+
+## Top-k Pareto Analysis
+
+The Pareto runner produces each frozen ranking once at the maximum requested depth
+and rescoring uses exact nested prefixes at `top_k` 5, 10, 20, 50, and 100. It reports
+feasibility, non-usable and admissibility risk, returned memories, candidates scored,
+and route width under identical ranking parameters. Candidate counts and returned
+memories are algorithmic work measures. Local wall-clock observations are not eligible
+for a deployment-latency claim.
 
 ## Local Smoke
 
@@ -202,6 +223,11 @@ uv run --extra dev python -m scripts.run_metadata_robustness `
   --robustness-protocol experiments/metadata_robustness_protocol.json `
   --output tmp/metadata_curve.jsonl `
   --break-even-output tmp/metadata_break_even.jsonl
+uv run --extra dev python -m scripts.run_top_k_pareto `
+  --cases tests/fixtures/retrieval_cases.jsonl `
+  --retrieval-protocol experiments/frozen_natural_protocol.json `
+  --pareto-protocol experiments/top_k_pareto_protocol.json `
+  --output tmp/top_k_pareto.jsonl
 ```
 
 The fixture is only a code-path smoke. It is not a benchmark result. Reproducing the

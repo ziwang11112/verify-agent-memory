@@ -14,6 +14,8 @@ from verify_agent_memory.experiment import (
     summarize_setting,
 )
 from verify_agent_memory.retrieval import (
+    ATTRIBUTION_DIAGNOSTIC_ARMS,
+    FROZEN_PUBLIC_ARMS,
     MemoryRecord,
     QueryRecord,
     RetrievalArm,
@@ -124,7 +126,9 @@ def test_protocol_contains_exact_nine_public_arms() -> None:
     )
     arms = {setting["arm"] for setting in protocol["settings"]}
 
-    assert arms == {arm.value for arm in RetrievalArm}
+    assert arms == {arm.value for arm in FROZEN_PUBLIC_ARMS}
+    assert FROZEN_PUBLIC_ARMS.isdisjoint(ATTRIBUTION_DIAGNOSTIC_ARMS)
+    assert frozenset(RetrievalArm) == FROZEN_PUBLIC_ARMS | ATTRIBUTION_DIAGNOSTIC_ARMS
     assert len(protocol["settings"]) == 9
     assert protocol["development_selection"]["evaluation_retuning"] is False
 

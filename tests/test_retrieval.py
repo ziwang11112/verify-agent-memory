@@ -97,6 +97,18 @@ def test_released_lifecycle_filter_is_query_conditioned() -> None:
         config(RetrievalArm.RELEASED_INTENT_LIFECYCLE_UPPER_BOUND),
         policy_decisions=policies,
     )
+    policy_only = route(
+        memories,
+        query(intent=QueryIntent.CURRENT_STATE),
+        config(RetrievalArm.NAMESPACE_POLICY_ONLY),
+        policy_decisions=policies,
+    )
+    lifecycle_only = route(
+        memories,
+        query(intent=QueryIntent.CURRENT_STATE),
+        config(RetrievalArm.NAMESPACE_LIFECYCLE_ONLY),
+        policy_decisions=policies,
+    )
     current_only = route(
         memories,
         query(intent=QueryIntent.HISTORY),
@@ -106,6 +118,8 @@ def test_released_lifecycle_filter_is_query_conditioned() -> None:
     assert current.ranked_memory_ids == ("current",)
     assert set(history.ranked_memory_ids) == {"current", "stale"}
     assert set(operation_trace.ranked_memory_ids) == {"current", "stale", "blocked"}
+    assert set(policy_only.ranked_memory_ids) == {"current", "stale"}
+    assert set(lifecycle_only.ranked_memory_ids) == {"current", "blocked"}
     assert set(current_only.ranked_memory_ids) == {"current", "blocked"}
 
 

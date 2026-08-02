@@ -36,6 +36,9 @@
   },
   "invariants": {
     "gold_assessments_immutable": true,
+    "namespace_and_lifecycle_corruption_unit": "source_memory",
+    "policy_corruption_unit": "source_query_memory",
+    "intent_corruption_unit": "source_query",
     "retrieval_settings_frozen": true,
     "evaluation_retuning": false,
     "provider_calls": 0,

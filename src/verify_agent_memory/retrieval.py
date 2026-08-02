@@ -27,9 +27,33 @@ class RetrievalArm(StrEnum):
     GLOBAL_RECENCY_DENSE = "global_recency_dense"
     NAMESPACE_DENSE = "namespace_dense"
     QUERY_AGNOSTIC_CURRENT_ONLY = "query_agnostic_current_only"
+    NAMESPACE_POLICY_ONLY = "namespace_policy_only"
+    NAMESPACE_LIFECYCLE_ONLY = "namespace_lifecycle_only"
     RELEASED_INTENT_LIFECYCLE_UPPER_BOUND = "released_intent_lifecycle_upper_bound"
     THRESHOLD_ROUTER = "threshold_router"
     CLUSTER_ROUTER = "cluster_router"
+
+
+FROZEN_PUBLIC_ARMS = frozenset(
+    {
+        RetrievalArm.GLOBAL_BM25,
+        RetrievalArm.GLOBAL_DENSE,
+        RetrievalArm.GLOBAL_BM25_DENSE_RRF,
+        RetrievalArm.GLOBAL_RECENCY_DENSE,
+        RetrievalArm.NAMESPACE_DENSE,
+        RetrievalArm.QUERY_AGNOSTIC_CURRENT_ONLY,
+        RetrievalArm.RELEASED_INTENT_LIFECYCLE_UPPER_BOUND,
+        RetrievalArm.THRESHOLD_ROUTER,
+        RetrievalArm.CLUSTER_ROUTER,
+    }
+)
+
+ATTRIBUTION_DIAGNOSTIC_ARMS = frozenset(
+    {
+        RetrievalArm.NAMESPACE_POLICY_ONLY,
+        RetrievalArm.NAMESPACE_LIFECYCLE_ONLY,
+    }
+)
 
 
 def _validate_vector(vector: Vector, name: str) -> None:
@@ -444,7 +468,7 @@ def _namespace_support(
     return tuple(memory for memory in memories if memory.namespace == query.namespace)
 
 
-def _lifecycle_support(
+def _policy_support(
     memories: Sequence[MemoryRecord],
     query: QueryRecord,
     policy_decisions: Sequence[PolicyDecision],
@@ -455,7 +479,7 @@ def _lifecycle_support(
             raise ValueError(f"duplicate policy decision for {decision.memory_id!r}")
         policy_by_memory[decision.memory_id] = decision
 
-    policy_valid = tuple(
+    return tuple(
         memory
         for memory in memories
         if (
@@ -463,12 +487,29 @@ def _lifecycle_support(
             or policy_by_memory[memory.memory_id].allowed_for(query.policy_purpose) is not False
         )
     )
+
+
+def _lifecycle_support(
+    memories: Sequence[MemoryRecord],
+    query: QueryRecord,
+) -> tuple[MemoryRecord, ...]:
     if query.intent is not QueryIntent.CURRENT_STATE:
-        return policy_valid
+        return tuple(memories)
     return tuple(
         memory
-        for memory in policy_valid
+        for memory in memories
         if memory.lifecycle_state not in {LifecycleState.STALE, LifecycleState.SUPERSEDED}
+    )
+
+
+def _combined_admissibility_support(
+    memories: Sequence[MemoryRecord],
+    query: QueryRecord,
+    policy_decisions: Sequence[PolicyDecision],
+) -> tuple[MemoryRecord, ...]:
+    return _lifecycle_support(
+        _policy_support(memories, query, policy_decisions),
+        query,
     )
 
 
@@ -578,8 +619,24 @@ def route(
             config,
             _dense_rank(candidates, query, top_k=config.top_k),
         )
+    if config.arm is RetrievalArm.NAMESPACE_POLICY_ONLY:
+        candidates = _policy_support(namespace, query, policy_decisions)
+        return _direct_result(
+            candidates,
+            query,
+            config,
+            _dense_rank(candidates, query, top_k=config.top_k),
+        )
+    if config.arm is RetrievalArm.NAMESPACE_LIFECYCLE_ONLY:
+        candidates = _lifecycle_support(namespace, query)
+        return _direct_result(
+            candidates,
+            query,
+            config,
+            _dense_rank(candidates, query, top_k=config.top_k),
+        )
     if config.arm is RetrievalArm.RELEASED_INTENT_LIFECYCLE_UPPER_BOUND:
-        candidates = _lifecycle_support(namespace, query, policy_decisions)
+        candidates = _combined_admissibility_support(namespace, query, policy_decisions)
         return _direct_result(
             candidates,
             query,
