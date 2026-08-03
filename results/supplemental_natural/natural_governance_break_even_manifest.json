@@ -1,6 +1,6 @@
 {
   "analysis": "natural-governance-break-even-v1",
-  "attribution_input_sha256": "89ed01dc90e403940a7f8634685b48812505d9f7fa40d65b34dab61a8deb3a1e",
+  "attribution_input_sha256": "6535ecf5c671534f1ee886eb2f92c2fce5638ca9590a921ceaff6d52c64bf416",
   "break_even_sha256": "e466f9c0e04e876870b772729d279762be152ea75251124ed887e90907189f7c",
   "channels": [
     "policy_false_allow",
@@ -17,7 +17,7 @@
   "evaluation_retuning": false,
   "judge_calls": 0,
   "lifecycle_missing_behavior": "fail_open_not_explicitly_stale_or_superseded",
-  "new_repository_commit": "7015914e0cd65d0b89d35b5b06a7526cf66e0343",
+  "new_repository_commit": "009ca3657fb9ebe2bad2f107d5f374c69a4afab3",
   "old_execution_commit": "8e34e3d41c56e1699696bc27be95cdac7c9528e5",
   "paid_calls": 0,
   "policy_missing_behavior": "fail_open_not_false",

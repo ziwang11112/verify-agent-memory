@@ -417,3 +417,190 @@ artifacts:
     transformation_required: "Retain content-free call, token, latency, cost, checkpoint, and score receipts; do not publish responses."
     public_paper_label: "paired exposure execution usage"
     contains_raw_text_or_private_content: false
+
+  - id: posthoc_natural_top_k_pareto
+    category: GENERATED_FROM_FROZEN_POSTHOC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_path: "results/supplemental_natural/natural_top_k_pareto.csv"
+    source_sha256: "7f1a2129aac71459bb4e121c8c0b4612dde211fd6f540606925ed9908825e66e"
+    intended_normalized_destination: "evidence/normalized/fixed_budget_support.csv"
+    transformation_required: "Select top-k 10, 20, 50, and 100 absolute metrics from frozen rankings; retain v2 metric labels."
+    public_paper_label: "fixed-budget support frontier"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_natural_top_k_paired_deltas
+    category: GENERATED_FROM_FROZEN_POSTHOC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_path: "results/supplemental_natural/natural_top_k_paired_deltas.csv"
+    source_sha256: "3055e0350b6c8dc99f7c8a8ec98374561e073e7f7c6ee72d953a2562aebc5e3f"
+    intended_normalized_destination: "evidence/normalized/fixed_budget_support.csv"
+    transformation_required: "Preserve source-clustered bootstrap intervals and risk-component decomposition; do not relabel as confirmatory."
+    public_paper_label: "fixed-budget paired deltas"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_natural_top_k_manifest
+    category: GENERATED_FROM_FROZEN_POSTHOC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_path: "results/supplemental_natural/natural_top_k_pareto_manifest.json"
+    source_sha256: "5f851cf604cfa4c57d259248ada9dd8e7ea49538567a3ddecbafd29e4e27cfa0"
+    intended_normalized_destination: "evidence/manifests/fixed_budget_support.json"
+    transformation_required: "Preserve frozen-ranking, no-retuning, route-bundle, and implementation identities."
+    public_paper_label: "fixed-budget provenance"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_natural_attribution_deltas
+    category: GENERATED_FROM_FROZEN_POSTHOC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_path: "results/supplemental_natural/natural_admissibility_attribution_deltas.csv"
+    source_sha256: "233db8acf7c7381c26fe9b3b458800bfed9882390857e18a31df13ad45af62ec"
+    intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
+    transformation_required: "Preserve corrected v2 policy, lifecycle, and combined-governance attribution with source-clustered intervals."
+    public_paper_label: "metadata-axis attribution"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_natural_namespace_break_even
+    category: GENERATED_FROM_FROZEN_POSTHOC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_path: "results/supplemental_natural/natural_namespace_break_even.json"
+    source_sha256: "9a833a4a5c47684cee1439414af1844d586e5238d5acd771a040ec8bdc3f4af0"
+    intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
+    transformation_required: "Import observed namespace false-deny and missing grid brackets without interpreting them as population thresholds."
+    public_paper_label: "namespace corruption brackets"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_natural_governance_break_even
+    category: GENERATED_FROM_FROZEN_POSTHOC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_path: "results/supplemental_natural/natural_governance_break_even.json"
+    source_sha256: "68af2163cf02d6d0a65d51890dcbed6099c7a75e5fbdad197dbca609701c8d83"
+    intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
+    transformation_required: "Import observed policy, lifecycle, and intent grid brackets without extrapolation."
+    public_paper_label: "governance corruption brackets"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_natural_support_expansion_summary
+    category: GENERATED_FROM_FROZEN_POSTHOC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_path: "results/supplemental_natural/natural_namespace_support_expansion_summary.csv"
+    source_sha256: "a7e4b23338097b5c17c55e6856461022c562c21dcbada034b38eb72526548d08"
+    intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
+    transformation_required: "Select the 0.50 false-allow and 0.20 source-swap full-reranking diagnostics with fixed settings."
+    public_paper_label: "full-natural support-expansion stress test"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_natural_support_expansion_break_even
+    category: GENERATED_FROM_FROZEN_POSTHOC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_path: "results/supplemental_natural/natural_namespace_support_expansion_break_even.json"
+    source_sha256: "267b057da9cdaf3f0191ce73f3eac00efe69f1757c6c1da1fa7b6ff30cb599ec"
+    intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
+    transformation_required: "Import observed full-reranking dominance brackets without extrapolation."
+    public_paper_label: "support-expansion break-even brackets"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_natural_supplemental_manifest
+    category: GENERATED_FROM_FROZEN_POSTHOC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_path: "results/supplemental_natural/manifest.json"
+    source_sha256: "c6b776bbe693327d180ebb9b470539e3397021126e5b62ad5597a61addbee7dd"
+    intended_normalized_destination: "evidence/manifests/metadata_reliability.json"
+    transformation_required: "Preserve the published supplemental package inventory and hashes."
+    public_paper_label: "natural post-hoc provenance"
+    contains_raw_text_or_private_content: false
+
+  - id: inferred_admissibility_paired_route_deltas
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c4f93cad3e55ae816cda868d6591e57b48e342da"
+    source_path: "results/inferred_admissibility/paired_route_deltas.csv"
+    source_sha256: "9d2ba2b6ef69ee9d107aeea2582b5e2f20263bf7d23da694c6b32199ff96d170"
+    intended_normalized_destination: "evidence/normalized/text_inferred_admissibility.csv"
+    transformation_required: "Preserve model-separated route deltas on fixed public-development candidates."
+    public_paper_label: "text-inferred route diagnostic"
+    contains_raw_text_or_private_content: false
+
+  - id: inferred_admissibility_classification_metrics
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c4f93cad3e55ae816cda868d6591e57b48e342da"
+    source_path: "results/inferred_admissibility/classification_metrics.csv"
+    source_sha256: "4d30a58254e3fbccc654e331f41ad07798dab420cbc79e226d0da6263efe3a73"
+    intended_normalized_destination: "evidence/normalized/text_inferred_admissibility.csv"
+    transformation_required: "Select equal-stratum admissibility discrimination metrics and retain model separation."
+    public_paper_label: "text-inferred classification diagnostic"
+    contains_raw_text_or_private_content: false
+
+  - id: inferred_admissibility_filter_metrics
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c4f93cad3e55ae816cda868d6591e57b48e342da"
+    source_path: "results/inferred_admissibility/filter_metrics.csv"
+    source_sha256: "f400bec797847cee09e72ec609496de0c1da6ee619bea68c14598bbdbb49f9dd"
+    intended_normalized_destination: "evidence/normalized/text_inferred_admissibility.csv"
+    transformation_required: "Select violation precision, recall, and required-anchor false-deny diagnostics with no model pooling."
+    public_paper_label: "text-inferred filter diagnostic"
+    contains_raw_text_or_private_content: false
+
+  - id: inferred_admissibility_manifest
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c4f93cad3e55ae816cda868d6591e57b48e342da"
+    source_path: "results/inferred_admissibility/manifest.json"
+    source_sha256: "90262b0803dd9fc0ba2c3354c3e1f5632484be633c8abb1cdc56dddeec51dce7"
+    intended_normalized_destination: "evidence/manifests/text_inferred_admissibility.json"
+    transformation_required: "Preserve public-development, fixed-candidate, model, and no-pooling boundaries."
+    public_paper_label: "text-inference provenance"
+    contains_raw_text_or_private_content: false
+
+  - id: controlled_admissibility_aggregate
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "1ff8c13911b3165773162b31954ac7601c0092ea"
+    source_path: "results/counterfactual_admissibility/aggregate_metrics.csv"
+    source_sha256: "946ece00ed99963f6f2b846b2320983cdb029fca941a99b85f8db0946d3c2b98"
+    intended_normalized_destination: "evidence/normalized/controlled_selective_verification.csv"
+    transformation_required: "Select overall focal-pair consistency and stable-control overflip by model."
+    public_paper_label: "controlled verifier aggregate"
+    contains_raw_text_or_private_content: false
+
+  - id: controlled_admissibility_bootstrap
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "1ff8c13911b3165773162b31954ac7601c0092ea"
+    source_path: "results/counterfactual_admissibility/bootstrap_ci.csv"
+    source_sha256: "ec616b52194ae579f66d52ce79a6b0eea7ba425cf9bd18872ae8f2e9b8956055"
+    intended_normalized_destination: "evidence/normalized/controlled_selective_verification.csv"
+    transformation_required: "Preserve scenario-bootstrap intervals for focal consistency and stable overflip by model."
+    public_paper_label: "controlled verifier uncertainty"
+    contains_raw_text_or_private_content: false
+
+  - id: controlled_admissibility_error_taxonomy
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "1ff8c13911b3165773162b31954ac7601c0092ea"
+    source_path: "results/counterfactual_admissibility/error_taxonomy.csv"
+    source_sha256: "48cb67a351023094517079f501f124974ea6a5c50a6bdcea7cb9a0e03de2cb88"
+    intended_normalized_destination: "evidence/normalized/controlled_selective_verification.csv"
+    transformation_required: "Select stable-admissible false-deny and stable-inadmissible false-admit rates by model."
+    public_paper_label: "controlled verifier error taxonomy"
+    contains_raw_text_or_private_content: false
+
+  - id: controlled_admissibility_manifest
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "1ff8c13911b3165773162b31954ac7601c0092ea"
+    source_path: "results/counterfactual_admissibility/manifest.json"
+    source_sha256: "d3d7b468eda4dd388b5a0d8a9df32d7404f94a676f37dd7224db2776cc2800e6"
+    intended_normalized_destination: "evidence/manifests/controlled_selective_verification.json"
+    transformation_required: "Preserve controlled public-development and provider-separated execution boundaries."
+    public_paper_label: "controlled verifier provenance"
+    contains_raw_text_or_private_content: false

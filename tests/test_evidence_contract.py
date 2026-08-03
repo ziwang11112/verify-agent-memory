@@ -84,3 +84,22 @@ def test_normalized_values_must_match_claim_contract(repository_copy: Path) -> N
         "estimate disagrees with claims/claims.yaml" in error
         for error in validate_evidence(repository_copy)
     )
+
+
+def test_posthoc_values_must_match_claim_contract(repository_copy: Path) -> None:
+    evidence = repository_copy / "evidence" / "normalized" / "fixed_budget_support.csv"
+    content = evidence.read_text(encoding="utf-8")
+    evidence.write_text(
+        content.replace(",0.06713221703017538,", ",0.07,", 1),
+        encoding="utf-8",
+    )
+    manifest_path = repository_copy / "evidence" / "manifests" / "fixed_budget_support.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    from verify_agent_memory.provenance import sha256_file
+
+    manifest["normalized_sha256"] = sha256_file(evidence)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    assert any(
+        "estimate disagrees with claims/claims.yaml" in error
+        for error in validate_evidence(repository_copy)
+    )

@@ -29,7 +29,7 @@ REQUIRED_COLUMNS = {
     "n",
     "notes",
 }
-REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 9)}
+REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 12)}
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 PROHIBITED_OUTPUT_LABELS = {"ncr_threshold", "ncr_a5"}
 EXPECTED_METRIC_COUNTS = {
@@ -40,6 +40,9 @@ EXPECTED_METRIC_COUNTS = {
     "C6": 6,
     "C7": 4,
     "C8": 15,
+    "C9": 44,
+    "C10": 37,
+    "C11": 29,
 }
 
 
@@ -137,7 +140,7 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
         suffix = {
             "evidence_recall": "recall",
             "wrong_scope_leakage": "wrong_namespace_leakage",
-            "measured_contamination": "measured_contamination",
+            "measured_non_usable_rate": "measured_non_usable_rate",
         }.get(metric)
         return (f"{contrast}_{suffix}",) if suffix else None
     if claim_id == "C5":
@@ -197,6 +200,8 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
             "selectivity_gap",
         }:
             return (reader, metric)
+    if claim_id in {"C9", "C10", "C11"}:
+        return (contrast, metric)
     return None
 
 
@@ -226,6 +231,8 @@ def _contract_interval_metric(row: Mapping[str, str]) -> str | None:
             "deepseek-v4-pro": "deepseek",
         }.get(row["source"])
         return f"{reader}_{metric}" if reader else None
+    if claim_id in {"C9", "C10", "C11"}:
+        return f"{row['contrast']}_{metric}"
     return None
 
 
@@ -422,6 +429,30 @@ def validate_evidence(repository_root: Path) -> list[str]:
                     or "providers_not_pooled" not in notes
                 ):
                     errors.append(f"{prefix} lacks controlled-exposure boundaries")
+            if row["claim_id"] == "C9":
+                notes = row["notes"]
+                if "post_hoc_v2" not in notes or "no_retuning" not in notes:
+                    errors.append(f"{prefix} lacks post-hoc fixed-ranking boundaries")
+            if row["claim_id"] == "C10":
+                notes = row["notes"]
+                if row["contrast"] in {"policy_only", "lifecycle_only", "governance_v2"}:
+                    if "post_hoc_v2" not in notes or "corrected_governance_semantics" not in notes:
+                        errors.append(f"{prefix} lacks corrected-v2 attribution boundaries")
+                elif row["metric"] in {
+                    "last_observed_dominating_rate",
+                    "first_observed_non_dominating_rate",
+                }:
+                    if (
+                        "observed_grid_bracket" not in notes
+                        or "not_population_threshold" not in notes
+                    ):
+                        errors.append(f"{prefix} lacks observed-grid boundaries")
+                elif "full_natural_reranking" not in notes or "no_retuning" not in notes:
+                    errors.append(f"{prefix} lacks full-reranking boundaries")
+            if row["claim_id"] == "C11":
+                notes = row["notes"]
+                if "public_development" not in notes or "no_model_pooling" not in notes:
+                    errors.append(f"{prefix} lacks public-development no-pooling boundaries")
 
             claim = claims.get(claim_id)
             contract_path = _contract_value_path(row)

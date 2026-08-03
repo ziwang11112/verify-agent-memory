@@ -1,24 +1,23 @@
 {
-  "analysis": "natural-namespace-break-even-v1",
-  "break_even_sha256": "ea31ebdcd30fb4e5b32504ede74704ba5c35d1350c84484b873bd8165aad8f71",
+  "analysis": "natural-namespace-support-expansion-v1",
+  "break_even_sha256": "267b057da9cdaf3f0191ce73f3eac00efe69f1757c6c1da1fa7b6ff30cb599ec",
   "channels": [
-    "namespace_false_deny",
-    "namespace_missing"
+    "namespace_false_allow",
+    "namespace_swap"
   ],
-  "compact_score_checks": 3767,
   "contains_query_or_memory_ids": false,
   "contains_raw_text_embeddings_or_responses": false,
   "embedding_checkpoint_sha256": "d333477116735f49b7628ee5d324e92a9f608190079a7b1d699308f5ec4f1ae6",
   "evaluation_retuning": false,
+  "global_ranking_checks": 3767,
   "judge_calls": 0,
-  "missing_namespace_behavior": "strict_support_exclusion",
+  "namespace_ranking_checks": 3767,
   "new_repository_commit": "009ca3657fb9ebe2bad2f107d5f374c69a4afab3",
   "old_execution_commit": "8e34e3d41c56e1699696bc27be95cdac7c9528e5",
   "paid_calls": 0,
-  "pareto_input_sha256": "7f1a2129aac71459bb4e121c8c0b4612dde211fd6f540606925ed9908825e66e",
+  "protocol_sha256": "d46f72e6b65e1f3c52e68906e78e9b20d0f54da06c288bf9202913f07f27079d",
   "provider_calls": 0,
   "query_count": 3767,
-  "ranking_checks": 3767,
   "rates": [
     0.0,
     0.02,
@@ -31,11 +30,13 @@
   ],
   "reader_calls": 0,
   "route_bundle_sha256": {
+    "001-rhelm-25ea22a7b2be.jsonl.gz": "c6116bf1c236e1a3aa32306e82e724294905066d4fd634f843c17d1a73c4c891",
     "004-rhelm-ed4a7e3ae49d.jsonl.gz": "b82876e3c9d8ace3a45a1bc3dcaac875513628d03faafdf700ba87d9c587792e",
+    "010-memops-25ea22a7b2be.jsonl.gz": "09aba7af617129bc3cf4d4171771899b7899fca63af14ccdb76e8aa97ed8763f",
     "013-memops-ed4a7e3ae49d.jsonl.gz": "dad0d3b933caf9c2a35188c473766b939e014db546e2b173e101a248977038dc"
   },
   "schema_version": 1,
-  "seed_rows_sha256": "ba4eacc291a4e7d8b66e466800642aaab589d50f2a411ae7c3d0203b9bb4e3be",
+  "seed_rows_sha256": "05268c44a53bc16024e1648c21d8a57c66120395acb0eb0c7f120eab3f0fe2cd",
   "seeds": [
     0,
     1,
@@ -48,5 +49,6 @@
     8,
     9
   ],
-  "summary_sha256": "eb0a249a8229e40840d834621f754331c0e45da6d35110cb49f8eed0bf549d9a"
+  "summary_sha256": "a7e4b23338097b5c17c55e6856461022c562c21dcbada034b38eb72526548d08",
+  "top_k": 100
 }

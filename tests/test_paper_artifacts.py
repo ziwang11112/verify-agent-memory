@@ -37,6 +37,22 @@ def test_generated_tex_uses_platform_independent_line_endings() -> None:
         assert b"\r\n" not in path.read_bytes()
 
 
+def test_generated_tables_keep_v1_non_usable_risk_distinct() -> None:
+    generated = ROOT / "paper" / "generated"
+    main_results = (generated / "main_results.tex").read_text(encoding="ascii")
+    full_arms = (generated / "full_arm_results.tex").read_text(encoding="ascii")
+    matched_prefix = (generated / "matched_prefix_diagnostics.tex").read_text(encoding="ascii")
+    smoke = (generated / "mechanism_smoke.tex").read_text(encoding="ascii")
+
+    assert "Penalized conservative risk" not in main_results
+    assert "Lifecycle upper bound" not in main_results
+    assert "Penalized non-usable upper risk" in main_results
+    assert "Historical released-field v1" in main_results
+    assert "Penalized non-usable" in full_arms
+    assert "Known non-usable" in matched_prefix
+    assert "Non-usable fraction" in smoke
+
+
 def test_retrieval_figure_covers_all_frozen_natural_arms() -> None:
     assert len(NATURAL_ARMS) == 9
 

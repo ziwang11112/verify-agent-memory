@@ -134,7 +134,7 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
     def exposure(source: str, metric: str) -> Row:
         return _one(rows, claim_id="C8", source=source, metric=metric)
 
-    return {
+    selected = {
         "reader_a": _one(
             rows,
             claim_id="C2",
@@ -188,7 +188,7 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             rows,
             claim_id="C4",
             contrast="global_dense",
-            metric="measured_contamination",
+            metric="measured_non_usable_rate",
         ),
         "smoke_global_wrong_scope": _one(
             rows,
@@ -206,7 +206,7 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             rows,
             claim_id="C4",
             contrast="namespace_dense",
-            metric="measured_contamination",
+            metric="measured_non_usable_rate",
         ),
         "smoke_namespace_wrong_scope": _one(
             rows,
@@ -392,6 +392,118 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
         ),
         "deepseek_exposure_gap": exposure("deepseek-v4-pro", "selectivity_gap"),
     }
+    for top_k in (10, 20, 50, 100):
+        for metric in (
+            "global_evidence_recall",
+            "namespace_evidence_recall",
+            "global_feasible_rate",
+            "namespace_feasible_rate",
+            "global_penalized_admissibility_upper_risk",
+            "namespace_penalized_admissibility_upper_risk",
+            "evidence_recall_delta",
+            "feasible_rate_delta",
+            "penalized_admissibility_upper_risk_delta",
+            "infeasibility_risk_component_delta",
+            "admissibility_conditional_risk_component_delta",
+        ):
+            selected[f"c9_k{top_k}_{metric}"] = _one(
+                rows,
+                claim_id="C9",
+                contrast=f"top_k_{top_k}",
+                metric=metric,
+            )
+    for contrast in ("policy_only", "lifecycle_only", "governance_v2"):
+        for metric in (
+            "evidence_recall_delta",
+            "feasible_rate_delta",
+            "penalized_admissibility_upper_risk_delta",
+        ):
+            selected[f"c10_{contrast}_{metric}"] = _one(
+                rows,
+                claim_id="C10",
+                contrast=contrast,
+                metric=metric,
+            )
+    for contrast in (
+        "namespace_false_deny",
+        "namespace_missing",
+        "namespace_false_allow",
+        "namespace_swap",
+        "policy_false_deny",
+        "policy_false_allow",
+        "policy_missing",
+        "lifecycle_false_stale",
+    ):
+        selected[f"c10_{contrast}_last"] = _one(
+            rows,
+            claim_id="C10",
+            contrast=contrast,
+            metric="last_observed_dominating_rate",
+        )
+        first = [
+            row
+            for row in rows
+            if row.get("claim_id") == "C10"
+            and row.get("contrast") == contrast
+            and row.get("metric") == "first_observed_non_dominating_rate"
+        ]
+        if first:
+            if len(first) != 1:
+                raise ValueError(f"duplicate C10 break-even row for {contrast}")
+            selected[f"c10_{contrast}_first"] = first[0]
+    for contrast in ("false_allow_at_0_5", "namespace_swap_at_0_2"):
+        for metric in (
+            "evidence_recall",
+            "feasible_rate",
+            "penalized_admissibility_upper_risk",
+            "matched_prefix_wrong_scope_exposure_rate",
+            "candidates_scored",
+        ):
+            selected[f"c10_{contrast}_{metric}"] = _one(
+                rows,
+                claim_id="C10",
+                contrast=contrast,
+                metric=metric,
+            )
+    for contrast in ("released_oracle", "openai_text_inferred", "gemini_text_inferred"):
+        for metric in (
+            "evidence_recall_delta",
+            "feasible_rate_delta",
+            "penalized_admissibility_upper_risk_delta",
+        ):
+            selected[f"c11_{contrast}_{metric}"] = _one(
+                rows,
+                claim_id="C11",
+                contrast=contrast,
+                metric=metric,
+            )
+    for contrast in ("openai_text_inferred", "gemini_text_inferred"):
+        for metric in (
+            "roc_auc",
+            "violation_precision",
+            "violation_recall",
+            "required_anchor_false_deny_rate",
+        ):
+            selected[f"c11_{contrast}_{metric}"] = _one(
+                rows,
+                claim_id="C11",
+                contrast=contrast,
+                metric=metric,
+            )
+    for contrast in ("gpt56_controlled", "gemini_controlled", "deepseek_controlled"):
+        for metric in (
+            "strict_focal_pair_consistency",
+            "stable_control_overflip_rate",
+            "stable_admissible_false_deny_rate",
+            "stable_inadmissible_false_admit_rate",
+        ):
+            selected[f"c11_{contrast}_{metric}"] = _one(
+                rows,
+                claim_id="C11",
+                contrast=contrast,
+                metric=metric,
+            )
+    return selected
 
 
 def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
@@ -521,7 +633,7 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(_number(selected["smoke_global_recall"]), digits=1),
         ),
         _macro(
-            "SmokeGlobalContamination",
+            "SmokeGlobalNonUsableRate",
             _plain(_number(selected["smoke_global_contamination"]), digits=4),
         ),
         _macro(
@@ -533,7 +645,7 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(_number(selected["smoke_namespace_recall"]), digits=1),
         ),
         _macro(
-            "SmokeNamespaceContamination",
+            "SmokeNamespaceNonUsableRate",
             _plain(_number(selected["smoke_namespace_contamination"]), digits=4),
         ),
         _macro(
@@ -548,19 +660,19 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(_number(selected["namespace_feasible"])),
         ),
         _macro(
-            "GlobalPenalizedRisk",
+            "GlobalPenalizedNonUsableRisk",
             _plain(_number(selected["global_penalized_risk"])),
         ),
         _macro(
-            "NamespacePenalizedRisk",
+            "NamespacePenalizedNonUsableRisk",
             _plain(_number(selected["namespace_penalized_risk"])),
         ),
         _macro(
-            "GlobalKnownContamination",
+            "GlobalKnownNonUsableRate",
             _plain(_number(selected["global_known_contamination"])),
         ),
         _macro(
-            "NamespaceKnownContamination",
+            "NamespaceKnownNonUsableRate",
             _plain(_number(selected["namespace_known_contamination"])),
         ),
         _macro(
@@ -598,11 +710,11 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _ci(selected["namespace_feasible_delta"]),
         ),
         _macro(
-            "NamespaceContaminationDelta",
+            "NamespaceNonUsableRiskDelta",
             _signed(_number(selected["namespace_contamination_delta"])),
         ),
         _macro(
-            "NamespaceContaminationReduction",
+            "NamespaceNonUsableRiskReduction",
             _plain(abs(_number(selected["namespace_contamination_delta"]))),
         ),
         _macro(
@@ -610,7 +722,7 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(_number(selected["namespace_wrong_scope"])),
         ),
         _macro(
-            "NamespaceContaminationDeltaCI",
+            "NamespaceNonUsableRiskDeltaCI",
             _ci(selected["namespace_contamination_delta"]),
         ),
         _macro(
@@ -626,11 +738,11 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _ci(selected["threshold_recall_delta"]),
         ),
         _macro(
-            "ThresholdContaminationDelta",
+            "ThresholdNonUsableRiskDelta",
             _signed(_number(selected["threshold_contamination_delta"])),
         ),
         _macro(
-            "ThresholdContaminationDeltaCI",
+            "ThresholdNonUsableRiskDeltaCI",
             _ci(selected["threshold_contamination_delta"]),
         ),
         _macro(
@@ -642,11 +754,11 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _ci(selected["cluster_recall_delta"], digits=4),
         ),
         _macro(
-            "ClusterContaminationDelta",
+            "ClusterNonUsableRiskDelta",
             _signed(_number(selected["cluster_contamination_delta"]), digits=4),
         ),
         _macro(
-            "ClusterContaminationDeltaCI",
+            "ClusterNonUsableRiskDeltaCI",
             _ci(selected["cluster_contamination_delta"], digits=4),
         ),
         _macro(
@@ -658,50 +770,191 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(_number(selected["cluster_route_width"]), digits=1),
         ),
         _macro(
-            "LifecycleRecallDelta",
+            "HistoricalVOneRecallDelta",
             _signed(_number(selected["lifecycle_recall_delta"])),
         ),
         _macro(
-            "LifecycleRecallDeltaCI",
+            "HistoricalVOneRecallDeltaCI",
             _ci(selected["lifecycle_recall_delta"]),
         ),
         _macro(
-            "LifecycleContaminationDelta",
+            "HistoricalVOneNonUsableRiskDelta",
             _signed(_number(selected["lifecycle_contamination_delta"])),
         ),
         _macro(
-            "LifecycleContaminationReduction",
+            "HistoricalVOneNonUsableRiskReduction",
             _plain(abs(_number(selected["lifecycle_contamination_delta"]))),
         ),
         _macro(
-            "LifecycleContaminationDeltaCI",
+            "HistoricalVOneNonUsableRiskDeltaCI",
             _ci(selected["lifecycle_contamination_delta"]),
         ),
         _macro(
-            "LifecycleStaleDelta",
+            "HistoricalVOneStaleExposureDelta",
             _signed(_number(selected["lifecycle_stale_delta"])),
         ),
         _macro(
-            "LifecycleStaleReduction",
+            "HistoricalVOneStaleExposureReduction",
             _plain(abs(_number(selected["lifecycle_stale_delta"]))),
         ),
         _macro(
-            "LifecycleStaleDeltaCI",
+            "HistoricalVOneStaleExposureDeltaCI",
             _ci(selected["lifecycle_stale_delta"]),
         ),
         _macro(
-            "LifecycleSupersededDelta",
+            "HistoricalVOneSupersededExposureDelta",
             _signed(_number(selected["lifecycle_superseded_delta"])),
         ),
         _macro(
-            "LifecycleSupersededReduction",
+            "HistoricalVOneSupersededExposureReduction",
             _plain(abs(_number(selected["lifecycle_superseded_delta"]))),
         ),
         _macro(
-            "LifecycleSupersededDeltaCI",
+            "HistoricalVOneSupersededExposureDeltaCI",
             _ci(selected["lifecycle_superseded_delta"]),
         ),
     ]
+    for top_k, label in ((20, "Twenty"), (100, "Hundred")):
+        for metric, suffix in (
+            ("global_evidence_recall", "GlobalRecall"),
+            ("namespace_evidence_recall", "NamespaceRecall"),
+            ("global_feasible_rate", "GlobalFeasible"),
+            ("namespace_feasible_rate", "NamespaceFeasible"),
+            ("global_penalized_admissibility_upper_risk", "GlobalAdmRisk"),
+            ("namespace_penalized_admissibility_upper_risk", "NamespaceAdmRisk"),
+        ):
+            macros.append(
+                _macro(f"Top{label}{suffix}", _plain(_number(selected[f"c9_k{top_k}_{metric}"])))
+            )
+        for metric, suffix in (
+            ("evidence_recall_delta", "RecallDelta"),
+            ("feasible_rate_delta", "FeasibleDelta"),
+            ("penalized_admissibility_upper_risk_delta", "AdmRiskDelta"),
+            ("infeasibility_risk_component_delta", "InfeasibilityDelta"),
+            (
+                "admissibility_conditional_risk_component_delta",
+                "ConditionalAdmDelta",
+            ),
+        ):
+            row = selected[f"c9_k{top_k}_{metric}"]
+            macros.extend(
+                (
+                    _macro(f"Top{label}{suffix}", _signed(_number(row))),
+                    _macro(f"Top{label}{suffix}CI", _ci(row)),
+                )
+            )
+    for contrast, label in (
+        ("policy_only", "PolicyOnly"),
+        ("lifecycle_only", "LifecycleOnly"),
+        ("governance_v2", "GovernanceVTwo"),
+    ):
+        for metric, suffix in (
+            ("evidence_recall_delta", "RecallDelta"),
+            ("feasible_rate_delta", "FeasibleDelta"),
+            ("penalized_admissibility_upper_risk_delta", "AdmRiskDelta"),
+        ):
+            row = selected[f"c10_{contrast}_{metric}"]
+            macros.extend(
+                (
+                    _macro(f"{label}{suffix}", _signed(_number(row))),
+                    _macro(f"{label}{suffix}CI", _ci(row)),
+                )
+            )
+    for contrast, label in (
+        ("namespace_false_deny", "NamespaceFalseDeny"),
+        ("namespace_missing", "NamespaceMissing"),
+        ("namespace_false_allow", "NamespaceFalseAllow"),
+        ("namespace_swap", "NamespaceSwap"),
+        ("policy_false_deny", "PolicyFalseDeny"),
+        ("policy_false_allow", "PolicyFalseAllow"),
+        ("policy_missing", "PolicyMissing"),
+        ("lifecycle_false_stale", "LifecycleFalseStale"),
+    ):
+        macros.append(
+            _macro(
+                f"{label}LastDominating",
+                _plain(_number(selected[f"c10_{contrast}_last"]), digits=2),
+            )
+        )
+        first_key = f"c10_{contrast}_first"
+        if first_key in selected:
+            macros.append(
+                _macro(
+                    f"{label}FirstNonDominating",
+                    _plain(_number(selected[first_key]), digits=2),
+                )
+            )
+    for contrast, label in (
+        ("false_allow_at_0_5", "FalseAllowHalf"),
+        ("namespace_swap_at_0_2", "NamespaceSwapTwenty"),
+    ):
+        for metric, suffix in (
+            ("evidence_recall", "Recall"),
+            ("feasible_rate", "Feasible"),
+            ("penalized_admissibility_upper_risk", "AdmRisk"),
+            ("matched_prefix_wrong_scope_exposure_rate", "WrongScope"),
+            ("candidates_scored", "Candidates"),
+        ):
+            digits = 0 if metric == "candidates_scored" else 3
+            macros.append(
+                _macro(
+                    f"{label}{suffix}",
+                    _plain(_number(selected[f"c10_{contrast}_{metric}"]), digits=digits),
+                )
+            )
+    for contrast, label in (
+        ("released_oracle", "ReleasedOracle"),
+        ("openai_text_inferred", "OpenAIInferred"),
+        ("gemini_text_inferred", "GeminiInferred"),
+    ):
+        for metric, suffix in (
+            ("evidence_recall_delta", "RecallDelta"),
+            ("feasible_rate_delta", "FeasibleDelta"),
+            ("penalized_admissibility_upper_risk_delta", "AdmRiskDelta"),
+        ):
+            row = selected[f"c11_{contrast}_{metric}"]
+            macros.extend(
+                (
+                    _macro(f"{label}{suffix}", _signed(_number(row))),
+                    _macro(f"{label}{suffix}CI", _ci(row)),
+                )
+            )
+    for contrast, label in (
+        ("openai_text_inferred", "OpenAIInferred"),
+        ("gemini_text_inferred", "GeminiInferred"),
+    ):
+        for metric, suffix in (
+            ("roc_auc", "RocAuc"),
+            ("violation_precision", "ViolationPrecision"),
+            ("violation_recall", "ViolationRecall"),
+            ("required_anchor_false_deny_rate", "AnchorFalseDeny"),
+        ):
+            macros.append(
+                _macro(f"{label}{suffix}", _plain(_number(selected[f"c11_{contrast}_{metric}"])))
+            )
+    for contrast, label in (
+        ("gpt56_controlled", "GPTControlled"),
+        ("gemini_controlled", "GeminiControlled"),
+        ("deepseek_controlled", "DeepSeekControlled"),
+    ):
+        for metric, suffix in (
+            ("strict_focal_pair_consistency", "FocalConsistency"),
+            ("stable_control_overflip_rate", "Overflip"),
+        ):
+            row = selected[f"c11_{contrast}_{metric}"]
+            macros.extend(
+                (
+                    _macro(f"{label}{suffix}", _plain(_number(row))),
+                    _macro(f"{label}{suffix}CI", _ci(row, signed=False)),
+                )
+            )
+        for metric, suffix in (
+            ("stable_admissible_false_deny_rate", "StableFalseDeny"),
+            ("stable_inadmissible_false_admit_rate", "StableFalseAdmit"),
+        ):
+            macros.append(
+                _macro(f"{label}{suffix}", _plain(_number(selected[f"c11_{contrast}_{metric}"])))
+            )
     _write_ascii_lines(path, macros)
 
 
@@ -758,14 +1011,14 @@ def _write_main_table(path: Path, selected: Mapping[str, Row]) -> None:
         ),
         (
             "Namespace vs. global",
-            "Penalized conservative risk",
+            "Penalized non-usable upper risk",
             _signed(_number(selected["namespace_contamination_delta"])),
             _ci(selected["namespace_contamination_delta"]),
             "C5",
         ),
         (
-            "Lifecycle upper bound",
-            "Penalized conservative risk",
+            "Historical released-field v1",
+            "Penalized non-usable upper risk",
             _signed(_number(selected["lifecycle_contamination_delta"])),
             _ci(selected["lifecycle_contamination_delta"]),
             "C7",
@@ -800,15 +1053,15 @@ NATURAL_ARMS = (
     ("namespace_dense", "Namespace dense", "Namespace dense", "namespace", "o"),
     (
         "namespace_current_only",
-        "Namespace current-only",
+        "Query-agnostic current-only",
         "Current-only",
         "namespace",
         "o",
     ),
     (
         "released_intent_lifecycle_upper_bound",
-        "Released lifecycle UB",
-        "Lifecycle UB",
+        "Historical released-field v1",
+        "Released-field v1",
         "upper_bound",
         "*",
     ),
@@ -821,7 +1074,7 @@ def _write_full_arm_table(path: Path, rows: Sequence[Row]) -> None:
     lines = [
         r"\begin{tabular}{lrrrr}",
         r"\toprule",
-        r"Arm & Recall & Feasible & Penalized risk & Candidates \\",
+        r"Arm & Recall & Feasible & \shortstack{Penalized non-usable\\upper risk} & Candidates \\",
         r"\midrule",
     ]
     for arm, label, _short_label, _family, _marker in NATURAL_ARMS:
@@ -859,7 +1112,7 @@ def _write_matched_prefix_table(path: Path, selected: Mapping[str, Row]) -> None
     lines = [
         r"\begin{tabular}{lrrrr}",
         r"\toprule",
-        r"Support & Known contam. & Coverage & Lower & Upper \\",
+        r"Support & Known non-usable & Coverage & Lower & Upper \\",
         r"\midrule",
     ]
     for label, known, coverage, lower, upper in entries:
@@ -891,7 +1144,7 @@ def _write_smoke_table(path: Path, selected: Mapping[str, Row]) -> None:
     lines = [
         r"\begin{tabular}{lrrr}",
         r"\toprule",
-        r"Support & Evidence recall & Wrong-scope leakage & Contamination \\",
+        r"Support & Evidence recall & Wrong-scope leakage & Non-usable fraction \\",
         r"\midrule",
     ]
     for label, recall, wrong_scope, contamination in entries:
@@ -1541,7 +1794,7 @@ def _write_retrieval_figure(
             selected["namespace_feasible_delta"],
             selected["namespace_contamination_delta"],
         ],
-        ["Evidence recall", "Feasible rate", "Penalized risk"],
+        ["Evidence recall", "Feasible rate", "V1 non-usable risk"],
         [namespace_color, namespace_color, namespace_color],
     )
     axes[0, 1].set_title("(b) Trusted namespace main effects", loc="left", weight="bold")
@@ -1620,7 +1873,7 @@ def _write_retrieval_figure(
     axes[1, 0].set_yticks((0, 1), ("Global dense", "Namespace dense"))
     axes[1, 0].invert_yaxis()
     axes[1, 0].set_xlim(0, 1.0)
-    axes[1, 0].set_xlabel("Contamination fraction within feasible matched prefixes")
+    axes[1, 0].set_xlabel("Non-usable fraction within feasible matched prefixes")
     axes[1, 0].set_title(
         "(c) Unresolved labels keep the upper bound high", loc="left", weight="bold"
     )
@@ -1628,16 +1881,26 @@ def _write_retrieval_figure(
     effects = (
         ("Threshold recall", selected["threshold_recall_delta"], False, threshold_color),
         (
-            "Threshold risk",
+            "Threshold non-usable",
             selected["threshold_contamination_delta"],
             True,
             threshold_color,
         ),
         ("Cluster recall", selected["cluster_recall_delta"], False, cluster_color),
-        ("Cluster risk", selected["cluster_contamination_delta"], True, cluster_color),
-        ("Lifecycle recall", selected["lifecycle_recall_delta"], False, lifecycle_color),
         (
-            "Lifecycle risk",
+            "Cluster non-usable",
+            selected["cluster_contamination_delta"],
+            True,
+            cluster_color,
+        ),
+        (
+            "Released-field v1 recall",
+            selected["lifecycle_recall_delta"],
+            False,
+            lifecycle_color,
+        ),
+        (
+            "Released-field v1 non-usable",
             selected["lifecycle_contamination_delta"],
             True,
             lifecycle_color,
@@ -1695,6 +1958,297 @@ def _write_retrieval_figure(
         fontsize=5.2,
         color="#5B6168",
     )
+
+    _save_figure(figure, path)
+    plt.close(figure)
+
+
+def _interval_values(
+    row: Mapping[str, str], *, reverse: bool = False
+) -> tuple[float, float, float]:
+    estimate = _number(row)
+    lower = _number(row, "ci95_lower")
+    upper = _number(row, "ci95_upper")
+    if reverse:
+        return -estimate, -upper, -lower
+    return estimate, lower, upper
+
+
+def _write_constraint_reliability_figure(path: Path, selected: Mapping[str, Row]) -> None:
+    _configure_matplotlib()
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    figure = plt.figure(figsize=(7.1, 4.55), layout="constrained")
+    grid = figure.add_gridspec(
+        2,
+        2,
+        height_ratios=(1.08, 1.0),
+        width_ratios=(1.02, 0.98),
+        hspace=0.16,
+        wspace=0.22,
+    )
+    top_axis = figure.add_subplot(grid[0, :])
+    attribution_axis = figure.add_subplot(grid[1, 0])
+    bracket_axis = figure.add_subplot(grid[1, 1])
+
+    colors = {
+        "recall": "#2F6B9A",
+        "feasible": "#2E8B57",
+        "risk": "#B65A3A",
+        "neutral": "#5B6168",
+        "interval": "#D89B45",
+        "bad": "#B64342",
+    }
+
+    top_ks = np.array([10, 20, 50, 100], dtype=float)
+    top_specs = (
+        ("evidence_recall_delta", "Recall", colors["recall"], False),
+        ("feasible_rate_delta", "Feasible rate", colors["feasible"], False),
+        (
+            "penalized_admissibility_upper_risk_delta",
+            "Admissibility-risk reduction",
+            colors["risk"],
+            True,
+        ),
+    )
+    for metric, label, color, reverse in top_specs:
+        values = [
+            _interval_values(selected[f"c9_k{int(top_k)}_{metric}"], reverse=reverse)
+            for top_k in top_ks
+        ]
+        estimates = np.array([value[0] for value in values])
+        lower = np.array([value[1] for value in values])
+        upper = np.array([value[2] for value in values])
+        top_axis.plot(top_ks, estimates, marker="o", linewidth=1.7, markersize=4.5, color=color)
+        top_axis.fill_between(top_ks, lower, upper, color=color, alpha=0.13, linewidth=0)
+        top_axis.text(
+            103,
+            estimates[-1],
+            label,
+            color=color,
+            fontsize=6.7,
+            va="center",
+            clip_on=False,
+        )
+    top_axis.axhline(0, color="#8C9298", linewidth=0.7)
+    top_axis.set_xticks(top_ks)
+    top_axis.set_xlim(7, 120)
+    top_axis.set_ylim(-0.005, 0.31)
+    top_axis.set_xlabel("Retrieval budget (top-k)")
+    top_axis.set_ylabel("Namespace benefit over global dense")
+    top_axis.set_title("a  Trusted support helps at every tested budget", loc="left", weight="bold")
+    top_axis.grid(axis="y", color="#E7E9EC", linewidth=0.6)
+
+    methods = (
+        ("policy_only", "Policy only"),
+        ("lifecycle_only", "Lifecycle only"),
+        ("governance_v2", "Policy + lifecycle (v2)"),
+    )
+    metric_specs = (
+        ("evidence_recall_delta", "Recall", colors["recall"], False, -0.18),
+        ("feasible_rate_delta", "Feasible", colors["feasible"], False, 0.0),
+        (
+            "penalized_admissibility_upper_risk_delta",
+            "Risk reduction",
+            colors["risk"],
+            True,
+            0.18,
+        ),
+    )
+    y_positions = np.arange(len(methods), dtype=float)
+    for metric, label, color, reverse, offset in metric_specs:
+        for y_position, (method, _method_label) in zip(y_positions, methods, strict=True):
+            estimate, lower, upper = _interval_values(
+                selected[f"c10_{method}_{metric}"], reverse=reverse
+            )
+            attribution_axis.errorbar(
+                estimate,
+                y_position + offset,
+                xerr=[[estimate - lower], [upper - estimate]],
+                fmt="o",
+                color=color,
+                markersize=4,
+                capsize=2,
+                linewidth=1,
+                label=label if y_position == 0 else None,
+            )
+    attribution_axis.axvline(0, color="#737980", linewidth=0.8)
+    attribution_axis.set_yticks(y_positions, [label for _method, label in methods])
+    attribution_axis.invert_yaxis()
+    attribution_axis.set_xlim(-0.065, 0.175)
+    attribution_axis.set_xlabel("Benefit over namespace dense")
+    attribution_axis.set_title("b  Policy, not lifecycle, drives gain", loc="left", weight="bold")
+    attribution_axis.grid(axis="x", color="#E7E9EC", linewidth=0.6)
+
+    channels = (
+        ("policy_false_deny", "Policy false deny"),
+        ("lifecycle_false_stale", "Lifecycle false stale"),
+        ("namespace_false_deny", "Namespace false deny"),
+        ("namespace_missing", "Namespace missing"),
+        ("namespace_swap", "Namespace label swap"),
+        ("policy_false_allow", "Policy false allow"),
+        ("policy_missing", "Policy missing / fail open"),
+        ("namespace_false_allow", "Namespace false allow"),
+    )
+    y_positions = np.arange(len(channels), dtype=float)
+    for y_position, (channel, _label) in zip(y_positions, channels, strict=True):
+        last = _number(selected[f"c10_{channel}_last"])
+        bracket_axis.plot(
+            [0, last], [y_position, y_position], color=colors["feasible"], linewidth=3
+        )
+        first_key = f"c10_{channel}_first"
+        if first_key in selected:
+            first = _number(selected[first_key])
+            bracket_axis.plot(
+                [last, first],
+                [y_position, y_position],
+                color=colors["interval"],
+                linewidth=3,
+            )
+            bracket_axis.scatter([first], [y_position], marker="x", color=colors["bad"], s=22)
+        else:
+            bracket_axis.annotate(
+                "",
+                xy=(0.535, y_position),
+                xytext=(last, y_position),
+                arrowprops={"arrowstyle": "->", "color": colors["feasible"], "lw": 1.2},
+            )
+    bracket_axis.set_yticks(y_positions, [label for _channel, label in channels])
+    bracket_axis.invert_yaxis()
+    bracket_axis.set_xlim(0, 0.55)
+    bracket_axis.set_xticks(np.arange(0, 0.6, 0.1))
+    bracket_axis.set_xlabel("Corruption rate")
+    bracket_axis.set_title("c  Error direction shifts break-even", loc="left", weight="bold")
+    bracket_axis.grid(axis="x", color="#E7E9EC", linewidth=0.6)
+
+    _save_figure(figure, path)
+    plt.close(figure)
+
+
+def _write_inference_gap_figure(path: Path, selected: Mapping[str, Row]) -> None:
+    _configure_matplotlib()
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from matplotlib.patches import Rectangle
+
+    figure, axes = plt.subplots(1, 3, figsize=(7.1, 3.0), layout="constrained")
+    colors = {
+        "oracle": "#2E8B57",
+        "openai": "#2F6B9A",
+        "gemini": "#B97A35",
+        "deepseek": "#7B5AA6",
+        "risk": "#B64342",
+    }
+
+    contrasts = (
+        ("released_oracle", "Released oracle", colors["oracle"]),
+        ("openai_text_inferred", "GPT-5.6", colors["openai"]),
+        ("gemini_text_inferred", "Gemini 3.6", colors["gemini"]),
+    )
+    metric_specs = (
+        ("evidence_recall_delta", False, -0.17, "o"),
+        ("feasible_rate_delta", False, 0.0, "s"),
+        ("penalized_admissibility_upper_risk_delta", True, 0.17, "D"),
+    )
+    y_positions = np.arange(len(contrasts), dtype=float)
+    for metric, reverse, offset, marker in metric_specs:
+        for y_position, (contrast, _display, color) in zip(y_positions, contrasts, strict=True):
+            estimate, lower, upper = _interval_values(
+                selected[f"c11_{contrast}_{metric}"], reverse=reverse
+            )
+            axes[0].errorbar(
+                estimate,
+                y_position + offset,
+                xerr=[[estimate - lower], [upper - estimate]],
+                fmt=marker,
+                color=color,
+                markersize=4,
+                capsize=2,
+                linewidth=1,
+            )
+    axes[0].axvline(0, color="#737980", linewidth=0.8)
+    axes[0].set_yticks(y_positions, [display for _contrast, display, _color in contrasts])
+    axes[0].invert_yaxis()
+    axes[0].set_xlim(-0.115, 0.085)
+    axes[0].set_xlabel("Benefit over namespace dense")
+    axes[0].set_title("a  Oracle headroom is unrealized", loc="left", weight="bold")
+    axes[0].grid(axis="x", color="#E7E9EC", linewidth=0.6)
+
+    models = (
+        ("openai_text_inferred", "GPT-5.6", colors["openai"]),
+        ("gemini_text_inferred", "Gemini 3.6", colors["gemini"]),
+    )
+    metrics = (
+        ("roc_auc", "ROC-AUC (higher)"),
+        ("violation_recall", "Violation recall (higher)"),
+        ("required_anchor_false_deny_rate", "Anchor false deny (lower)"),
+    )
+    x_positions = np.arange(len(metrics), dtype=float)
+    width = 0.34
+    for index, (model, label, color) in enumerate(models):
+        values = [_number(selected[f"c11_{model}_{metric}"]) for metric, _name in metrics]
+        axes[1].bar(
+            x_positions + (index - 0.5) * width,
+            values,
+            width=width,
+            color=color,
+            alpha=0.86,
+            label=label,
+        )
+    axes[1].set_xticks(x_positions, [label for _metric, label in metrics], rotation=20, ha="right")
+    axes[1].set_ylim(0, 0.72)
+    axes[1].set_ylabel("Rate")
+    axes[1].set_title("b  Natural text inference is weak", loc="left", weight="bold")
+    axes[1].legend(loc="upper right", fontsize=6)
+    axes[1].grid(axis="y", color="#E7E9EC", linewidth=0.6)
+
+    controlled = (
+        ("gpt56_controlled", "GPT-5.6", colors["openai"]),
+        ("gemini_controlled", "Gemini 3.6", colors["gemini"]),
+        ("deepseek_controlled", "DeepSeek-V4", colors["deepseek"]),
+    )
+    axes[2].add_patch(
+        Rectangle((0, 0.8), 0.05, 0.22, facecolor="#DCEEDB", edgecolor="none", zorder=0)
+    )
+    for contrast, label, color in controlled:
+        x_row = selected[f"c11_{contrast}_stable_control_overflip_rate"]
+        y_row = selected[f"c11_{contrast}_strict_focal_pair_consistency"]
+        x, x_lower, x_upper = _interval_values(x_row)
+        y, y_lower, y_upper = _interval_values(y_row)
+        false_deny = _number(selected[f"c11_{contrast}_stable_admissible_false_deny_rate"])
+        axes[2].errorbar(
+            x,
+            y,
+            xerr=[[x - x_lower], [x_upper - x]],
+            yerr=[[y - y_lower], [y_upper - y]],
+            fmt="o",
+            color=color,
+            markersize=5,
+            capsize=2,
+            linewidth=1,
+        )
+        short_label = {
+            "GPT-5.6": "GPT",
+            "Gemini 3.6": "Gemini",
+            "DeepSeek-V4": "DeepSeek",
+        }[label]
+        axes[2].annotate(
+            f"{short_label}\nFD={false_deny:.3f}",
+            (x, y),
+            xytext=(4, -2 if y < 0.9 else -16),
+            textcoords="offset points",
+            fontsize=5.5,
+            color=color,
+        )
+    axes[2].axvline(0.05, color="#6E8B6A", linestyle="--", linewidth=0.7)
+    axes[2].axhline(0.8, color="#6E8B6A", linestyle="--", linewidth=0.7)
+    axes[2].set_xlim(-0.01, 0.41)
+    axes[2].set_ylim(0.5, 1.03)
+    axes[2].set_xlabel("Stable overflip (lower is better)")
+    axes[2].set_ylabel("Focal consistency")
+    axes[2].set_title("c  Rule-following is not selectivity", loc="left", weight="bold")
+    axes[2].grid(color="#E7E9EC", linewidth=0.6)
 
     _save_figure(figure, path)
     plt.close(figure)
@@ -1760,6 +2314,12 @@ def build(repository_root: Path) -> tuple[Path, ...]:
         output_root / "retrieval_results.pdf",
         output_root / "retrieval_results.png",
         output_root / "retrieval_results.svg",
+        output_root / "constraint_reliability.pdf",
+        output_root / "constraint_reliability.png",
+        output_root / "constraint_reliability.svg",
+        output_root / "inference_gap.pdf",
+        output_root / "inference_gap.png",
+        output_root / "inference_gap.svg",
     )
     _write_numbers(numbers_path, selected)
     _write_main_table(main_table_path, selected)
@@ -1769,6 +2329,8 @@ def build(repository_root: Path) -> tuple[Path, ...]:
     _write_pipeline_figure(output_root / "verification_pipeline", figure_examples)
     _write_evidence_figure(output_root / "evidence_summary", selected)
     _write_retrieval_figure(output_root / "retrieval_results", rows, selected)
+    _write_constraint_reliability_figure(output_root / "constraint_reliability", selected)
+    _write_inference_gap_figure(output_root / "inference_gap", selected)
     _write_manifest(repository_root, output_root, outputs)
     return outputs
 

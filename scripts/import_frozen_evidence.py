@@ -265,7 +265,9 @@ def _mechanism_smoke_rows(source: FrozenSource) -> list[dict[str, object]]:
     }
     metric_map = {
         "mean_evidence_recall": "evidence_recall",
-        "contamination_at_matched_recall": "measured_contamination",
+        # The source field predates the relevance/admissibility split. It counts
+        # every resolved non-usable item, not only admissibility violations.
+        "contamination_at_matched_recall": "measured_non_usable_rate",
         "wrong_namespace_leakage_rate": "wrong_scope_leakage",
     }
     output: list[dict[str, object]] = []
@@ -476,7 +478,7 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
     arm_metrics = {
         "mean_evidence_recall": "evidence_recall",
         "feasible_rate": "feasible_rate",
-        "conservative_contamination_upper": "penalized_contamination_upper",
+        "conservative_contamination_upper": "penalized_non_usable_upper_risk",
         "mean_candidates_scored": "mean_candidates_scored",
     }
     for source_arm, public_arm in public_arms.items():
@@ -488,7 +490,7 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
             notes = "source_macro;descriptive_full_arm_table;not_official_benchmark_submission"
             if public_arm == "released_intent_lifecycle_upper_bound":
                 notes += ";released_field_upper_bound"
-            if public_metric == "penalized_contamination_upper":
+            if public_metric == "penalized_non_usable_upper_risk":
                 notes += ";infeasible_or_unresolved_equals_one"
             if public_metric == "mean_candidates_scored":
                 notes += ";diagnostic_only;not_production_latency"
@@ -515,10 +517,10 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
         ("namespace_dense", "namespace_dense"),
     ):
         for source_metric, public_metric in {
-            "mean_contamination_at_matched_recall": "known_contamination",
-            "mean_contamination_label_coverage": "label_coverage",
-            "mean_contamination_lower_bound": "lower_bound",
-            "mean_contamination_upper_bound": "upper_bound",
+            "mean_contamination_at_matched_recall": "known_non_usable_rate",
+            "mean_contamination_label_coverage": "non_usable_label_coverage",
+            "mean_contamination_lower_bound": "non_usable_lower_bound",
+            "mean_contamination_upper_bound": "non_usable_upper_bound",
         }.items():
             output.append(
                 _evidence_row(
@@ -544,7 +546,7 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
     for source_metric, public_metric in {
         "evidence_recall": "recall_delta",
         "feasible_rate": "feasible_rate_delta",
-        "conservative_contamination_upper": "conservative_contamination_delta",
+        "conservative_contamination_upper": "penalized_non_usable_upper_risk_delta",
     }.items():
         output.append(
             _paired_evidence(
@@ -557,7 +559,7 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
                 public_metric=public_metric,
                 notes=(
                     "source_macro;trusted_released_namespace;infeasible_or_unresolved_equals_one"
-                    if public_metric == "conservative_contamination_delta"
+                    if public_metric == "penalized_non_usable_upper_risk_delta"
                     else "source_macro;trusted_released_namespace"
                 ),
             )
@@ -569,7 +571,7 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
     ):
         for source_metric, public_metric in {
             "evidence_recall": "recall_delta",
-            "conservative_contamination_upper": "conservative_contamination_delta",
+            "conservative_contamination_upper": "penalized_non_usable_upper_risk_delta",
         }.items():
             output.append(
                 _paired_evidence(
@@ -621,7 +623,7 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
 
     for source_metric, public_metric in {
         "evidence_recall": "recall_delta",
-        "conservative_contamination_upper": "conservative_contamination_delta",
+        "conservative_contamination_upper": "penalized_non_usable_upper_risk_delta",
         "prohibited_stale_exposure_rate": "prohibited_stale_exposure_delta",
         "prohibited_superseded_exposure_rate": "prohibited_superseded_exposure_delta",
     }.items():
@@ -634,7 +636,9 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
                 metric=source_metric,
                 public_contrast=("released_intent_lifecycle_upper_bound_minus_namespace_dense"),
                 public_metric=public_metric,
-                notes="released_field_upper_bound;not_deployable_blind_inference",
+                notes=(
+                    "frozen_historical_v1;released_field_upper_bound;not_deployable_blind_inference"
+                ),
             )
         )
     return output

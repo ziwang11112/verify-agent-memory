@@ -94,7 +94,7 @@ estimate comes from one OpenAI reader and is not cross-provider evidence.
 The audit contained four development packets and 16 evaluation packets, with 207
 records across the full audit and 7-12 candidates per packet.
 
-| Method | Recall | Wrong-namespace leakage | Measured contamination |
+| Method | Recall | Wrong-namespace leakage | Measured non-usable rate |
 | --- | ---: | ---: | ---: |
 | Global dense | 1.0000 | 0.0250 | 0.1189 |
 | Namespace dense | 1.0000 | 0.0000 | 0.0824 |
@@ -251,6 +251,111 @@ the only causal moderator, or present this as an official benchmark.
 **Boundary:** The population contains sixteen constructed scenarios with literal
 markers and a fixed rule-based disclosure scorer. Axis-specific estimates have four
 scenarios each. There was no judge, retry, output repair, or selective rerun.
+
+## Post-Hoc Frozen-Ranking Results
+
+### C9: Fixed-budget support advantage
+
+**Status:** Post-hoc frozen-ranking decomposition
+
+This analysis re-scores frozen natural-corpus rankings with the v2 penalized
+admissibility upper risk. It did not participate in development selection and no
+setting was retuned.
+
+| Top-k | Global recall | Namespace recall | Recall delta | Feasible delta | Admissibility-risk delta |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 10 | 0.322337 | 0.389469 | 0.067132 | 0.031790 | -0.038626 |
+| 20 | 0.431570 | 0.532878 | 0.101309 | 0.073910 | -0.085362 |
+| 50 | 0.603221 | 0.739892 | 0.136671 | 0.152614 | -0.179821 |
+| 100 | 0.716835 | 0.865663 | 0.148828 | 0.222996 | -0.273935 |
+
+At each depth, source-clustered bootstrap intervals exclude zero for recall,
+feasibility, total v2 risk, its infeasibility component, and its feasible-prefix
+admissibility component.
+
+**Allowed:** On frozen rankings, trusted namespace support improved recall,
+feasibility, and post-hoc v2 penalized admissibility upper risk at all four reported
+depths. Both risk components contributed.
+
+**Forbidden:** Do not say v2 risk selected the original settings, call this a new
+held-out run, or claim namespace support guarantees admissibility.
+
+**Boundary:** This is a no-retuning post-hoc rescore of released trusted namespaces.
+Original selection used the v1 penalized non-usable upper risk.
+
+### C10: Metadata-error asymmetry
+
+**Status:** Post-hoc metadata robustness diagnostic
+
+Corrected v2 attribution against namespace dense is:
+
+| Arm | Recall delta | Feasible delta | Admissibility-risk delta |
+| --- | ---: | ---: | ---: |
+| Policy only | 0.026547 | 0.057645 | -0.146723 |
+| Lifecycle only | -0.015783 | -0.037916 | 0.017592 |
+| Policy + lifecycle (`released_governance_oracle_v2`) | 0.010489 | 0.016954 | -0.123554 |
+
+The observed ten-seed dominance brackets are mechanism-specific:
+
+| Corruption channel | Last dominant | First non-dominant |
+| --- | ---: | ---: |
+| Namespace false deny | 0.10 | 0.20 |
+| Namespace missing | 0.10 | 0.20 |
+| Policy false deny | 0.00 | 0.02 |
+| Policy false allow / fail-open missing | 0.30 | 0.40 |
+| Lifecycle false stale | 0.00 | 0.02 |
+| Source-level namespace swap | 0.10 | 0.20 |
+
+No loss of dominance was observed through 0.50 for query-memory namespace false
+allow, lifecycle false current, lifecycle missing, or query-intent flip. At 0.50
+namespace false allow, matched-prefix wrong-scope exposure was 0.167211 even though
+aggregate dominance remained. This is not a zero-leakage result.
+
+**Allowed:** Error direction matters. In this frozen grid, false-deny mechanisms
+lost joint utility-risk dominance earlier than tested fail-open mechanisms. Released
+policy metadata drove the corrected incremental gain, while the coarse lifecycle-only
+rule hurt retrieval.
+
+**Forbidden:** Do not call grid points universal thresholds, reduce all metadata
+error to one accuracy scalar, generalize beyond tested mechanisms, or claim lifecycle
+filtering is generally beneficial.
+
+**Boundary:** Results are post-hoc diagnostics with fixed settings. Support-expanding
+corruptions use full natural reranking with the original embeddings and ranker.
+
+## Public-Development Verification
+
+### C11: Oracle-inference gap
+
+**Status:** Public-development inference-gap diagnostic
+
+On 72 fixed top-20 public-development cases, route deltas relative to namespace dense
+were:
+
+| Verifier | Recall delta | Feasible delta | Admissibility-risk delta |
+| --- | ---: | ---: | ---: |
+| Released-field oracle | 0.000000 | 0.000000 | -0.031957 |
+| `gpt-5.6-sol` text-only | -0.041667 | -0.083333 | 0.056744 |
+| `gemini-3.6-flash` text-only | -0.013889 | -0.027778 | 0.017956 |
+
+The corresponding admissibility ROC-AUC values were 0.626179 and 0.522180. On a
+separate controlled population of 16 scenarios, strict focal-pair consistency was
+1.000000, 1.000000, and 0.718750 for GPT, Gemini, and DeepSeek, while stable-control
+overflip was 0.203125, 0.296875, and 0.265625. All overflip estimates exceeded the
+preregistered 0.05 limit. Stable-admissible false-deny rates were 0.265625, 0.531250,
+and 0.593750, respectively.
+
+**Allowed:** Released fields expose headroom, but these text-only verifiers did not
+recover it on fixed public-development candidates. In the controlled diagnostic,
+errors concentrated in false denial of stable admissible memories.
+
+**Forbidden:** Do not claim universal impossibility, call the oracle deployable,
+pool natural and controlled populations, pool models, or present an official
+benchmark result.
+
+**Boundary:** Both populations are public development diagnostics. Natural candidate
+pools and thresholds are fixed. The controlled set is constructed. Populations and
+models are always reported separately.
 
 ## Writing Rule
 

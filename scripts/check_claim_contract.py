@@ -49,11 +49,15 @@ SOURCE_CATEGORIES = {
     "PORT_AND_REFACTOR",
     "IMPORT_AS_FROZEN_AGGREGATE",
     "GENERATED_FROM_HASH_BOUND_EXECUTION",
+    "GENERATED_FROM_FROZEN_POSTHOC",
+    "GENERATED_FROM_PUBLIC_DIAGNOSTIC",
 }
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 MIGRATION_SNAPSHOT = "a28093110325968c26906223e9eb0f1e078f6aad"
 NATURAL_EXECUTION_COMMIT = "8e34e3d41c56e1699696bc27be95cdac7c9528e5"
 COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT = "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+NATURAL_POSTHOC_IMPLEMENTATION_COMMIT = "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
 
 
 def _is_sequence(value: Any) -> bool:
@@ -208,6 +212,39 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
         if "never pooled" not in limitations:
             errors.append("C8 must include a no-pooling limitation")
 
+    fixed_budget = claim_by_id.get("C9")
+    if fixed_budget:
+        limitations = _combined_text(fixed_budget.get("known_limitations"))
+        if fixed_budget.get("status") != "post_hoc_frozen_ranking_decomposition":
+            errors.append("C9 must remain a post-hoc frozen-ranking decomposition")
+        if "post-hoc" not in limitations or "no settings were retuned" not in limitations:
+            errors.append("C9 must include post-hoc and no-retuning boundaries")
+        if "source-clustered" not in limitations:
+            errors.append("C9 must identify the bootstrap unit")
+
+    metadata = claim_by_id.get("C10")
+    if metadata:
+        limitations = _combined_text(metadata.get("known_limitations"))
+        wording = _combined_text(metadata.get("allowed_wording"))
+        if metadata.get("status") != "post_hoc_metadata_robustness_diagnostic":
+            errors.append("C10 must remain a post-hoc metadata-robustness diagnostic")
+        if "observed brackets" not in limitations or "not population thresholds" not in limitations:
+            errors.append("C10 must preserve the observed-grid boundary")
+        if "aggregate joint dominance does not imply zero" not in limitations:
+            errors.append("C10 must distinguish aggregate dominance from zero leakage")
+        if "corrected v2 attribution" not in wording or "policy metadata" not in wording:
+            errors.append("C10 must preserve corrected-v2 policy attribution")
+
+    inference = claim_by_id.get("C11")
+    if inference:
+        limitations = _combined_text(inference.get("known_limitations"))
+        if inference.get("status") != "public_development_inference_gap_diagnostic":
+            errors.append("C11 must remain a public-development inference-gap diagnostic")
+        if "populations are separate" not in limitations or "never pooled" not in limitations:
+            errors.append("C11 must keep natural and controlled populations separate")
+        if "model estimates are reported separately" not in limitations:
+            errors.append("C11 must keep model estimates separate")
+
     if readable_contract is not None:
         for claim_id in claim_by_id:
             if f"### {claim_id}:" not in readable_contract:
@@ -258,6 +295,15 @@ def validate_source_index(source_data: Any, contract_data: Any) -> list[str]:
                 errors.append(
                     f"{artifact_id}.frozen_commit must match the paired-exposure execution"
                 )
+        elif category == "GENERATED_FROM_FROZEN_POSTHOC":
+            if artifact.get("frozen_commit") != NATURAL_POSTHOC_IMPLEMENTATION_COMMIT:
+                errors.append(
+                    f"{artifact_id}.frozen_commit must match the natural-posthoc implementation"
+                )
+        elif category == "GENERATED_FROM_PUBLIC_DIAGNOSTIC":
+            frozen_commit = artifact.get("frozen_commit")
+            if not isinstance(frozen_commit, str) or not COMMIT_PATTERN.fullmatch(frozen_commit):
+                errors.append(f"{artifact_id}.frozen_commit must be a lowercase Git commit")
         elif artifact.get("frozen_commit") != MIGRATION_SNAPSHOT:
             errors.append(f"{artifact_id}.frozen_commit must match the migration snapshot")
         if category not in SOURCE_CATEGORIES:

@@ -50,19 +50,19 @@
 \newcommand{\GOneUtilityReduction}{\ensuremath{0.169}}
 \newcommand{\GOneRefusalIncrease}{\ensuremath{0.287}}
 \newcommand{\SmokeGlobalRecall}{\ensuremath{1.0}}
-\newcommand{\SmokeGlobalContamination}{\ensuremath{0.1189}}
+\newcommand{\SmokeGlobalNonUsableRate}{\ensuremath{0.1189}}
 \newcommand{\SmokeGlobalWrongScope}{\ensuremath{0.025}}
 \newcommand{\SmokeNamespaceRecall}{\ensuremath{1.0}}
-\newcommand{\SmokeNamespaceContamination}{\ensuremath{0.0824}}
+\newcommand{\SmokeNamespaceNonUsableRate}{\ensuremath{0.0824}}
 \newcommand{\SmokeNamespaceWrongScope}{\ensuremath{0}}
 \newcommand{\GlobalDenseRecall}{\ensuremath{0.717}}
 \newcommand{\NamespaceDenseRecall}{\ensuremath{0.866}}
 \newcommand{\GlobalDenseFeasible}{\ensuremath{0.539}}
 \newcommand{\NamespaceDenseFeasible}{\ensuremath{0.762}}
-\newcommand{\GlobalPenalizedRisk}{\ensuremath{0.873}}
-\newcommand{\NamespacePenalizedRisk}{\ensuremath{0.837}}
-\newcommand{\GlobalKnownContamination}{\ensuremath{0.575}}
-\newcommand{\NamespaceKnownContamination}{\ensuremath{0.348}}
+\newcommand{\GlobalPenalizedNonUsableRisk}{\ensuremath{0.873}}
+\newcommand{\NamespacePenalizedNonUsableRisk}{\ensuremath{0.837}}
+\newcommand{\GlobalKnownNonUsableRate}{\ensuremath{0.575}}
+\newcommand{\NamespaceKnownNonUsableRate}{\ensuremath{0.348}}
 \newcommand{\GlobalLabelCoverage}{\ensuremath{0.538}}
 \newcommand{\NamespaceLabelCoverage}{\ensuremath{0.355}}
 \newcommand{\GlobalLowerBound}{\ensuremath{0.308}}
@@ -73,29 +73,148 @@
 \newcommand{\NamespaceRecallDeltaCI}{\ensuremath{[+0.129, +0.168]}}
 \newcommand{\NamespaceFeasibleDelta}{\ensuremath{+0.223}}
 \newcommand{\NamespaceFeasibleDeltaCI}{\ensuremath{[+0.192, +0.255]}}
-\newcommand{\NamespaceContaminationDelta}{\ensuremath{-0.036}}
-\newcommand{\NamespaceContaminationReduction}{\ensuremath{0.036}}
+\newcommand{\NamespaceNonUsableRiskDelta}{\ensuremath{-0.036}}
+\newcommand{\NamespaceNonUsableRiskReduction}{\ensuremath{0.036}}
 \newcommand{\NamespaceWrongScopeLeakage}{\ensuremath{0.000}}
-\newcommand{\NamespaceContaminationDeltaCI}{\ensuremath{[-0.042, -0.030]}}
+\newcommand{\NamespaceNonUsableRiskDeltaCI}{\ensuremath{[-0.042, -0.030]}}
 \newcommand{\ThresholdRecallDelta}{\ensuremath{-0.023}}
 \newcommand{\ThresholdRecallLoss}{\ensuremath{0.023}}
 \newcommand{\ThresholdRecallDeltaCI}{\ensuremath{[-0.029, -0.017]}}
-\newcommand{\ThresholdContaminationDelta}{\ensuremath{+0.002}}
-\newcommand{\ThresholdContaminationDeltaCI}{\ensuremath{[+0.001, +0.003]}}
+\newcommand{\ThresholdNonUsableRiskDelta}{\ensuremath{+0.002}}
+\newcommand{\ThresholdNonUsableRiskDeltaCI}{\ensuremath{[+0.001, +0.003]}}
 \newcommand{\ClusterRecallDelta}{\ensuremath{-0.0006}}
 \newcommand{\ClusterRecallDeltaCI}{\ensuremath{[-0.0019, +0.0000]}}
-\newcommand{\ClusterContaminationDelta}{\ensuremath{+0.0002}}
-\newcommand{\ClusterContaminationDeltaCI}{\ensuremath{[-0.0000, +0.0005]}}
+\newcommand{\ClusterNonUsableRiskDelta}{\ensuremath{+0.0002}}
+\newcommand{\ClusterNonUsableRiskDeltaCI}{\ensuremath{[-0.0000, +0.0005]}}
 \newcommand{\ThresholdFallbackRate}{\ensuremath{0.965}}
 \newcommand{\ClusterRouteWidth}{\ensuremath{1.0}}
-\newcommand{\LifecycleRecallDelta}{\ensuremath{+0.003}}
-\newcommand{\LifecycleRecallDeltaCI}{\ensuremath{[-0.002, +0.008]}}
-\newcommand{\LifecycleContaminationDelta}{\ensuremath{-0.009}}
-\newcommand{\LifecycleContaminationReduction}{\ensuremath{0.009}}
-\newcommand{\LifecycleContaminationDeltaCI}{\ensuremath{[-0.011, -0.007]}}
-\newcommand{\LifecycleStaleDelta}{\ensuremath{-0.002}}
-\newcommand{\LifecycleStaleReduction}{\ensuremath{0.002}}
-\newcommand{\LifecycleStaleDeltaCI}{\ensuremath{[-0.003, -0.002]}}
-\newcommand{\LifecycleSupersededDelta}{\ensuremath{-0.010}}
-\newcommand{\LifecycleSupersededReduction}{\ensuremath{0.010}}
-\newcommand{\LifecycleSupersededDeltaCI}{\ensuremath{[-0.012, -0.009]}}
+\newcommand{\HistoricalVOneRecallDelta}{\ensuremath{+0.003}}
+\newcommand{\HistoricalVOneRecallDeltaCI}{\ensuremath{[-0.002, +0.008]}}
+\newcommand{\HistoricalVOneNonUsableRiskDelta}{\ensuremath{-0.009}}
+\newcommand{\HistoricalVOneNonUsableRiskReduction}{\ensuremath{0.009}}
+\newcommand{\HistoricalVOneNonUsableRiskDeltaCI}{\ensuremath{[-0.011, -0.007]}}
+\newcommand{\HistoricalVOneStaleExposureDelta}{\ensuremath{-0.002}}
+\newcommand{\HistoricalVOneStaleExposureReduction}{\ensuremath{0.002}}
+\newcommand{\HistoricalVOneStaleExposureDeltaCI}{\ensuremath{[-0.003, -0.002]}}
+\newcommand{\HistoricalVOneSupersededExposureDelta}{\ensuremath{-0.010}}
+\newcommand{\HistoricalVOneSupersededExposureReduction}{\ensuremath{0.010}}
+\newcommand{\HistoricalVOneSupersededExposureDeltaCI}{\ensuremath{[-0.012, -0.009]}}
+\newcommand{\TopTwentyGlobalRecall}{\ensuremath{0.432}}
+\newcommand{\TopTwentyNamespaceRecall}{\ensuremath{0.533}}
+\newcommand{\TopTwentyGlobalFeasible}{\ensuremath{0.237}}
+\newcommand{\TopTwentyNamespaceFeasible}{\ensuremath{0.311}}
+\newcommand{\TopTwentyGlobalAdmRisk}{\ensuremath{0.798}}
+\newcommand{\TopTwentyNamespaceAdmRisk}{\ensuremath{0.713}}
+\newcommand{\TopTwentyRecallDelta}{\ensuremath{+0.101}}
+\newcommand{\TopTwentyRecallDeltaCI}{\ensuremath{[+0.082, +0.120]}}
+\newcommand{\TopTwentyFeasibleDelta}{\ensuremath{+0.074}}
+\newcommand{\TopTwentyFeasibleDeltaCI}{\ensuremath{[+0.056, +0.095]}}
+\newcommand{\TopTwentyAdmRiskDelta}{\ensuremath{-0.085}}
+\newcommand{\TopTwentyAdmRiskDeltaCI}{\ensuremath{[-0.107, -0.064]}}
+\newcommand{\TopTwentyInfeasibilityDelta}{\ensuremath{-0.074}}
+\newcommand{\TopTwentyInfeasibilityDeltaCI}{\ensuremath{[-0.095, -0.056]}}
+\newcommand{\TopTwentyConditionalAdmDelta}{\ensuremath{-0.011}}
+\newcommand{\TopTwentyConditionalAdmDeltaCI}{\ensuremath{[-0.016, -0.007]}}
+\newcommand{\TopHundredGlobalRecall}{\ensuremath{0.717}}
+\newcommand{\TopHundredNamespaceRecall}{\ensuremath{0.866}}
+\newcommand{\TopHundredGlobalFeasible}{\ensuremath{0.539}}
+\newcommand{\TopHundredNamespaceFeasible}{\ensuremath{0.762}}
+\newcommand{\TopHundredGlobalAdmRisk}{\ensuremath{0.628}}
+\newcommand{\TopHundredNamespaceAdmRisk}{\ensuremath{0.354}}
+\newcommand{\TopHundredRecallDelta}{\ensuremath{+0.149}}
+\newcommand{\TopHundredRecallDeltaCI}{\ensuremath{[+0.130, +0.169]}}
+\newcommand{\TopHundredFeasibleDelta}{\ensuremath{+0.223}}
+\newcommand{\TopHundredFeasibleDeltaCI}{\ensuremath{[+0.192, +0.255]}}
+\newcommand{\TopHundredAdmRiskDelta}{\ensuremath{-0.274}}
+\newcommand{\TopHundredAdmRiskDeltaCI}{\ensuremath{[-0.310, -0.235]}}
+\newcommand{\TopHundredInfeasibilityDelta}{\ensuremath{-0.223}}
+\newcommand{\TopHundredInfeasibilityDeltaCI}{\ensuremath{[-0.255, -0.192]}}
+\newcommand{\TopHundredConditionalAdmDelta}{\ensuremath{-0.051}}
+\newcommand{\TopHundredConditionalAdmDeltaCI}{\ensuremath{[-0.068, -0.034]}}
+\newcommand{\PolicyOnlyRecallDelta}{\ensuremath{+0.027}}
+\newcommand{\PolicyOnlyRecallDeltaCI}{\ensuremath{[+0.022, +0.031]}}
+\newcommand{\PolicyOnlyFeasibleDelta}{\ensuremath{+0.058}}
+\newcommand{\PolicyOnlyFeasibleDeltaCI}{\ensuremath{[+0.048, +0.067]}}
+\newcommand{\PolicyOnlyAdmRiskDelta}{\ensuremath{-0.147}}
+\newcommand{\PolicyOnlyAdmRiskDeltaCI}{\ensuremath{[-0.155, -0.139]}}
+\newcommand{\LifecycleOnlyRecallDelta}{\ensuremath{-0.016}}
+\newcommand{\LifecycleOnlyRecallDeltaCI}{\ensuremath{[-0.019, -0.012]}}
+\newcommand{\LifecycleOnlyFeasibleDelta}{\ensuremath{-0.038}}
+\newcommand{\LifecycleOnlyFeasibleDeltaCI}{\ensuremath{[-0.046, -0.030]}}
+\newcommand{\LifecycleOnlyAdmRiskDelta}{\ensuremath{+0.018}}
+\newcommand{\LifecycleOnlyAdmRiskDeltaCI}{\ensuremath{[+0.012, +0.023]}}
+\newcommand{\GovernanceVTwoRecallDelta}{\ensuremath{+0.010}}
+\newcommand{\GovernanceVTwoRecallDeltaCI}{\ensuremath{[+0.004, +0.017]}}
+\newcommand{\GovernanceVTwoFeasibleDelta}{\ensuremath{+0.017}}
+\newcommand{\GovernanceVTwoFeasibleDeltaCI}{\ensuremath{[+0.003, +0.030]}}
+\newcommand{\GovernanceVTwoAdmRiskDelta}{\ensuremath{-0.124}}
+\newcommand{\GovernanceVTwoAdmRiskDeltaCI}{\ensuremath{[-0.135, -0.112]}}
+\newcommand{\NamespaceFalseDenyLastDominating}{\ensuremath{0.10}}
+\newcommand{\NamespaceFalseDenyFirstNonDominating}{\ensuremath{0.20}}
+\newcommand{\NamespaceMissingLastDominating}{\ensuremath{0.10}}
+\newcommand{\NamespaceMissingFirstNonDominating}{\ensuremath{0.20}}
+\newcommand{\NamespaceFalseAllowLastDominating}{\ensuremath{0.50}}
+\newcommand{\NamespaceSwapLastDominating}{\ensuremath{0.10}}
+\newcommand{\NamespaceSwapFirstNonDominating}{\ensuremath{0.20}}
+\newcommand{\PolicyFalseDenyLastDominating}{\ensuremath{0.00}}
+\newcommand{\PolicyFalseDenyFirstNonDominating}{\ensuremath{0.02}}
+\newcommand{\PolicyFalseAllowLastDominating}{\ensuremath{0.30}}
+\newcommand{\PolicyFalseAllowFirstNonDominating}{\ensuremath{0.40}}
+\newcommand{\PolicyMissingLastDominating}{\ensuremath{0.30}}
+\newcommand{\PolicyMissingFirstNonDominating}{\ensuremath{0.40}}
+\newcommand{\LifecycleFalseStaleLastDominating}{\ensuremath{0.00}}
+\newcommand{\LifecycleFalseStaleFirstNonDominating}{\ensuremath{0.02}}
+\newcommand{\FalseAllowHalfRecall}{\ensuremath{0.758}}
+\newcommand{\FalseAllowHalfFeasible}{\ensuremath{0.589}}
+\newcommand{\FalseAllowHalfAdmRisk}{\ensuremath{0.577}}
+\newcommand{\FalseAllowHalfWrongScope}{\ensuremath{0.167}}
+\newcommand{\FalseAllowHalfCandidates}{\ensuremath{45836}}
+\newcommand{\NamespaceSwapTwentyRecall}{\ensuremath{0.709}}
+\newcommand{\NamespaceSwapTwentyFeasible}{\ensuremath{0.492}}
+\newcommand{\NamespaceSwapTwentyAdmRisk}{\ensuremath{0.591}}
+\newcommand{\NamespaceSwapTwentyWrongScope}{\ensuremath{0.026}}
+\newcommand{\NamespaceSwapTwentyCandidates}{\ensuremath{1532}}
+\newcommand{\ReleasedOracleRecallDelta}{\ensuremath{+0.000}}
+\newcommand{\ReleasedOracleRecallDeltaCI}{\ensuremath{[+0.000, +0.000]}}
+\newcommand{\ReleasedOracleFeasibleDelta}{\ensuremath{+0.000}}
+\newcommand{\ReleasedOracleFeasibleDeltaCI}{\ensuremath{[+0.000, +0.000]}}
+\newcommand{\ReleasedOracleAdmRiskDelta}{\ensuremath{-0.032}}
+\newcommand{\ReleasedOracleAdmRiskDeltaCI}{\ensuremath{[-0.065, -0.007]}}
+\newcommand{\OpenAIInferredRecallDelta}{\ensuremath{-0.042}}
+\newcommand{\OpenAIInferredRecallDeltaCI}{\ensuremath{[-0.067, -0.017]}}
+\newcommand{\OpenAIInferredFeasibleDelta}{\ensuremath{-0.083}}
+\newcommand{\OpenAIInferredFeasibleDeltaCI}{\ensuremath{[-0.133, -0.033]}}
+\newcommand{\OpenAIInferredAdmRiskDelta}{\ensuremath{+0.057}}
+\newcommand{\OpenAIInferredAdmRiskDeltaCI}{\ensuremath{[+0.024, +0.092]}}
+\newcommand{\GeminiInferredRecallDelta}{\ensuremath{-0.014}}
+\newcommand{\GeminiInferredRecallDeltaCI}{\ensuremath{[-0.033, +0.000]}}
+\newcommand{\GeminiInferredFeasibleDelta}{\ensuremath{-0.028}}
+\newcommand{\GeminiInferredFeasibleDeltaCI}{\ensuremath{[-0.067, +0.000]}}
+\newcommand{\GeminiInferredAdmRiskDelta}{\ensuremath{+0.018}}
+\newcommand{\GeminiInferredAdmRiskDeltaCI}{\ensuremath{[+0.000, +0.043]}}
+\newcommand{\OpenAIInferredRocAuc}{\ensuremath{0.626}}
+\newcommand{\OpenAIInferredViolationPrecision}{\ensuremath{0.350}}
+\newcommand{\OpenAIInferredViolationRecall}{\ensuremath{0.232}}
+\newcommand{\OpenAIInferredAnchorFalseDeny}{\ensuremath{0.059}}
+\newcommand{\GeminiInferredRocAuc}{\ensuremath{0.522}}
+\newcommand{\GeminiInferredViolationPrecision}{\ensuremath{0.679}}
+\newcommand{\GeminiInferredViolationRecall}{\ensuremath{0.049}}
+\newcommand{\GeminiInferredAnchorFalseDeny}{\ensuremath{0.020}}
+\newcommand{\GPTControlledFocalConsistency}{\ensuremath{1.000}}
+\newcommand{\GPTControlledFocalConsistencyCI}{\ensuremath{[1.000, 1.000]}}
+\newcommand{\GPTControlledOverflip}{\ensuremath{0.203}}
+\newcommand{\GPTControlledOverflipCI}{\ensuremath{[0.109, 0.312]}}
+\newcommand{\GPTControlledStableFalseDeny}{\ensuremath{0.266}}
+\newcommand{\GPTControlledStableFalseAdmit}{\ensuremath{0.031}}
+\newcommand{\GeminiControlledFocalConsistency}{\ensuremath{1.000}}
+\newcommand{\GeminiControlledFocalConsistencyCI}{\ensuremath{[1.000, 1.000]}}
+\newcommand{\GeminiControlledOverflip}{\ensuremath{0.297}}
+\newcommand{\GeminiControlledOverflipCI}{\ensuremath{[0.219, 0.375]}}
+\newcommand{\GeminiControlledStableFalseDeny}{\ensuremath{0.531}}
+\newcommand{\GeminiControlledStableFalseAdmit}{\ensuremath{0.000}}
+\newcommand{\DeepSeekControlledFocalConsistency}{\ensuremath{0.719}}
+\newcommand{\DeepSeekControlledFocalConsistencyCI}{\ensuremath{[0.594, 0.844]}}
+\newcommand{\DeepSeekControlledOverflip}{\ensuremath{0.266}}
+\newcommand{\DeepSeekControlledOverflipCI}{\ensuremath{[0.188, 0.344]}}
+\newcommand{\DeepSeekControlledStableFalseDeny}{\ensuremath{0.594}}
+\newcommand{\DeepSeekControlledStableFalseAdmit}{\ensuremath{0.016}}

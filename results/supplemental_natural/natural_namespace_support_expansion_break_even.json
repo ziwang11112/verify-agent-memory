@@ -1,0 +1,17 @@
+{
+  "break_even": {
+    "namespace_false_allow": {
+      "first_observed_non_dominating_rate": null,
+      "last_observed_dominating_rate": 0.5
+    },
+    "namespace_swap": {
+      "first_observed_non_dominating_rate": 0.2,
+      "last_observed_dominating_rate": 0.1
+    }
+  },
+  "dominance": "feasible_rate_gte_and_penalized_admissibility_upper_risk_lte",
+  "reference_arm": "global_dense",
+  "reference_feasible_rate": 0.5388709970223009,
+  "reference_penalized_admissibility_upper_risk": 0.6276493730238182,
+  "schema_version": 1
+}

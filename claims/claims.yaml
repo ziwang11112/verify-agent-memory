@@ -187,8 +187,8 @@ claims:
       namespace_dense_recall: 1.0
       global_dense_wrong_namespace_leakage: 0.025
       namespace_dense_wrong_namespace_leakage: 0.0
-      global_dense_measured_contamination: 0.11889880952380952
-      namespace_dense_measured_contamination: 0.08244047619047619
+      global_dense_measured_non_usable_rate: 0.11889880952380952
+      namespace_dense_measured_non_usable_rate: 0.08244047619047619
     confidence_intervals: []
     allowed_wording:
       - "The candidate-pool smoke validates metric behavior under known scope and recall changes."
@@ -576,4 +576,291 @@ claims:
     verification_tests:
       - "test_counterfactual_exposure_claim_requires_controlled_boundary"
       - "test_counterfactual_exposure_claim_requires_no_pooling_boundary"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C9
+    status: post_hoc_frozen_ranking_decomposition
+    claim: "Across practical top-k budgets, trusted namespace support improved evidence recall and feasibility while reducing the post-hoc v2 penalized admissibility upper risk on frozen natural-corpus rankings."
+    estimand: "Source-clustered namespace-dense minus global-dense differences at top-k in {10, 20, 50, 100}, with total risk decomposed into infeasibility and feasible-prefix admissibility components."
+    population: "The same 87 public-evaluation groups, 182,908 memories, and 3,767 queries as C5; rankings and settings are frozen and only prefix depth and v2 scoring vary."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    execution_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_artifacts:
+      - "results/supplemental_natural/natural_top_k_pareto.csv"
+      - "results/supplemental_natural/natural_top_k_paired_deltas.csv"
+      - "results/supplemental_natural/natural_top_k_pareto_manifest.json"
+    exact_values:
+      top_k_10:
+        global_evidence_recall: 0.3223367172107227
+        global_feasible_rate: 0.1702805355614601
+        global_penalized_admissibility_upper_risk: 0.8460547594498226
+        namespace_evidence_recall: 0.3894689342408979
+        namespace_feasible_rate: 0.20207095081256057
+        namespace_penalized_admissibility_upper_risk: 0.8074283935203224
+        evidence_recall_delta: 0.06713221703017538
+        feasible_rate_delta: 0.03179041525110043
+        penalized_admissibility_upper_risk_delta: -0.038626365929500056
+        infeasibility_risk_component_delta: -0.03179041525110043
+        admissibility_conditional_risk_component_delta: -0.006835950678399629
+      top_k_20:
+        global_evidence_recall: 0.4315697757162279
+        global_feasible_rate: 0.23740430929405193
+        global_penalized_admissibility_upper_risk: 0.7980664441257406
+        namespace_evidence_recall: 0.5328784300057341
+        namespace_feasible_rate: 0.31131395982110227
+        namespace_penalized_admissibility_upper_risk: 0.7127047093519459
+        evidence_recall_delta: 0.10130865428950661
+        feasible_rate_delta: 0.07390965052705038
+        penalized_admissibility_upper_risk_delta: -0.08536173477379465
+        infeasibility_risk_component_delta: -0.07390965052705038
+        admissibility_conditional_risk_component_delta: -0.011452084246744251
+      top_k_50:
+        global_evidence_recall: 0.6032211289041816
+        global_feasible_rate: 0.3990558831365097
+        global_penalized_admissibility_upper_risk: 0.6983508942334946
+        namespace_evidence_recall: 0.7398917416237083
+        namespace_feasible_rate: 0.551670034162201
+        namespace_penalized_admissibility_upper_risk: 0.5185300374139988
+        evidence_recall_delta: 0.1366706127195266
+        feasible_rate_delta: 0.1526141510256912
+        penalized_admissibility_upper_risk_delta: -0.17982085681949506
+        infeasibility_risk_component_delta: -0.1526141510256912
+        admissibility_conditional_risk_component_delta: -0.027206705793804013
+      top_k_100:
+        global_evidence_recall: 0.7168351167568718
+        global_feasible_rate: 0.5388709970223009
+        global_penalized_admissibility_upper_risk: 0.6276493730238182
+        namespace_evidence_recall: 0.8656633800606315
+        namespace_feasible_rate: 0.7618665905934887
+        namespace_penalized_admissibility_upper_risk: 0.3537144372628587
+        evidence_recall_delta: 0.14882826330375906
+        feasible_rate_delta: 0.22299559357118776
+        penalized_admissibility_upper_risk_delta: -0.27393493576095884
+        infeasibility_risk_component_delta: -0.22299559357118776
+        admissibility_conditional_risk_component_delta: -0.05093934218977141
+    confidence_intervals:
+      - {metric: "top_k_10_evidence_recall_delta", estimate: 0.06713221703017538, lower: 0.05415147598649556, upper: 0.08109095232893691}
+      - {metric: "top_k_10_feasible_rate_delta", estimate: 0.03179041525110043, lower: 0.02213625743295429, upper: 0.04224848468892474}
+      - {metric: "top_k_10_penalized_admissibility_upper_risk_delta", estimate: -0.038626365929500056, lower: -0.04921849772137167, upper: -0.028055171738481367}
+      - {metric: "top_k_10_infeasibility_risk_component_delta", estimate: -0.03179041525110043, lower: -0.042248484688924746, upper: -0.022136257432954293}
+      - {metric: "top_k_10_admissibility_conditional_risk_component_delta", estimate: -0.006835950678399629, lower: -0.009381262683206222, upper: -0.004092282097607112}
+      - {metric: "top_k_20_evidence_recall_delta", estimate: 0.10130865428950661, lower: 0.08225413057659439, upper: 0.12040251537864088}
+      - {metric: "top_k_20_feasible_rate_delta", estimate: 0.07390965052705038, lower: 0.05579616108791878, upper: 0.09467092101238662}
+      - {metric: "top_k_20_penalized_admissibility_upper_risk_delta", estimate: -0.08536173477379465, lower: -0.10699340752686742, upper: -0.06416454269139718}
+      - {metric: "top_k_20_infeasibility_risk_component_delta", estimate: -0.07390965052705038, lower: -0.09467092101238664, upper: -0.05579616108791879}
+      - {metric: "top_k_20_admissibility_conditional_risk_component_delta", estimate: -0.011452084246744251, lower: -0.016138339480099545, upper: -0.006536993998337914}
+      - {metric: "top_k_50_evidence_recall_delta", estimate: 0.1366706127195266, lower: 0.11439280079741619, upper: 0.15763115370548839}
+      - {metric: "top_k_50_feasible_rate_delta", estimate: 0.1526141510256912, lower: 0.12476583243697258, upper: 0.17917670117461051}
+      - {metric: "top_k_50_penalized_admissibility_upper_risk_delta", estimate: -0.17982085681949506, lower: -0.2122158818845426, upper: -0.14449638021123745}
+      - {metric: "top_k_50_infeasibility_risk_component_delta", estimate: -0.1526141510256912, lower: -0.17917670117461051, upper: -0.12476583243697258}
+      - {metric: "top_k_50_admissibility_conditional_risk_component_delta", estimate: -0.027206705793804013, lower: -0.03752878052520413, upper: -0.015894944795739153}
+      - {metric: "top_k_100_evidence_recall_delta", estimate: 0.14882826330375906, lower: 0.1295318175494812, upper: 0.1686701504404007}
+      - {metric: "top_k_100_feasible_rate_delta", estimate: 0.22299559357118776, lower: 0.191691519764103, upper: 0.2550229613185381}
+      - {metric: "top_k_100_penalized_admissibility_upper_risk_delta", estimate: -0.27393493576095884, lower: -0.30970609573192986, upper: -0.23538435309248837}
+      - {metric: "top_k_100_infeasibility_risk_component_delta", estimate: -0.22299559357118776, lower: -0.2550229613185381, upper: -0.191691519764103}
+      - {metric: "top_k_100_admissibility_conditional_risk_component_delta", estimate: -0.05093934218977141, lower: -0.06842618818753983, upper: -0.03367666071398375}
+    allowed_wording:
+      - "On frozen natural-corpus rankings, trusted namespace support improved recall, feasibility, and post-hoc v2 penalized admissibility upper risk at top-k 10, 20, 50, and 100."
+      - "The v2 risk reduction contains both an infeasibility reduction and a smaller feasible-prefix admissibility component at every reported depth."
+    forbidden_wording:
+      - "The v2 admissibility metric was used for original development selection."
+      - "The fixed-budget analysis is a new held-out confirmatory experiment."
+      - "Namespace support guarantees admissibility at any retrieval depth."
+    known_limitations:
+      - "This is a post-hoc v2 rescore of frozen rankings, not a new held-out run."
+      - "No settings were retuned, and original development selection used the v1 penalized non-usable upper risk."
+      - "Confidence intervals use source-clustered bootstrap resampling."
+      - "The result applies to released trusted namespaces in the evaluated public sources."
+    paper_locations:
+      - "Constraint Value and Metadata Reliability"
+      - "Figure 2"
+      - "Appendix"
+    verification_tests:
+      - "test_fixed_budget_claim_requires_posthoc_no_retuning_boundary"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C10
+    status: post_hoc_metadata_robustness_diagnostic
+    claim: "The value of retrieval constraints is asymmetric in metadata error type: false-deny errors lose joint utility-risk dominance earlier than the tested fail-open errors, and the corrected attribution gain is policy-driven while the coarse lifecycle-only rule hurts retrieval."
+    estimand: "Post-hoc v2 axis attribution relative to namespace dense, plus ten-seed mean dominance brackets and selected full-natural reranking points under frozen corruption mechanisms."
+    population: "The same full public-source evaluation as C5 and C9, evaluated under the explicitly tested metadata-corruption mechanisms and grid only."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    execution_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_artifacts:
+      - "results/supplemental_natural/natural_admissibility_attribution_deltas.csv"
+      - "results/supplemental_natural/natural_namespace_break_even.json"
+      - "results/supplemental_natural/natural_governance_break_even.json"
+      - "results/supplemental_natural/natural_namespace_support_expansion_summary.csv"
+      - "results/supplemental_natural/natural_namespace_support_expansion_break_even.json"
+      - "results/supplemental_natural/manifest.json"
+    exact_values:
+      policy_only:
+        evidence_recall_delta: 0.026547423326091616
+        feasible_rate_delta: 0.057644882860665846
+        penalized_admissibility_upper_risk_delta: -0.14672349588930514
+      lifecycle_only:
+        evidence_recall_delta: -0.015782983970406887
+        feasible_rate_delta: -0.037916152897657214
+        penalized_admissibility_upper_risk_delta: 0.017592488030749552
+      governance_v2:
+        evidence_recall_delta: 0.010489205957763334
+        feasible_rate_delta: 0.016954377311960544
+        penalized_admissibility_upper_risk_delta: -0.12355443791299539
+      namespace_false_deny: {last_observed_dominating_rate: 0.1, first_observed_non_dominating_rate: 0.2}
+      namespace_missing: {last_observed_dominating_rate: 0.1, first_observed_non_dominating_rate: 0.2}
+      lifecycle_false_current: {last_observed_dominating_rate: 0.5}
+      lifecycle_false_stale: {last_observed_dominating_rate: 0.0, first_observed_non_dominating_rate: 0.02}
+      lifecycle_missing: {last_observed_dominating_rate: 0.5}
+      policy_false_allow: {last_observed_dominating_rate: 0.3, first_observed_non_dominating_rate: 0.4}
+      policy_false_deny: {last_observed_dominating_rate: 0.0, first_observed_non_dominating_rate: 0.02}
+      policy_missing: {last_observed_dominating_rate: 0.3, first_observed_non_dominating_rate: 0.4}
+      query_intent_flip: {last_observed_dominating_rate: 0.5}
+      namespace_false_allow: {last_observed_dominating_rate: 0.5}
+      namespace_swap: {last_observed_dominating_rate: 0.1, first_observed_non_dominating_rate: 0.2}
+      false_allow_at_0_5:
+        evidence_recall: 0.7578012077005267
+        feasible_rate: 0.5891131561016897
+        penalized_admissibility_upper_risk: 0.5769199057360483
+        matched_prefix_wrong_scope_exposure_rate: 0.16721074429732483
+        candidates_scored: 45836.30615078757
+      namespace_swap_at_0_2:
+        evidence_recall: 0.7090531000222329
+        feasible_rate: 0.4917290458867437
+        penalized_admissibility_upper_risk: 0.5908267514639224
+        matched_prefix_wrong_scope_exposure_rate: 0.026387548135904
+        candidates_scored: 1531.6005152621813
+    confidence_intervals:
+      - {metric: "policy_only_evidence_recall_delta", estimate: 0.026547423326091616, lower: 0.022348524278320656, upper: 0.030818132766988457}
+      - {metric: "policy_only_feasible_rate_delta", estimate: 0.057644882860665846, lower: 0.048150268589199886, upper: 0.06747297469929674}
+      - {metric: "policy_only_penalized_admissibility_upper_risk_delta", estimate: -0.14672349588930514, lower: -0.15476915257566598, upper: -0.13876722035339698}
+      - {metric: "lifecycle_only_evidence_recall_delta", estimate: -0.015782983970406887, lower: -0.019317486951876482, upper: -0.01234889280538859}
+      - {metric: "lifecycle_only_feasible_rate_delta", estimate: -0.037916152897657214, lower: -0.04619423147656303, upper: -0.029823284921375485}
+      - {metric: "lifecycle_only_penalized_admissibility_upper_risk_delta", estimate: 0.017592488030749552, lower: 0.012126050434668908, upper: 0.023269147965288468}
+      - {metric: "governance_v2_evidence_recall_delta", estimate: 0.010489205957763334, lower: 0.004474272535172441, upper: 0.01651220262651765}
+      - {metric: "governance_v2_feasible_rate_delta", estimate: 0.016954377311960544, lower: 0.0030246360193830865, upper: 0.030466116995666825}
+      - {metric: "governance_v2_penalized_admissibility_upper_risk_delta", estimate: -0.12355443791299539, lower: -0.13476684700631683, upper: -0.11194958955718494}
+    allowed_wording:
+      - "Within the frozen corruption grid, false-deny errors lost joint utility-risk dominance earlier than the tested fail-open errors."
+      - "Corrected v2 attribution identifies released policy metadata as the source of incremental gain; the coarse two-intent lifecycle-only rule reduced recall and feasibility and increased risk."
+      - "Full-natural reranking remained jointly dominant through 50 percent query-memory namespace false allow, while source-label swap was last dominant at 10 percent and first non-dominant at 20 percent."
+    forbidden_wording:
+      - "The observed break-even points are universal deployment thresholds."
+      - "Metadata accuracy is summarized by one interchangeable scalar."
+      - "Lifecycle filtering is generally beneficial."
+      - "The tested corruption mechanisms cover all provenance failures."
+      - "False allow produced zero wrong-scope exposure."
+    known_limitations:
+      - "Break-even values are observed brackets on a discrete grid, not population thresholds."
+      - "Attribution and corruption analyses are post-hoc diagnostics on released fields and frozen settings."
+      - "Full-natural support expansion uses fixed embeddings and exact reranking with no retuning."
+      - "No failure was observed through 50 percent for some channels; behavior beyond the tested grid is unknown."
+      - "Aggregate joint dominance does not imply zero wrong-scope exposure."
+    paper_locations:
+      - "Constraint Value and Metadata Reliability"
+      - "Figure 2"
+      - "Appendix"
+    verification_tests:
+      - "test_metadata_reliability_claim_requires_grid_boundary"
+      - "test_metadata_reliability_claim_requires_corrected_v2_semantics"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C11
+    status: public_development_inference_gap_diagnostic
+    claim: "Released governance fields expose retrieval headroom, but text-only verifiers did not recover it on fixed public-development candidates and overflipped stable controls in constructed counterfactuals."
+    estimand: "Route deltas and classification diagnostics on 72 fixed public-development cases, reported separately from focal-pair consistency and stable-control errors in 16 controlled scenarios."
+    population: "Two separate public-development populations: 72 natural fixed-candidate analysis cases and 16 controlled scenarios with 32 focal pairs and 64 stable candidate pairs."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit:
+      natural_text_inference: "c4f93cad3e55ae816cda868d6591e57b48e342da"
+      controlled_verifier: "1ff8c13911b3165773162b31954ac7601c0092ea"
+    execution_commit:
+      natural_text_inference: "c4f93cad3e55ae816cda868d6591e57b48e342da"
+      controlled_verifier: "1ff8c13911b3165773162b31954ac7601c0092ea"
+    source_artifacts:
+      - "results/inferred_admissibility/paired_route_deltas.csv"
+      - "results/inferred_admissibility/classification_metrics.csv"
+      - "results/inferred_admissibility/filter_metrics.csv"
+      - "results/inferred_admissibility/manifest.json"
+      - "results/counterfactual_admissibility/aggregate_metrics.csv"
+      - "results/counterfactual_admissibility/bootstrap_ci.csv"
+      - "results/counterfactual_admissibility/error_taxonomy.csv"
+      - "results/counterfactual_admissibility/manifest.json"
+    exact_values:
+      released_oracle:
+        evidence_recall_delta: 0.0
+        feasible_rate_delta: 0.0
+        penalized_admissibility_upper_risk_delta: -0.03195737518654185
+      openai_text_inferred:
+        evidence_recall_delta: -0.041666666666666664
+        feasible_rate_delta: -0.08333333333333333
+        penalized_admissibility_upper_risk_delta: 0.05674412393162393
+        roc_auc: 0.6261786588972855
+        violation_precision: 0.350236646382691
+        violation_recall: 0.2320423700761337
+        required_anchor_false_deny_rate: 0.05882352941176471
+      gemini_text_inferred:
+        evidence_recall_delta: -0.013888888888888888
+        feasible_rate_delta: -0.027777777777777776
+        penalized_admissibility_upper_risk_delta: 0.017956349206349205
+        roc_auc: 0.5221804931668638
+        violation_precision: 0.6785714285714286
+        violation_recall: 0.048576630254882486
+        required_anchor_false_deny_rate: 0.0196078431372549
+      gpt56_controlled:
+        strict_focal_pair_consistency: 1.0
+        stable_control_overflip_rate: 0.203125
+        stable_admissible_false_deny_rate: 0.265625
+        stable_inadmissible_false_admit_rate: 0.03125
+      gemini_controlled:
+        strict_focal_pair_consistency: 1.0
+        stable_control_overflip_rate: 0.296875
+        stable_admissible_false_deny_rate: 0.53125
+        stable_inadmissible_false_admit_rate: 0.0
+      deepseek_controlled:
+        strict_focal_pair_consistency: 0.71875
+        stable_control_overflip_rate: 0.265625
+        stable_admissible_false_deny_rate: 0.59375
+        stable_inadmissible_false_admit_rate: 0.015625
+    confidence_intervals:
+      - {metric: "released_oracle_evidence_recall_delta", estimate: 0.0, lower: 0.0, upper: 0.0}
+      - {metric: "released_oracle_feasible_rate_delta", estimate: 0.0, lower: 0.0, upper: 0.0}
+      - {metric: "released_oracle_penalized_admissibility_upper_risk_delta", estimate: -0.03195737518654185, lower: -0.06508247966209275, upper: -0.006706144982752583}
+      - {metric: "openai_text_inferred_evidence_recall_delta", estimate: -0.041666666666666664, lower: -0.06666666666666667, upper: -0.016666666666666666}
+      - {metric: "openai_text_inferred_feasible_rate_delta", estimate: -0.08333333333333333, lower: -0.13333333333333333, upper: -0.03333333333333333}
+      - {metric: "openai_text_inferred_penalized_admissibility_upper_risk_delta", estimate: 0.05674412393162393, lower: 0.023781653129479215, upper: 0.09156636332417581}
+      - {metric: "gemini_text_inferred_evidence_recall_delta", estimate: -0.013888888888888888, lower: -0.03333333333333333, upper: 0.0}
+      - {metric: "gemini_text_inferred_feasible_rate_delta", estimate: -0.027777777777777776, lower: -0.06666666666666667, upper: 0.0}
+      - {metric: "gemini_text_inferred_penalized_admissibility_upper_risk_delta", estimate: 0.017956349206349205, lower: 0.0, upper: 0.04321428571428571}
+      - {metric: "gpt56_controlled_strict_focal_pair_consistency", estimate: 1.0, lower: 1.0, upper: 1.0}
+      - {metric: "gpt56_controlled_stable_control_overflip_rate", estimate: 0.203125, lower: 0.109375, upper: 0.3125}
+      - {metric: "gemini_controlled_strict_focal_pair_consistency", estimate: 1.0, lower: 1.0, upper: 1.0}
+      - {metric: "gemini_controlled_stable_control_overflip_rate", estimate: 0.296875, lower: 0.21875, upper: 0.375}
+      - {metric: "deepseek_controlled_strict_focal_pair_consistency", estimate: 0.71875, lower: 0.59375, upper: 0.84375}
+      - {metric: "deepseek_controlled_stable_control_overflip_rate", estimate: 0.265625, lower: 0.1875, upper: 0.34375}
+    allowed_wording:
+      - "On fixed public-development candidates, the released-field oracle reduced post-hoc v2 admissibility risk without changing recall or feasibility, while the two text-only filters did not realize that headroom."
+      - "In controlled public-development pairs, all evaluated text verifiers exceeded the preregistered 0.05 stable-control overflip limit."
+      - "Stable-control errors were concentrated in false denial of admissible memories rather than false admission of inadmissible memories."
+    forbidden_wording:
+      - "Text-only models cannot infer admissibility in any setting."
+      - "The released-field oracle is a deployable method."
+      - "Natural and controlled populations were pooled."
+      - "Provider results were pooled into one estimate."
+      - "The diagnostic is an official benchmark result."
+    known_limitations:
+      - "Both analyses are public-development diagnostics, not held-out confirmatory evaluations."
+      - "The natural and controlled populations are separate and are never pooled."
+      - "Model estimates are reported separately and are never pooled."
+      - "The natural diagnostic uses fixed top-20 candidates and development-selected thresholds."
+      - "The controlled diagnostic uses 16 constructed scenarios and 32 focal pairs."
+      - "The released-field oracle is an upper-bound diagnostic, not deployable inference."
+    paper_locations:
+      - "Oracle-Inference Gap"
+      - "Figure 3"
+      - "Limitations"
+    verification_tests:
+      - "test_inference_gap_claim_requires_population_separation"
+      - "test_inference_gap_claim_requires_no_pooling_boundary"
       - "test_confidence_intervals_contain_estimates"

@@ -158,6 +158,60 @@ def test_counterfactual_exposure_claim_forbids_model_pooling() -> None:
     assert "C8.model_pooling must be false" in validate(data)
 
 
+def test_fixed_budget_claim_requires_posthoc_no_retuning_boundary() -> None:
+    data = load_valid_contract()
+    fixed_budget = claim(data, "C9")
+    fixed_budget["known_limitations"] = ["Source-clustered bootstrap intervals."]
+    assert "C9 must include post-hoc and no-retuning boundaries" in validate(data)
+
+
+def test_metadata_reliability_claim_requires_grid_boundary() -> None:
+    data = load_valid_contract()
+    metadata = claim(data, "C10")
+    metadata["known_limitations"] = [
+        item for item in metadata["known_limitations"] if "observed brackets" not in item
+    ]
+    assert "C10 must preserve the observed-grid boundary" in validate(data)
+
+
+def test_metadata_reliability_claim_requires_zero_leakage_boundary() -> None:
+    data = load_valid_contract()
+    metadata = claim(data, "C10")
+    metadata["known_limitations"] = [
+        item
+        for item in metadata["known_limitations"]
+        if "aggregate joint dominance does not imply zero" not in item.lower()
+    ]
+    assert "C10 must distinguish aggregate dominance from zero leakage" in validate(data)
+
+
+def test_metadata_reliability_claim_requires_corrected_v2_semantics() -> None:
+    data = load_valid_contract()
+    metadata = claim(data, "C10")
+    metadata["allowed_wording"] = ["Metadata errors differ."]
+    assert "C10 must preserve corrected-v2 policy attribution" in validate(data)
+
+
+def test_inference_gap_claim_requires_population_separation() -> None:
+    data = load_valid_contract()
+    inference = claim(data, "C11")
+    inference["known_limitations"] = [
+        item for item in inference["known_limitations"] if "populations are separate" not in item
+    ]
+    assert "C11 must keep natural and controlled populations separate" in validate(data)
+
+
+def test_inference_gap_claim_requires_no_pooling_boundary() -> None:
+    data = load_valid_contract()
+    inference = claim(data, "C11")
+    inference["known_limitations"] = [
+        item
+        for item in inference["known_limitations"]
+        if "model estimates are reported separately" not in item.lower()
+    ]
+    assert "C11 must keep model estimates separate" in validate(data)
+
+
 def test_readable_contract_must_render_every_claim() -> None:
     data = load_valid_contract()
     assert "CLAIM_CONTRACT.md does not render C7" in validate_contract(data, "### C1: only")
@@ -188,6 +242,16 @@ def test_duplicate_source_path_is_rejected() -> None:
     sources["artifacts"].append(duplicate)
     errors = validate_source_index(sources, load_valid_contract())
     assert any("duplicate source artifact path" in error for error in errors)
+
+
+def test_posthoc_source_must_use_frozen_implementation_commit() -> None:
+    sources = load_valid_source_index()
+    posthoc = next(
+        item for item in sources["artifacts"] if item["category"] == "GENERATED_FROM_FROZEN_POSTHOC"
+    )
+    posthoc["frozen_commit"] = "0" * 40
+    errors = validate_source_index(sources, load_valid_contract())
+    assert any("must match the natural-posthoc implementation" in error for error in errors)
 
 
 def test_governance_documents_preserve_boundaries() -> None:

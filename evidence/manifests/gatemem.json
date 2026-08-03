@@ -37,5 +37,5 @@
   "source_repository": "ziwang11112/bomi",
   "source_snapshot_commit": "a28093110325968c26906223e9eb0f1e078f6aad",
   "transformation_script": "scripts/import_frozen_evidence.py",
-  "transformation_script_sha256": "a69b441d2627722bad374682919001ed9369149c7575587d83682ba423cae533"
+  "transformation_script_sha256": "4dda7a526c02d6afb2a0c83cdf354fb743564db380a62cb4a9bc5e3ab4048513"
 }

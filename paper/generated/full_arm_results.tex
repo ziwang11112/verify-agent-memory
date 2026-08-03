@@ -1,14 +1,14 @@
 \begin{tabular}{lrrrr}
 \toprule
-Arm & Recall & Feasible & Penalized risk & Candidates \\
+Arm & Recall & Feasible & \shortstack{Penalized non-usable\\upper risk} & Candidates \\
 \midrule
 Global BM25 & 0.448 & 0.284 & 0.913 & 90122 \\
 Global dense & 0.717 & 0.539 & 0.873 & 90122 \\
 Global BM25+dense RRF & 0.691 & 0.503 & 0.883 & 90122 \\
 Global recency dense & 0.728 & 0.550 & 0.864 & 90122 \\
 Namespace dense & 0.866 & 0.762 & 0.837 & 1551 \\
-Namespace current-only & 0.824 & 0.672 & 0.845 & 1549 \\
-Released lifecycle UB & 0.869 & 0.763 & 0.828 & 1525 \\
+Query-agnostic current-only & 0.824 & 0.672 & 0.845 & 1549 \\
+Historical released-field v1 & 0.869 & 0.763 & 0.828 & 1525 \\
 Threshold router & 0.843 & 0.735 & 0.839 & 1470 \\
 Cluster router & 0.865 & 0.761 & 0.837 & 1531 \\
 \bottomrule

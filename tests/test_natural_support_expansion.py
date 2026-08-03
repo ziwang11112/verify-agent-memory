@@ -40,7 +40,7 @@ def test_namespace_swap_never_selects_original_label() -> None:
     alternate = _alternate_namespace_indices(original, 4, random_values)
 
     assert np.all(alternate != original)
-    assert np.all((0 <= alternate) & (alternate < 4))
+    assert np.all((alternate >= 0) & (alternate < 4))
 
     positions = np.arange(len(original))
     selected = np.zeros(len(original))

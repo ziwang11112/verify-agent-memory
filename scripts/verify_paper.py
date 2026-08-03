@@ -16,13 +16,14 @@ from verify_agent_memory.provenance import sha256_file
 RETIRED_LABELS = ("ncr_threshold", "ncr_a5", "A1-", "E1-debug", "E2 ", "E3 ", "E4 ")
 REQUIRED_GENERATED_INPUTS = (
     "generated/paper_numbers.tex",
-    "generated/main_results.tex",
     "generated/full_arm_results.tex",
     "generated/matched_prefix_diagnostics.tex",
     "generated/mechanism_smoke.tex",
     "generated/verification_pipeline.pdf",
     "generated/evidence_summary.pdf",
     "generated/retrieval_results.pdf",
+    "generated/constraint_reliability.pdf",
+    "generated/inference_gap.pdf",
 )
 
 
