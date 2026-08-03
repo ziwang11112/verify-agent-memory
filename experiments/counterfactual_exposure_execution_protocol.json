@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "protocol_id": "paired-counterfactual-exposure-execution-v1",
+  "status": "implementation_only_paid_execution_not_authorized",
+  "base_protocol": {
+    "path": "experiments/counterfactual_exposure_protocol.json",
+    "sha256": "b0190521ff8886201732702ec4324f4b5f68feb0a22f20d5d48e37ed84d913ff"
+  },
+  "implementation": {
+    "runner": {
+      "path": "scripts/run_counterfactual_exposure_execution.py",
+      "sha256": "479cd898be70d3399c9f5de3c77ced00797d34e043567baefdf3e376f336e1dd"
+    },
+    "provider_adapter": {
+      "path": "scripts/run_inferred_admissibility_experiment.py",
+      "sha256": "ff0b2f1e589f2cce1684ec5df6326bf65c923f15d82f7d3f3ddc7db34785d49d"
+    }
+  },
+  "providers": [
+    {
+      "provider": "OpenAI",
+      "model": "gpt-5.6-sol",
+      "api_surface": "responses",
+      "effort": "none",
+      "input_usd_per_million": 5.0,
+      "output_usd_per_million": 30.0,
+      "hard_cap_usd": 5.25
+    },
+    {
+      "provider": "Gemini",
+      "model": "gemini-3.6-flash",
+      "api_surface": "generate_content",
+      "thinking_level": "minimal",
+      "input_usd_per_million": 1.5,
+      "output_usd_per_million": 7.5,
+      "hard_cap_usd": 1.5
+    },
+    {
+      "provider": "DeepSeek",
+      "model": "deepseek-v4-pro",
+      "api_surface": "chat_completions",
+      "pricing_basis": "two_times_regular_peak_guard",
+      "thinking": "disabled",
+      "input_usd_per_million": 0.87,
+      "output_usd_per_million": 1.74,
+      "hard_cap_usd": 0.7
+    }
+  ],
+  "execution": {
+    "request_count_per_provider": 384,
+    "fixture_calls_per_provider": 1,
+    "max_calls_per_provider": 385,
+    "max_output_tokens_per_request": 192,
+    "timeout_seconds": 120,
+    "max_transport_retries": 0,
+    "checkpoint_after_each_request": true,
+    "complete_bundle_required": true,
+    "semantic_or_output_repair": false,
+    "selective_rerun": false,
+    "input_token_bound": "one_utf8_byte_per_token_conservative_upper_bound",
+    "input_byte_bound_total": 514818,
+    "max_input_byte_bound_per_request": 1528,
+    "total_hard_cap_usd": 8.5
+  },
+  "authorization": {
+    "unlock_required": true,
+    "exact_commit_required": true,
+    "exact_protocol_hash_required": true,
+    "explicit_owner_required": true,
+    "credential_read_before_unlock": false,
+    "provider_call_before_unlock": false
+  }
+}

@@ -21,10 +21,12 @@ this repository.
 | Robustness CLI | `scripts/run_metadata_robustness.py` | Released-to-corrupted metadata curves with fixed retrieval settings |
 | Pareto CLI | `scripts/run_top_k_pareto.py` | Exact nested-prefix analysis without reranking or retuning |
 | Exposure CLI | `scripts/run_counterfactual_exposure_intervention.py` | Zero-call validation, provider-neutral request materialization, and local scoring |
+| Exposure provider CLI | `scripts/run_counterfactual_exposure_execution.py` | Unlock-gated fixtures, resumable execution, hard caps, and complete-bundle scoring |
 | Frozen settings | `experiments/frozen_natural_protocol.json` | Embedding, split, selection, and selected-arm configuration |
 | Robustness grid | `experiments/metadata_robustness_protocol.json` | Corruption channels, rates, seeds, invariants, and break-even definition |
 | Pareto grid | `experiments/top_k_pareto_protocol.json` | Frozen arms and `top_k` depths for recall-risk-cost analysis |
 | Exposure protocol | `experiments/counterfactual_exposure_protocol.json` | Hash-bound 2x2 intervention design with paid execution disabled |
+| Exposure execution | `experiments/counterfactual_exposure_execution_protocol.json` | Exact reader panel, cost bounds, checkpoints, and external-unlock requirement |
 | Supplemental results | `results/supplemental_natural/` | Content-free top-k, attribution, and metadata break-even diagnostics |
 | Supplemental verifier | `scripts/publish_supplemental_results.py` | Hash, schema, row-count, and content-boundary checks for the result package |
 
@@ -230,7 +232,9 @@ by governing axis.
 The checked-in CLI deliberately has no `execute` command and imports no provider
 client. It can validate the protocol, materialize 384 provider-neutral requests per
 reader, and score a separately supplied complete response bundle. No empirical
-reader result or paid-call authorization is implied by this code path.
+reader result or paid-call authorization is implied by this code path. A separate
+provider runner is hash-bound to an execution amendment and remains unusable for paid
+commands without an external exact-commit unlock.
 
 ## Local Smoke
 

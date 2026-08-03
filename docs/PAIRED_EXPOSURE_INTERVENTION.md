@@ -126,4 +126,6 @@ effect for deployed agents.
 
 Protocol, target annotations, request construction, response parsing, scoring, and
 zero-call tests must be frozen before provider construction. Paid execution requires
-a separate cost check and explicit approval. No judge call is planned.
+a separate cost check and explicit approval. No judge call is planned. The isolated
+provider implementation and its still-locked execution contract are documented in
+`docs/PAIRED_EXPOSURE_EXECUTION.md`.
