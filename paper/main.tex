@@ -230,8 +230,8 @@ The interval is sharp under the released labels and has width $1-\gamma^B$.
 Infeasible routes receive upper risk 1 rather than appearing safe.  The historical
 selection score remains \emph{penalized non-usable upper risk}; the post-hoc v2 score
 is \emph{penalized admissibility upper risk}.  We never rename or pool them.  Full
-identities, aggregation, and infeasibility decomposition appear in
-Appendix~\ref{app:metric-details}.
+aggregation is specified in Section~4.3; the infeasibility decomposition and
+edge-case conventions appear in Appendix~\ref{app:metric-details}.
 
 \subsection{Exposure and disclosure}
 
@@ -346,23 +346,57 @@ request and no judge, semantic repair, selective rerun, or cross-model pooling.
 
 \subsection{Metrics}
 
-The primary natural-retrieval outcomes are evidence recall, feasible rate at target
-recall $\tau=.8$, and the penalized admissibility upper risk defined in
-Section~3.3.  We report its infeasibility and feasible-prefix components so that
-greater coverage cannot masquerade as cleaner retrieved context.  Conditional
-summaries include known violation rate, label coverage, lower and upper bounds, and
-wrong-scope, policy-disallowed, and lifecycle-incompatible exposure.  Candidates
-scored and route width measure algorithmic work, not deployment latency.
-
-For natural text verification, classifier diagnostics include balanced accuracy,
-Brier score, ECE, ROC-AUC, PR-AUC, violation precision and recall, abstention
-coverage, and required-anchor false-denial rate.  Controlled verification uses strict
-focal-pair consistency and stable-control overflip as primary outcomes, with false
-denial and false admission locating the error direction.  Paired exposure uses the
-exposed-minus-withheld disclosure effect in each relevance-by-admissibility cell and
-the selectivity gap in Equation~\ref{eq:paired-exposure}; refusal and hallucinated
-disclosure are diagnostics.  Thus retrieval, verification, and disclosure are scored
-at the stage where each is observable.
+Let $\mathcal Q_s^+$ be recall-evaluable queries from source $s$ and define the
+equal-source macro operator
+$\langle X\rangle_{\mathcal S}=|\mathcal S|^{-1}\sum_{s\in\mathcal S}
+|\mathcal Q_s^+|^{-1}\sum_{q\in\mathcal Q_s^+}X_q$, where
+$\mathcal S=\{\mathrm{RHELM},\mathrm{MemOps}\}$.  Among $M$ verifier candidates,
+$\mathcal K$ indexes the $M_K=|\mathcal K|$ known labels; $y_i\in\{0,1\}$ and $p_i$
+are the violation label and probability for $i\in\mathcal K$, and $I_b$ are ten
+equal-width bins over $\mathcal K$.  Indicators $d_i,k_i,v_i,r_i,c_i$ mark dropped,
+known-label, known-violation, required-anchor, and covered status over all $M$
+candidates.  For pair $\nu$, $\hat a^f_{\nu,+/-}$ is the focal argmax (1/0 for
+admissible/inadmissible; unknown is distinct), and $\mathcal H_\nu$ contains its
+stable controls.  We compute
+\begingroup
+\footnotesize
+\setlength{\jot}{2pt}
+\begin{align}
+\operatorname{Rec}_{qa}(k)
+&=\frac{|\{m_1,\ldots,m_k\}\cap\mathcal G_q|}{|\mathcal G_q|},\quad
+F_{qa}=\mathbf 1\{\operatorname{Rec}_{qa}(n_{qa})\geq .8\},
+\label{eq:retrieval-outcomes}\\
+\widetilde C^{U,B}_{qa}
+&=\begin{cases}C^{U,B}_{qa},&F_{qa}=1,\\1,&F_{qa}=0,\end{cases}\qquad
+\operatorname{PCR}^{B}_{a}=\langle\widetilde C^{U,B}_{qa}\rangle_{\mathcal S},
+\label{eq:penalized-risk}\\
+V^{(j)}_{qa}
+&=|P_{qa}|^{-1}\sum_{m\in P_{qa}}\mathbf 1\{x_{zj}(m)=0\},\quad
+x_{zj}\in\{n_z,g_z,\ell_z\},
+\label{eq:typed-violation}\\
+\operatorname{BA}&=\tfrac12(\operatorname{TPR}+\operatorname{TNR}),\quad
+\operatorname{Brier}=M_K^{-1}\sum_{i\in\mathcal K}(p_i-y_i)^2,\quad
+\operatorname{ECE}_{10}=\sum_b\frac{|I_b|}{M_K}|\bar y_b-\bar p_b|,
+\label{eq:verification-calibration}\\
+\operatorname{Prec}_{V}&=\frac{\sum_i d_iv_i}{\sum_i d_ik_i},\quad
+\operatorname{Rec}_{V}=\frac{\sum_i d_iv_i}{\sum_i v_i},\quad
+\operatorname{Cov}=M^{-1}\sum_i c_i,\quad
+\operatorname{FD}=\frac{\sum_i d_ir_i}{\sum_i r_i},
+\label{eq:filter-diagnostics}\\
+\operatorname{FC}&=J^{-1}\sum_{\nu}\mathbf 1\{\hat a^f_{\nu,+}=1\land\hat a^f_{\nu,-}=0\},\quad
+\operatorname{OF}=\frac{\sum_{\nu}\sum_{h\in\mathcal H_\nu}
+\mathbf 1\{\hat a^h_{\nu,+}\neq\hat a^h_{\nu,-}\}}{\sum_{\nu}|\mathcal H_\nu|}.
+\label{eq:controlled-verification}
+\end{align}
+\endgroup
+We report $\langle\operatorname{Rec}\rangle_{\mathcal S}$,
+$\langle F\rangle_{\mathcal S}$, and $\operatorname{PCR}^{A}$ as primary retrieval
+outcomes; $B=U$ names the frozen historical selection family.  Higher recall,
+feasibility, BA, precision, recall, coverage, and FC are better; lower risk,
+violations, Brier, ECE, FD, and OF are better.  ROC-AUC and average precision use
+$p_i$; undefined denominators remain unavailable.  Equation~\ref{eq:matched-bounds}
+defines incomplete-label bounds, Equation~\ref{eq:paired-exposure} defines disclosure
+effects, and Appendix~\ref{app:metric-details} gives decompositions and edge cases.
 
 \subsection{Selection, uncertainty, and boundaries}
 
@@ -387,7 +421,7 @@ observational GateMem audit \citep{ren2026gatemem} and implementation smoke.
 
 \section{Results}
 
-\begin{figure}[H]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=\textwidth]{generated/constraint_reliability.pdf}
   \caption{Utility--risk effects of trusted metadata.  (a) Global-to-namespace
@@ -483,7 +517,7 @@ dominated by false denial of stable-admissible memories
 inadmissible controls.  Strong focal rule-following therefore does not establish
 selective verification.
 
-\begin{figure}[H]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=\textwidth]{../results/counterfactual_exposure/figures/counterfactual_exposure.pdf}
   \caption{Exposure converts residual verification errors into disclosure.  (a)
@@ -553,12 +587,9 @@ only content-free aggregates and hashes, not conversations, responses, or privat
 
 \section{Conclusion}
 
-Long-term memory safety is bottlenecked by reliable evidence eligibility metadata.
-Trusted constraints improve retrieval when that metadata is trustworthy, but error
-direction determines the utility and exposure cost; semantic models do not reconstruct
-governance state selectively; and readers cannot be trusted to repair the mistake
-after exposure.  Eligibility must therefore be authenticated, represented with
-explicit uncertainty, and enforced before prompt assembly.
+Trusted eligibility constraints improve retrieval, but verifier overreach and
+residual disclosure remain.  The evidence supports authenticated, uncertainty-aware
+enforcement before prompt assembly.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
@@ -568,15 +599,8 @@ explicit uncertainty, and enforced before prompt assembly.
 \section{Metric Details}
 \label{app:metric-details}
 
-Let
-\begin{align}
-\operatorname{Rec}_{qa}(k)
-&=\frac{|\{m_1,\ldots,m_k\}\cap\mathcal{G}_q|}{|\mathcal{G}_q|},\\
-F_{qa}(\tau)
-&=\mathbf{1}\!\left\{\operatorname{Rec}_{qa}(n)\geq\tau\right\}
-\end{align}
-denote prefix recall and route feasibility.  For status family $B\in\{U,A\}$,
-the matched-prefix quantities in Equation~\ref{eq:matched-bounds} obey
+For status family $B\in\{U,A\}$, the matched-prefix quantities in
+Equation~\ref{eq:matched-bounds} obey
 \begin{align}
 C^{K,B}_{qa}&=\frac{c^B}{c^B+v^B}, &
 \gamma^B_{qa}&=\frac{c^B+v^B}{N},\label{eq:known-coverage}\\
@@ -589,28 +613,16 @@ Hence $C^{U,B}_{qa}-C^{L,B}_{qa}=1-\gamma^B_{qa}$.  The bounds are obtained by
 assigning every unresolved item first to the positive and then to the negative class;
 if every item is unresolved, $C^{K,B}$ is undefined but the interval remains $[0,1]$.
 
-On the recall-evaluable population
-$\mathcal{Q}^{+}=\{q:|\mathcal{G}_q|>0\}$, recall failure receives worst-case upper
-risk:
-\begin{align}
-\widetilde C^{U,B}_{qa}(\tau)
-&=\begin{cases}
-C^{U,B}_{qa}, & F_{qa}(\tau)=1,\\
-1, & F_{qa}(\tau)=0,
-\end{cases}\label{eq:penalized-query-risk}\\
-\operatorname{PCR}^{B}_{a}(\tau)
-&=\frac{1}{|\mathcal{Q}^{+}|}
-  \sum_{q\in\mathcal{Q}^{+}}\widetilde C^{U,B}_{qa}(\tau).
-\label{eq:penalized-risk}
-\end{align}
-This aggregate decomposes exactly into infeasibility and feasible-prefix risk:
+The aggregate in Equation~\ref{eq:penalized-risk} decomposes exactly within each
+source.  Writing $\operatorname{PCR}^{B}_{as}$ for the source-$s$ term, we have
 \begin{equation}
-\operatorname{PCR}^{B}_{a}
-=\underbrace{\frac{1}{|\mathcal{Q}^{+}|}\sum_{q\in\mathcal{Q}^{+}}(1-F_{qa})}_{\text{infeasibility}}
-+\underbrace{\frac{1}{|\mathcal{Q}^{+}|}\sum_{q\in\mathcal{Q}^{+}}
+\operatorname{PCR}^{B}_{as}
+=\underbrace{\frac{1}{|\mathcal{Q}^{+}_s|}\sum_{q\in\mathcal{Q}^{+}_s}(1-F_{qa})}_{\text{infeasibility}}
++\underbrace{\frac{1}{|\mathcal{Q}^{+}_s|}\sum_{q\in\mathcal{Q}^{+}_s}
 F_{qa}C^{U,B}_{qa}}_{\text{feasible-prefix contribution}}.
 \label{eq:risk-decomposition}
 \end{equation}
+The reported $\operatorname{PCR}^{B}_{a}$ is the equal-source mean of these terms.
 Queries without known anchors are recall-unevaluable rather than assigned zero.
 
 For the observational GateMem audit, let $X_{qa}$ indicate target exposure and
@@ -647,13 +659,7 @@ known exclusion reasons and trusted-namespace support are
 \pi^{N}_z=\operatorname{Rank}(q;\mathcal{C}^{N}_z).
 \label{eq:namespace-support}
 \end{align}
-For a feasible matched prefix of size $N$, the typed violation rate is
-\begin{equation}
-V^{(j)}_{qa}=\frac{1}{N}\sum_{m\in P_{qa}(\tau)}
-\mathbf{1}\{x_{zj}(m)=0\},
-\quad j\in\{\mathrm{scope},\mathrm{policy},\mathrm{lifecycle}\}.
-\label{eq:typed-violation}
-\end{equation}
+The typed violation metric is defined in Equation~\ref{eq:typed-violation}.
 Finally, for leakage, utility, or refusal outcome $j$ and its own eligible population
 $\mathcal{Q}_j$, the strict-minus-base contrast is
 \begin{equation}
