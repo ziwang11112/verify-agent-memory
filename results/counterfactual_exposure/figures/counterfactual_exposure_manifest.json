@@ -1,0 +1,65 @@
+{
+  "archetype": "quantitative_grid",
+  "backend": "python_matplotlib",
+  "bootstrap_replicates": 10000,
+  "core_conclusion": "exposure increases disclosure more for relevant admissible than relevant inadmissible evidence across three separately reported readers",
+  "final_height_in": 3.35,
+  "final_width_in": 7.2,
+  "image_integrity": "direct_vector_plot_from_published_csv_no_image_adjustment",
+  "inputs": [
+    {
+      "path": "cell_metrics.csv",
+      "sha256": "98c9bd7fb04f5c945aa90b08ff05d4d265c461f736be85a5c46e87ef70072140"
+    },
+    {
+      "path": "bootstrap_ci.csv",
+      "sha256": "3e745921ba8e66304e656bcaca96bc63a4db0303c5c01c93fad5a1200a391dd9"
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "a8574e39b2fa23a65491ead0329954251bd9cde51344330ee94e39e3c4afeda1"
+    }
+  ],
+  "model_pooling": false,
+  "official_result": false,
+  "outputs": [
+    {
+      "bytes": 3840,
+      "path": "counterfactual_exposure_source_data.csv",
+      "sha256": "7aab9ba3f987190261d744f6d98683eb37a8f18e075d64297afceac4d1e1d2a4"
+    },
+    {
+      "bytes": 1051,
+      "path": "counterfactual_exposure_caption.md",
+      "sha256": "25098adb526d357b0dfbb471792204595d8a45a3153f7819adc8bb6be8040cef"
+    },
+    {
+      "bytes": 53233,
+      "path": "counterfactual_exposure.svg",
+      "sha256": "5bd4facbd5e04b70600b0ba50165ddb0a4253b209967658cc1496a6b76c44f10"
+    },
+    {
+      "bytes": 68091,
+      "path": "counterfactual_exposure.pdf",
+      "sha256": "f2d1ad2979b9d94dbc28e2bfdb568007c60d53b4845f6fde5d6946bb9caa43c5"
+    },
+    {
+      "bytes": 165524,
+      "path": "counterfactual_exposure.png",
+      "sha256": "917d2b6adf5574519fe82a77306952de7747451954cdfda169fe262fef8d569b"
+    }
+  ],
+  "png_dpi": 300,
+  "png_pixel_audit": {
+    "channel_max": 255,
+    "channel_min": 0,
+    "height_px": 1005,
+    "nonwhite_fraction": 0.13783397825686383,
+    "width_px": 2160
+  },
+  "provider_call_count": 0,
+  "schema_version": 1,
+  "script_sha256": "03320cc58d17bce7a2f53427582d143c22563f1837fc7c372f65912c8b5f639a",
+  "status": "publication_figure_from_controlled_content_free_results",
+  "svg_text_editable": true
+}

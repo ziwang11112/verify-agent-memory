@@ -125,7 +125,11 @@ effect for deployed agents.
 ## Execution Boundary
 
 Protocol, target annotations, request construction, response parsing, scoring, and
-zero-call tests must be frozen before provider construction. Paid execution requires
-a separate cost check and explicit approval. No judge call is planned. The isolated
-provider implementation and its still-locked execution contract are documented in
-`docs/PAIRED_EXPOSURE_EXECUTION.md`.
+zero-call tests were frozen before provider construction. A separate authorization
+then covered the exact execution commit
+`82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af` for GPT-5.6 Sol, Gemini 3.6 Flash, and
+DeepSeek V4 Pro. The panel completed without a judge, retry, output repair, selective
+rerun, or model pooling. The execution contract remains documented in
+`docs/PAIRED_EXPOSURE_EXECUTION.md`; content-free results and receipts are under
+`results/counterfactual_exposure/`. This completion record does not authorize a
+rerun or broader provider experiment.

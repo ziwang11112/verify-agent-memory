@@ -49,16 +49,22 @@ and [results/counterfactual_admissibility/](results/counterfactual_admissibility
 
 The paired exposure intervention holds the query and two background candidates fixed
 while including or withholding one candidate. Its purpose-built 2x2 candidate
-contract, literal disclosure scorer, and zero-call commands are documented in
+contract, literal disclosure scorer, and zero-call construction commands are documented in
 [docs/PAIRED_EXPOSURE_INTERVENTION.md](docs/PAIRED_EXPOSURE_INTERVENTION.md) and
 [experiments/counterfactual_exposure_protocol.json](experiments/counterfactual_exposure_protocol.json).
-That CLI has no provider client or execution command, and no reader result is claimed.
+That construction CLI still has no provider client or execution command. A separately
+authorized, hash-bound execution completed the frozen panel for GPT-5.6 Sol, Gemini
+3.6 Flash, and DeepSeek V4 Pro. Only content-free derived scores, aggregates, costs,
+and receipts are published in
+[results/counterfactual_exposure/](results/counterfactual_exposure/); raw prompts and
+responses remain outside this repository.
 
 ## Current Scope
 
 - Define retrieval admissibility without equating all inadmissible context with
   security harm.
-- Keep exposure-to-leakage results associative and reader-specific.
+- Keep natural-route exposure-to-leakage results associative, and bound the separate
+  paired intervention to controlled prompt-level disclosure effects.
 - Separate a small mechanism smoke from the full public-source evaluation.
 - Treat released lifecycle and intent fields as an upper bound, not a deployable
   blind inference method.
@@ -83,6 +89,11 @@ and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
   focal eligibility flip, but all three complete providers fail the preregistered
   stable-control overflip ceiling. Explicit LLM verification is therefore not yet a
   selective replacement for trusted controls.
+- In the paired exposure intervention, the relevant-admissible minus
+  relevant-inadmissible disclosure effect is 0.906 for GPT-5.6 Sol, 0.812 for Gemini
+  3.6 Flash, and 0.656 for DeepSeek V4 Pro; all scenario-bootstrap intervals exclude
+  zero. DeepSeek also has a positive relevant-inadmissible exposure effect of 0.156,
+  so reader selectivity is not an enforcement boundary.
 
 The normalized values and their source receipts are documented in
 [evidence/README.md](evidence/README.md).
@@ -113,6 +124,7 @@ uv run --extra dev python -m ruff check .
 uv run --extra dev python -m ruff format --check .
 uv run --extra dev python scripts/check_claim_contract.py
 uv run --extra dev python scripts/verify_evidence.py
+uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
 ```
 
 Regenerating normalized evidence additionally requires the frozen provenance archive

@@ -7,6 +7,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
 \usepackage{booktabs}
+\usepackage{float}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \hypersetup{hidelinks}
@@ -41,11 +42,16 @@ increases source-macro evidence recall by \NamespaceRecallDelta{} (95\% CI
 score by \NamespaceContaminationReduction{} (signed-delta 95\% CI
 \NamespaceContaminationDeltaCI{}).  Conditional matched-prefix bounds remain wide
 because same-namespace labels are incomplete.  Additional
-threshold and cluster routing does not establish incremental utility.  At fixed
-GateMem checkpoints, target exposure is strongly associated with answer disclosure
-for two separately executed same-provider readers, while reducing exposure also incurs
-utility and over-refusal costs.  The contribution is an auditable verification
-protocol and empirical diagnosis, not a new memory index or a causal leakage claim.
+threshold and cluster routing does not establish incremental utility.  In a separate
+paired intervention over \ExposureScenarioCount{} constructed scenarios, the
+relevant-admissible minus relevant-inadmissible disclosure effect ranges from
+\DeepSeekExposureGap{} to \OpenAIExposureGap{} across three independently
+reported providers; every 95\% interval excludes zero.  DeepSeek nevertheless has a
+relevant-inadmissible effect of \DeepSeekExposureInadmissible{}
+(\DeepSeekExposureInadmissibleCI{}), showing that reader restraint is not itself a
+verification boundary.  Observational GateMem traces separately expose leakage--utility
+trade-offs.  The contribution is an auditable protocol and empirical diagnosis, not a
+new memory index or a production-safety claim.
 \end{abstract}
 
 \section{Introduction}
@@ -103,8 +109,9 @@ Our contributions are:
   \NaturalMemoryCount{} memories, and \NaturalQueryCount{} queries, showing that
   trusted namespace support provides the main retrieval gain while two additional
   routing refinements do not; and
-  \item a separate exposure/disclosure analysis that identifies what the retrieval
-  measurements can and cannot support.
+  \item a paired relevance-by-admissibility exposure intervention across three
+  providers, complemented by observational GateMem traces, that separates controlled
+  disclosure effects from natural-route association.
 \end{itemize}
 
 \section{Related Work}
@@ -138,242 +145,332 @@ admissible evidence.  Because model-based evaluation can introduce systematic
 biases \citep{liu2023geval}, we report reader identities separately and do not pool
 their estimates.
 
-\section{Verification Protocol}
+\section{Retrieval Admissibility Methodology}
 
-\subsection{Relevance is not admissibility}
+Our contribution is an evaluation methodology rather than a latent-state classifier
+or a new memory index.  It combines (i) query-conditioned, three-valued evidence
+assessment, (ii) an observable retrieval-to-answer trace, and (iii) matched-recall
+risk estimates that remain valid when some candidate labels are unresolved.
 
-For a query $q$ at time $t$, let $\mathcal{R}_q$ denote memories judged relevant,
-$\mathcal{N}_q$ memories within the allowed namespace or principal scope,
-$\mathcal{P}_q$ memories permitted by the governing policy, and
-$\mathcal{L}_{q,t}$ memories lifecycle-compatible with the query intent.  The
-admissible and usable sets are
+\subsection{Query-conditioned, three-valued evidence}
+
+Let $z=(q,p,\rho,t)$ denote an evaluation context containing the query, authenticated
+principal, governing policy, and time.  For memory $m$, the verifier records
+relevance $r_z(m)$, namespace or scope membership $n_z(m)$, policy permission
+$g_z(m)$, and lifecycle compatibility $\ell_z(m)$.  Every axis takes a value in
+$\mathcal{T}=\{1,0,?\}$: established positive, established negative, or unresolved.
+We use the conservative three-valued conjunction
+\begin{equation}
+\bigwedge\nolimits_{3}(x_1,\ldots,x_d)=
+\begin{cases}
+0, & \exists j:x_j=0,\\
+1, & \forall j:x_j=1,\\
+?, & \text{otherwise}.
+\end{cases}
+\label{eq:three-valued}
+\end{equation}
+Admissibility and usability are therefore statuses of a memory--context pair:
 \begin{align}
-\mathcal{A}_{q,t}
-&= \mathcal{N}_q\cap\mathcal{P}_q\cap\mathcal{L}_{q,t},
+a_z(m)&=\bigwedge\nolimits_{3}\!\left(n_z(m),g_z(m),\ell_z(m)\right),
 \label{eq:admissible}\\
-\mathcal{U}_{q,t}
-&= \mathcal{R}_q\cap\mathcal{A}_{q,t}.
+u_z(m)&=\bigwedge\nolimits_{3}\!\left(r_z(m),a_z(m)\right).
 \label{eq:usable}
 \end{align}
-Membership on each axis is three-valued: positive, negative, or unresolved.  A known
-violation excludes the memory; all memberships must be positive to establish
-usability; otherwise the label remains unresolved.  In the frozen released-field
-evaluation, current records are lifecycle-compatible with current-state and history
-queries, while stale or superseded records are retained for history and rejected for
-current-state queries.  Relevance is assessed separately, so retention does not imply
-that every historical record is useful.  Equations~\ref{eq:admissible}--%
-\ref{eq:usable} define a verification target, not a method for inferring latent
-scope, policy, intent, or state.
+The positive admissible and usable sets are
+$\mathcal{A}_z=\{m:a_z(m)=1\}$ and
+$\mathcal{U}_z=\{m:u_z(m)=1\}$; corresponding negative and unresolved sets use
+status 0 and $?$.  Equation~\ref{eq:three-valued} makes the decision rule explicit:
+one known violation is sufficient to reject a candidate, positive usability requires
+all four positive labels, and missing information never becomes an implicit pass.
+With complete binary labels, Equations~\ref{eq:admissible}--\ref{eq:usable} reduce
+to the familiar set intersections
+$\mathcal{A}_z=\mathcal{N}_z\cap\mathcal{P}_z\cap\mathcal{L}_z$ and
+$\mathcal{U}_z=\mathcal{R}_z\cap\mathcal{A}_z$.
 
-\paragraph{Operational view.}
-For every returned memory ID, the evaluator records four labels: relevance,
-namespace membership, policy permission, and lifecycle compatibility
-(Figure~\ref{fig:pipeline}b).  Any known violation on the latter three axes excludes
-the item from the admissible set.  An item is established as usable only when all
-four labels are positive; every remaining case is unresolved.  Trusted namespace
-metadata can constrain the candidate support before semantic ranking.  Policy and
-lifecycle checks can then be applied before prompt assembly when their labels are
-available.  The protocol outputs candidate IDs, exclusion reasons, unresolved
-status, and the subsequent exposure and disclosure trace.  It does not silently
-replace missing labels or claim to infer unreleased metadata.
+Lifecycle compatibility is relational rather than an intrinsic record property.  In
+our released-field mapping, current records are compatible with both intents; stale
+or superseded records are compatible with history but not current-state queries; an
+unknown state or intent remains unresolved (Appendix~\ref{app:metric-details}).
+Thus a superseded value can be prohibited for ``what is current?'' yet required for
+``how did it change?''  This is an evaluation rule, not a claim that intent or state
+can be inferred from raw text.
 
-\subsection{Four observable stages}
+\subsection{Verification operator and observable trace}
 
-We log whether each memory was \emph{stored}, returned by retrieval, included in the
-reader prompt (\emph{exposed}), and detected in the answer (\emph{disclosed}).  These
-events answer different questions.  Retrieval metrics diagnose the candidate
-selection mechanism.  Exposure metrics include prompt assembly and truncation.
-Disclosure metrics depend additionally on the reader and a fixed scorer; they do not
-identify the reader's internal reasoning.  Causal claims require an intervention
-on exposure; observational disagreement between routes only identifies association.
+For each returned ID, the verifier emits $u_z(m)$, every known axis-level exclusion
+reason, and unresolved status.  Authenticated namespace metadata, when trusted and
+complete, can additionally restrict ranking support to
+$\mathcal{C}^{N}_z=\{m\in\mathcal{M}:n_z(m)=1\}$ instead of the global store
+$\mathcal{M}$.  The exact operators are in Appendix~\ref{app:metric-details}.  The
+protocol does not infer or silently complete missing provenance.
 
-\subsection{Matched-recall contamination with incomplete labels}
+For route $a$, we preserve memory identity through three record-level indicators:
+$S_m$ for stored, $R_{qma}$ for returned, and $E_{qma}$ for included in the assembled
+prompt.  The system construction gives $E_{qma}\leq R_{qma}\leq S_m$.  We separately
+record $Y_{qa}$, whether the protected target is detected in the answer.  There is no
+deterministic implication from $E$ to $Y$: a reader may ignore exposed content or
+produce the target without that record.  The trace localizes failure without claiming
+access to the reader's internal reasoning.
 
-Let $A_q$ be the set of known usable evidence anchors for query $q$, and let a route
-rank memories as $r_1,\ldots,r_n$.  For target recall $\tau$, we score the smallest
-prefix $P_q(\tau)$ that reaches
-\[
-\frac{|P_q(\tau)\cap A_q|}{|A_q|}\geq\tau.
-\]
-This compares contamination only after systems reach the same evidence-recall
-target.  A known contaminant is a prefix item whose released labels establish that
-it is non-usable for $q$; unresolved items are not silently converted to negatives.
-If the matched prefix contains $c$ known contaminants, $u$ unresolved items, and
-$N$ total items, we report
-\[
-C_q^{K}=\frac{c}{N-u},\qquad
-\gamma_q=\frac{N-u}{N},\qquad
-[C_q^{L},C_q^{U}]=\left[\frac{c}{N},\frac{c+u}{N}\right].
-\]
-The upper bound treats every unresolved item as contamination.  A query is feasible
-when the returned route reaches $\tau$.  For the preregistered setting-selection and
-primary aggregate risk score, recall failure cannot look safe:
-\[
-\widetilde C_q^{U}=
-\begin{cases}
-C_q^{U}, & q\text{ is feasible and }C_q^{U}\text{ is defined},\\
-1, & \text{otherwise}.
-\end{cases}
-\]
-We call the mean of $\widetilde C_q^{U}$ the \emph{penalized conservative risk};
-it combines incomplete-label risk with a worst-case penalty for infeasibility and is
-not a pure conditional contamination estimate.  We therefore report it together
-with feasible rate and the conditional $C^K$, $\gamma$, $C^L$, and $C^U$ summaries.
-Queries without known usable anchors are recall-unevaluable rather than assigned
-zero.  Typed exposure rates separately identify wrong scope, policy disallowance,
-and lifecycle incompatibility.
+\subsection{Matched-recall risk under incomplete labels}
+\label{sec:matched-risk}
 
-\section{Evaluation}
+Let $\mathcal{G}_q\subseteq\mathcal{U}_z$ be the known usable evidence anchors for
+query $q$, and let route $a$ return
+$\pi_{qa}=(m_1,\ldots,m_n)$.  Prefix recall and feasibility at target $\tau$ are
+\begin{align}
+\operatorname{Rec}_{qa}(k)
+&=\frac{|\{m_1,\ldots,m_k\}\cap\mathcal{G}_q|}{|\mathcal{G}_q|},\\
+F_{qa}(\tau)
+&=\mathbf{1}\!\left\{\operatorname{Rec}_{qa}(n)\geq\tau\right\}.
+\end{align}
+For a feasible route, the matched prefix is
+\begin{equation}
+k^*_{qa}(\tau)=\min\{k:\operatorname{Rec}_{qa}(k)\geq\tau\},\qquad
+P_{qa}(\tau)=\{m_1,\ldots,m_{k^*_{qa}(\tau)}\}.
+\label{eq:matched-prefix}
+\end{equation}
+Using the smallest qualifying prefix charges a method for every item ranked before
+the target is reached and compares contamination after every feasible method reaches
+the same anchor-recall target.
 
-\subsection{Evidence surfaces and frozen populations}
+Within a nonempty matched prefix, let $c$ items have $u_z(m)=0$, $v$ have
+$u_z(m)=1$, and $h$ have $u_z(m)=?$, so $N=c+v+h$.  The resolved-only estimate,
+label coverage, and assumption-free bounds are
+\begin{align}
+C^K_{qa}&=\frac{c}{c+v}, & \gamma_{qa}&=\frac{c+v}{N},\label{eq:known-coverage}\\
+C^L_{qa}&=\frac{c}{N}=\gamma_{qa}C^K_{qa}, &
+C^U_{qa}&=\frac{c+h}{N}=\gamma_{qa}C^K_{qa}+(1-\gamma_{qa}).
+\label{eq:partial-id}
+\end{align}
+These identities show exactly what incomplete labels cost:
+$C^U_{qa}-C^L_{qa}=1-\gamma_{qa}$.  The interval is the sharp partial-identification
+region obtained by assigning every unresolved item first to usable and then to
+contaminating.  If all items are unresolved, $C^K$ is undefined but
+$[C^L,C^U]=[0,1]$ remains defined.
 
-We evaluate the protocol on three complementary surfaces.  They answer different
-questions and are never pooled into one score.
+Recall failure must not appear perfectly safe.  On the recall-evaluable population
+$\mathcal{Q}^{+}=\{q:|\mathcal{G}_q|>0\}$, define
+\begin{align}
+\widetilde C^{U}_{qa}(\tau)
+&=\begin{cases}
+C^U_{qa}, & F_{qa}(\tau)=1,\\
+1, & F_{qa}(\tau)=0,
+\end{cases}\label{eq:penalized-query-risk}\\
+\operatorname{PCR}_{a}(\tau)
+&=\frac{1}{|\mathcal{Q}^{+}|}
+  \sum_{q\in\mathcal{Q}^{+}}\widetilde C^{U}_{qa}(\tau).
+\label{eq:penalized-risk}
+\end{align}
+We call Equation~\ref{eq:penalized-risk} \emph{penalized conservative risk}.  It is
+a selection and aggregate risk score, not conditional contamination; we therefore
+always report it with feasible rate and the conditional $C^K$, $\gamma$, $C^L$,
+and $C^U$.  Queries without known anchors are recall-unevaluable, not assigned zero.
+Axis-specific matched-prefix violations localize scope, policy, and lifecycle errors;
+their formula is in Appendix~\ref{app:metric-details}.  Prompt exposure is measured
+separately.
 
-\paragraph{GateMem exposure and disclosure.}
-GateMem supplies fixed privacy and safety checkpoints with leak-target annotations
-\citep{ren2026gatemem}.  The frozen bundle contains 91 episodes and 2,218 checkpoints
-(728 utility, 727 privacy, and 763 safety) under three released routes.  The primary
-exposure analysis contains
-\ReaderDiscordantCount{} checkpoints where two frozen routes disagree on whether
-the target reaches the prompt.  Incremental prediction uses
-\ReaderPredictionCount{} held-out checkpoint rows.  We execute
-\texttt{gpt-4o-mini-2024-07-18} (Reader A) and
-\texttt{gpt-4o-2024-08-06} (Reader B) separately.  Both are OpenAI snapshots:
-this is same-provider cross-reader robustness, not cross-provider replication.
-A separate frozen comparison retains the source study's G0 baseline and G1 stricter
-exposure-filtering labels.  It contains \GOneLeakageCount{} leakage-eligible
-checkpoints and a distinct \GOneUtilityCount{} bounded-utility population.
+\subsection{Exposure--disclosure and safety--utility estimands}
 
-\paragraph{Public-source retrieval.}
-The retrieval audit combines public RHELM and MemOps sources
-\citep{zhang2026rhelm,hao2026memops}: \NaturalGroupCount{} groups,
-\NaturalMemoryCount{} memories, and \NaturalQueryCount{} queries.  RHELM contributes
-523 queries across seven persona namespaces; each candidate corpus contains all
-same-split conversation turns strictly earlier than the query date.  MemOps
-contributes 3,244 probes across 80 profile namespaces; each global arm receives all
-method-visible dialogue memories in the evaluation split.  No candidate
-subsampling or positive injection is used.  A pinned Qwen3-Embedding-8B revision
-produces 4,096-dimensional, unit-normalized last-token embeddings with a 512-token
-limit; ranking uses exact float32 inner product and stable memory-ID ties.
+Let $X_{qa}$ indicate that a protected target is exposed in route $a$'s assembled
+prompt and let $Y_{qa}$ indicate disclosure in its answer.  For checkpoint $q$, form
+the ordered discordant pairs
+$D_q=\{(a,b):X_{qa}=1,\ X_{qb}=0\}$.  To avoid overweighting checkpoints with more
+route pairs, we first average within checkpoint and then across checkpoints:
+\begin{equation}
+d_q=\frac{1}{|D_q|}\sum_{(a,b)\in D_q}(Y_{qa}-Y_{qb}),\qquad
+\widehat{\mathrm{RD}}=\frac{1}{|\mathcal{Q}_D|}
+\sum_{q\in\mathcal{Q}_D}d_q.
+\label{eq:discordant-rd}
+\end{equation}
+We also test whether exposure adds out-of-episode predictive information beyond
+route identity, domain, query type, non-emptiness, and route width.  Neither analysis
+is causal because exposure is not randomized.
 
-Development selection uses a disjoint 23-group population with 45,978 memories and
-1,104 queries.  Exactly one configuration for each of nine frozen arms was selected
-there and then applied without evaluation retuning, query deletion, output repair,
-or fallback changes, yielding \NaturalRouteRows{} complete method-query routes and
-scores.
+The controlled intervention instead fixes the query and background candidates and
+changes only whether one manipulated candidate is included.  For paired unit $i$ in
+relevance--admissibility cell $c$, let $D_i(1)$ and $D_i(0)$ indicate literal target
+disclosure with that candidate exposed and withheld.  We estimate
+\begin{equation}
+\hat{\Delta}_c=\frac{1}{n_c}\sum_{i\in c}\bigl[D_i(1)-D_i(0)\bigr],\qquad
+\hat{S}=\hat{\Delta}_{\mathrm{rel,adm}}-
+\hat{\Delta}_{\mathrm{rel,inadm}}.
+\label{eq:paired-exposure}
+\end{equation}
+Here $\hat{S}$ is the \emph{selectivity gap}: exposure should enable relevant
+admissible evidence without similarly increasing disclosure of relevant inadmissible
+evidence.  This identifies a prompt-level effect in the constructed population, not
+internal model use or natural-history prevalence.
 
-\subsection{Retrieval arms and frozen selection}
+A stricter route is not summarized by leakage alone: we report leakage, utility, and
+refusal deltas on their respective eligible populations, never pooling the three
+(Appendix~\ref{app:metric-details}).  The resulting contract gives every verdict an
+axis-level reason, every retrieval comparison a recall constraint and uncertainty
+interval, and every downstream claim an explicit observable stage.
 
-The nine arms share memory units, query text, embedding revision, and top-$k$ budget.
-Four global controls are BM25, dense retrieval, BM25--dense reciprocal-rank fusion,
-and dense retrieval with a released-order recency feature.  Three support or
-lifecycle arms are namespace dense, namespace current-only, and a released-intent
-lifecycle upper bound.  The last two arms are development-selected namespace-local
-threshold and centroid-cluster routers.  The upper-bound arm observes rather than
-infers intent and state.  Both routers use namespace-local dense fallback, so neither
-can cross a trusted namespace.  Appendix~\ref{app:arms} gives formulas and all
-selected settings.
+\section{Experimental Design}
 
-Every selected arm has $k=100$ and is evaluated at target evidence recall
-$\tau=0.8$.  Selection first macro-averages queries within RHELM and MemOps, then
-uses equal source weight and the lexicographic objective: maximize feasible rate,
-minimize penalized conservative risk, minimize resolved contamination, maximize
-evidence recall, minimize candidates scored, and finally use stable setting ID.
-The grid contains 165 settings; evaluation data never enter selection.
+\subsection{Questions and execution units}
 
-\subsection{Metrics and uncertainty}
+The experiments ask whether natural-route exposure predicts disclosure, paired
+exposure separates relevance from admissibility, filtering trades off against
+utility, trusted support improves matched-recall retrieval, and additional routing
+or released lifecycle fields improve on that support.  Table~\ref{tab:experiment-map}
+fixes the distinct populations; estimates are never pooled across units.
 
-For GateMem checkpoint $q$, let $D_q$ be its unordered route pairs with different
-target-exposure labels.  Orient each pair as exposed minus unexposed and define
-\[
-d_q=\frac{1}{|D_q|}\sum_{(a,b)\in D_q}
-  \left(Y_{qa}^{\mathrm{exposed}}-Y_{qb}^{\mathrm{unexposed}}\right),
-\qquad
-\widehat{\mathrm{RD}}=\frac{1}{|Q_D|}\sum_{q\in Q_D}d_q ,
-\]
-where $Y$ is rule-based final-answer target disclosure.  Averaging inside a
-checkpoint prevents checkpoints with multiple discordant pairs from receiving
-extra weight.  Confidence intervals use 10,000 episode-cluster bootstrap
-replicates.  A secondary leave-one-episode-out logistic analysis predicts disclosure
-from route identity, domain, query type, route non-emptiness, and standardized route
-width; the augmented model adds target exposure.  We report augmented-minus-baseline
-Brier score and log loss.  G1-minus-G0 deltas are reported separately for leakage,
-bounded utility accuracy, and over-refusal because the eligible populations differ.
-These route comparisons are observational.
+\begin{table}[H]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{5pt}
+  \caption{Experimental units and observables.  Populations are not pooled.}
+  \label{tab:experiment-map}
+  \begin{tabular}{@{}p{0.18\textwidth}p{0.27\textwidth}p{0.49\textwidth}@{}}
+    \toprule
+    Unit & Population & Comparison and observable \\
+    \midrule
+    GateMem & 91 episodes; 2,218 checkpoints; $2\times6{,}654$ answers & G0/G1/G2
+      route exposure; disclosure, bounded utility, and refusal \\
+    Paired exposure & 16 scenarios; $3\times384$ answers & Candidate withheld versus
+      exposed; cell effects and selectivity gap \\
+    Mechanism smoke & 4 development + 16 evaluation packets; 207 records & Nine arms;
+      support, recall, wrong-scope exposure, and scorer response \\
+    Natural retrieval & 23 development + 87 evaluation groups; 3,767 evaluation
+      queries & Nine frozen arms; matched-recall risk, retrieval quality, and work \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
-For retrieval, the primary outcomes are source-macro evidence recall, feasibility
-at $\tau$, and penalized conservative risk.  Conditional matched-prefix
-contamination, coverage, and bounds remain separate descriptive outcomes.  We also
-report wrong-scope leakage and prohibited stale or superseded exposure.  RHELM and
-MemOps receive equal source weight so that MemOps does not dominate by size.  Paired
-95\% intervals use 10,000 replicates, resampling personas within RHELM and base
-profiles within MemOps before replicate-wise equal-source averaging.  Local timing
-and candidate counts are diagnostics only and are not production cost estimates.
+\subsection{GateMem: routes, exposure, and readers}
 
-All empirical numbers, tables, and figures below are generated from hash-bound
-normalized evidence after claim-boundary validation.
+GateMem supplies 91 multi-principal episodes and 2,218 fixed utility, privacy, and
+safety checkpoints \citep{ren2026gatemem}.  We compare the upstream global route G0,
+upstream policy route G1, and our observable-scope diagnostic G2; a structured
+lifecycle diagnostic G3 is trace-identical to G2 because the release has no such
+operations.  Readers A (\texttt{gpt-4o-mini-2024-07-18}) and B
+(\texttt{gpt-4o-2024-08-06}) each receive the 6,654 frozen G0/G1/G2 prompts and are
+reported separately.
 
-\subsection{Evaluation boundaries}
+Exposure and disclosure use the released rule-based target detectors.  The primary
+analysis applies Equation~\ref{eq:discordant-rd} to \ReaderDiscordantCount{}
+exposure-discordant privacy or safety checkpoints; the secondary analysis tests the
+incremental predictive value of exposure on \ReaderPredictionCount{} rows.  Reader A's
+G1-minus-G0 trade-off uses distinct leakage and bounded-utility populations.  These
+route contrasts are observational.  Appendix~\ref{app:gatemem} gives route, prompt,
+parser, and predictor details.
 
-The public-source retrieval run makes no provider, reader, judge, or paid calls and
-does not measure downstream answer quality.  It is not an official RHELM or MemOps
-submission.  The GateMem analyses are open-label, observational diagnostics rather
-than an official benchmark result or a causal intervention.  The three evidence
-surfaces remain distinct throughout reporting.
+\subsection{Paired counterfactual exposure}
+
+The overlay crosses relevance and admissibility in \ExposureScenarioCount{} scenarios
+spanning scope, policy, lifecycle intent, and as-of time.  A candidate is withheld or
+exposed while the query and background remain fixed, yielding
+\ExposurePairsPerReader{} paired units and 384 requests per reader.  Unique markers
+support a fixed literal-disclosure scorer.  We execute \texttt{gpt-5.6-sol},
+\texttt{gemini-3.6-flash}, and \texttt{deepseek-v4-pro} separately, with one attempt
+per request and no judge, repair, selective rerun, or pooling.  Intervals resample the
+16 scenarios 10,000 times; Appendix~\ref{app:paired-construction} gives the full
+construction and execution contract.
+
+\subsection{Candidate-pool implementation smoke}
+
+The common scorer is first checked on 20 curated RHELM and MemOps packets (207
+records), split into four development and 16 evaluation packets.  Disputed labels
+remain unresolved and withdrawn human-overlap annotations are unused.  This validates
+metric response to a known support intervention, not natural-corpus performance
+(Appendix~\ref{app:smoke}).
+
+\subsection{RHELM and MemOps natural retrieval}
+
+The main retrieval experiment combines public RHELM and MemOps sources
+\citep{zhang2026rhelm,hao2026memops}.  Development has 23 disjoint groups, 45,978
+memories, and 1,104 queries; evaluation has \NaturalGroupCount{} groups,
+\NaturalMemoryCount{} memories, and \NaturalQueryCount{} queries.  Released evidence
+IDs provide RHELM anchors; released provenance and deterministic operation replay
+provide MemOps anchors and states.  There is no human-overlap label, candidate
+subsampling, or positive injection.
+
+Nine arms share memory units, query text, a pinned Qwen3-Embedding-8B revision,
+exact inner-product ranking, and top-$k$ budget.  Four global controls cover BM25,
+dense, reciprocal-rank fusion, and released-order recency.  Five namespace-local arms
+cover dense, current-only, a released-intent lifecycle upper bound, threshold routing,
+and centroid-cluster routing; all fallback remains namespace-local.  A 165-setting
+grid is selected on development by feasible rate, penalized risk, contamination,
+recall, and work, in that order.  The winners are frozen before evaluation and yield
+\NaturalRouteRows{} complete routes without retuning or repair.  Appendix~\ref{app:arms}
+gives construction, formulas, embedding details, and selected settings.
+
+\subsection{Outcomes, uncertainty, and boundaries}
+
+Primary outcomes are source-macro evidence recall, feasibility at $\tau=0.8$, and
+penalized conservative risk; conditional contamination, coverage, bounds, typed
+violations, standard retrieval metrics, and work remain separate diagnostics.  Local
+time and candidate counts are not production cost estimates.  GateMem, paired
+exposure, and natural retrieval use 10,000 episode-, scenario-, and source-clustered
+bootstrap replicates, respectively.  The natural run has no downstream reader; its
+results are not official RHELM or MemOps scores.  GateMem route contrasts remain
+observational, whereas the paired estimate is limited to prompt-level disclosure in
+its constructed population.  All values come from hash-bound normalized evidence.
 
 \section{Results}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{generated/evidence_summary.pdf}
-  \caption{Exposure and filtering evidence.  (a) Exposed-minus-
-  unexposed answer-disclosure risk over \ReaderDiscordantCount{} discordant checkpoints.
-  (b) Exposure-augmented minus baseline Brier score and log loss over
-  \ReaderPredictionCount{} held-out rows; lower is better and the metrics use
-  separate scales.  (c) G1-minus-G0 leakage over \GOneLeakageCount{} checkpoints
-  and utility/refusal over a distinct \GOneUtilityCount{} checkpoints.  Points and
-  whiskers show estimates and 95\% intervals.  Reader estimates are reported
-  separately and never pooled.}
-  \label{fig:evidence}
+  \includegraphics[width=\linewidth]{../results/counterfactual_exposure/figures/counterfactual_exposure.pdf}
+  \caption{Controlled paired exposure.  (a) Target disclosure with the manipulated
+  relevant candidate withheld (open) or exposed (filled).  (b) Paired disclosure
+  effects in all four relevance-by-admissibility cells.  (c) Selectivity gaps
+  (circles) and relevant-inadmissible effects (red squares).  Whiskers are 95\%
+  scenario-bootstrap intervals over 16 scenarios.  Each reader contributes 192 paired
+  units and is reported separately.}
+  \label{fig:paired-exposure}
 \end{figure}
 
 \begin{table}[t]
   \centering
   \small
-  \caption{Primary frozen contrasts.  Deltas are method minus reference.  The
-  lifecycle row is a released-field upper bound.}
+  \caption{Selected frozen contrasts.  Populations differ and are never pooled.
+  Retrieval deltas are method minus reference; lifecycle is a released-field upper
+  bound.}
   \label{tab:main}
   \input{generated/main_results.tex}
 \end{table}
 
-\subsection{Exposure predicts answer disclosure across readers}
+\subsection{Exposure effects depend on admissibility}
 
-Across \ReaderDiscordantCount{} fixed discordant checkpoints, Reader A has an
-exposed-minus-unexposed answer-disclosure risk difference of
-\ReaderARiskDifference{} (95\% CI \ReaderARiskDifferenceCI{}); Reader B yields
-\ReaderBRiskDifference{} (\ReaderBRiskDifferenceCI{}; Figure~\ref{fig:evidence}a).
-The separately executed estimates agree in direction but are not pooled.
+Relevant-admissible exposure effects are \OpenAIExposureAdmissible{}
+(\OpenAIExposureAdmissibleCI{}), \GeminiExposureAdmissible{}
+(\GeminiExposureAdmissibleCI{}), and \DeepSeekExposureAdmissible{}
+(\DeepSeekExposureAdmissibleCI{}) for GPT-5.6 Sol, Gemini 3.6 Flash, and
+DeepSeek V4 Pro, respectively (Figure~\ref{fig:paired-exposure}).  Their
+selectivity gaps are \OpenAIExposureGap{} (\OpenAIExposureGapCI{}),
+\GeminiExposureGap{} (\GeminiExposureGapCI{}), and
+\DeepSeekExposureGap{} (\DeepSeekExposureGapCI{}); every interval excludes
+zero.
 
-On \ReaderPredictionCount{} held-out rows, adding exposure improves leakage
-prediction for both readers.  Reader A changes Brier score by
-\ReaderABrierDelta{} (\ReaderABrierDeltaCI{}) and log loss by
-\ReaderALogLossDelta{} (\ReaderALogLossDeltaCI{}); Reader B changes them by
-\ReaderBBrierDelta{} (\ReaderBBrierDeltaCI{}) and
-\ReaderBLogLossDelta{} (\ReaderBLogLossDeltaCI{}), respectively
-(Figure~\ref{fig:evidence}b).  Exposure therefore carries predictive information
-beyond the frozen baseline, but the result remains an association rather than a
-causal mediation estimate.
+The relevant-inadmissible effect is \OpenAIExposureInadmissible{}
+(\OpenAIExposureInadmissibleCI{}) for GPT-5.6 and
+\GeminiExposureInadmissible{} (\GeminiExposureInadmissibleCI{}) for Gemini,
+but \DeepSeekExposureInadmissible{}
+(\DeepSeekExposureInadmissibleCI{}) for DeepSeek.  Irrelevant controls remain
+near zero.  Thus exposure selectively enables admissible evidence in this constructed
+population, while the DeepSeek residual shows why reader restraint cannot replace a
+pre-prompt admissibility check.  Disclosure is literal output, not internal causal use.
 
-\subsection{Filtering exposes a safety--utility frontier}
+\subsection{Natural route traces show association and trade-off}
 
-On \GOneLeakageCount{} leakage-eligible checkpoints, the stricter G1 route changes
-answer leakage by \GOneLeakageDelta{} (95\% CI \GOneLeakageDeltaCI{}) relative to
-G0.  On the separate \GOneUtilityCount{} bounded-utility checkpoints, it changes
-utility accuracy by \GOneUtilityDelta{} (\GOneUtilityDeltaCI{}) and over-refusal by
-\GOneRefusalDelta{} (\GOneRefusalDeltaCI{}; Figure~\ref{fig:evidence}c).  Filtering
-therefore reduces leakage while imposing measurable utility and refusal costs; it
-is not uniformly better.
+Across \ReaderDiscordantCount{} fixed GateMem checkpoints, exposed-minus-unexposed
+disclosure risk differences are \ReaderARiskDifference{}
+(\ReaderARiskDifferenceCI{}) for Reader A and \ReaderBRiskDifference{}
+(\ReaderBRiskDifferenceCI{}) for Reader B.  Adding exposure also improves
+held-out Brier and log-loss prediction for both readers (Appendix
+Figure~\ref{fig:gatemem-observational}).  These route differences are observational
+and the same-provider readers are not pooled.
+
+For Reader A, G1 minus G0 changes answer leakage by \GOneLeakageDelta{}
+(\GOneLeakageDeltaCI{}), bounded utility by \GOneUtilityDelta{}
+(\GOneUtilityDeltaCI{}), and over-refusal by \GOneRefusalDelta{}
+(\GOneRefusalDeltaCI{}).  Leakage and utility use different eligible populations;
+the result exposes a safety--utility frontier rather than a uniformly better route or
+a Reader B replication.
 
 \begin{figure}[t]
   \centering
@@ -417,15 +514,6 @@ upper bound remains high and changes from \GlobalUpperBound{} to
 together with the large feasibility gain, not as evidence that unresolved
 same-namespace content disappeared.
 
-\begin{table}[t]
-  \centering
-  \small
-  \caption{Source-macro diagnostics within feasible matched-recall prefixes.
-  These descriptive quantities do not use the infeasibility penalty.}
-  \label{tab:matched-prefix}
-  \input{generated/matched_prefix_diagnostics.tex}
-\end{table}
-
 \subsection{Additional routing does not add retrieval utility}
 
 Relative to namespace dense, the threshold router changes recall by
@@ -459,56 +547,48 @@ intent or lifecycle state from raw history.
 \section{Discussion}
 
 \paragraph{Verification changes the unit of analysis.}
-A benchmark score usually asks whether an agent answered correctly.  Retrieval
-admissibility asks which evidence was eligible to influence that answer, when, and
-under whose scope.  The four-stage trace supports sharper regression tests: a change
-can improve retrieval recall while worsening prompt exposure, or reduce exposure
-while increasing over-refusal.
+Answer accuracy alone cannot establish that supporting evidence was eligible.  The
+four-stage trace separates retrieval gains from exposure or refusal regressions.
+
+\paragraph{Reader selectivity is not enforcement.}
+All three controlled readers disclose admissible evidence selectively, yet DeepSeek
+also shows a positive inadmissible exposure effect.  Eligibility should therefore be
+checked before prompt assembly rather than delegated to unspecified reader behavior.
 
 \paragraph{Constraints can matter more than routing sophistication.}
-In the frozen public-source evaluation, trusted namespace support changes the
-candidate support before semantic ranking and produces the main gain.  Additional
-threshold and clustering heuristics do not improve upon that control.  This negative
-result is useful for agent development: verifier effort should first test provenance
-and support constraints before attributing gains to a more elaborate memory index.
+Trusted namespace support produces the main retrieval gain; the evaluated threshold
+and cluster routers add none.  Verification should test provenance constraints before
+crediting a more elaborate memory index.
 
 \paragraph{Evaluation should preserve unresolved evidence.}
-Non-required same-namespace memories are not automatically contaminants.  Treating
-them as negative labels would overstate precision; treating them as relevant would
-hide risk.  In our results, namespace filtering lowers resolved contamination while
-also lowering label coverage, so the conditional upper bound remains high.  Reporting
-coverage and lower/upper bounds prevents the penalized aggregate from hiding this
-annotation gap.
+Unresolved same-namespace memories are neither automatic negatives nor positives.
+Coverage and bounds expose this uncertainty instead of imputing it away.
 
 \section{Limitations and Broader Impact}
 
-The public-source retrieval audit covers RHELM and MemOps only, uses released trusted
-namespaces, and has no downstream reader outcome.  Source-macro intervals represent
-two source clusters, not broad domain sampling.  The mechanism smoke contains only
-16 curated evaluation packets.  The lifecycle result uses released intent and state
-fields and is therefore an upper bound.  Local timing and candidate counts do not
-support a production cost claim.
+The public-source audit covers two source clusters, assumes trusted namespaces, and
+has no downstream reader.  The smoke has 16 evaluation packets; lifecycle results
+are an observed-field upper bound; local diagnostics do not establish production cost.
 
-The GateMem readers are both OpenAI models and are never pooled.  Exposure/disclosure
-differences are observational rather than randomized.  Utility and leakage have
-different eligible populations.
+Both GateMem readers are OpenAI models and are never pooled; exposure/disclosure is
+observational, and utility and leakage use different populations.
 
-Admissibility filters can reduce cross-principal or stale-memory exposure, but they
-can also suppress legitimate evidence and encourage over-refusal.  A deployment
-should log exclusions, support appeal or audit, and evaluate utility at matched
-recall.  Our released package contains content-free aggregates and hashes only; it
-excludes raw conversations, model responses, and private data.
+The paired intervention covers 16 constructed scenarios, uses unique literal markers
+and a rule-based disclosure scorer, and supports only prompt-level effects for the
+three frozen reader snapshots.  It does not estimate natural-memory prevalence or
+internal model use; axis-specific estimates have four scenarios each.
+
+Filters may suppress legitimate evidence and encourage over-refusal, so deployments
+should log exclusions and evaluate utility at matched recall.  We release only
+content-free aggregates and hashes, not conversations, responses, or private data.
 
 \section{Conclusion}
 
-Long-term memory verification should ask more than whether a retrieved item is
-topically relevant.  By separating relevance from query-conditioned admissibility,
-instrumenting stored--retrieved--exposed--disclosed events, and reporting matched-recall
-contamination with uncertainty bounds, we obtain a more diagnostic evaluation of
-agent memory.  The frozen evidence points to a practical lesson: trusted provenance
-constraints provide clear value, while extra routing complexity requires evidence
-beyond an unconstrained baseline.  The protocol turns that lesson into a testable,
-auditable contract for future memory systems.
+Long-term memory verification should ask whether retrieved evidence is admissible,
+not merely relevant.  Our three-valued verifier, observable trace, and matched-recall
+bounds make that question auditable.  Paired exposure shows that admissibility changes
+downstream disclosure even when relevance is held fixed, while the natural audit
+favors trusted provenance support over added routing complexity.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
@@ -516,6 +596,43 @@ auditable contract for future memory systems.
 \appendix
 
 \section{Metric Details}
+\label{app:metric-details}
+
+For completeness, the released-field lifecycle rule used in Section~3.1 is
+\begin{equation}
+\ell_z(m)=
+\begin{cases}
+1, & s_m=\text{current},\\
+1, & s_m\in\{\text{stale},\text{superseded}\},\ i_q=\text{history},\\
+0, & s_m\in\{\text{stale},\text{superseded}\},\ i_q=\text{current},\\
+?, & s_m=\text{unknown}\ \text{or}\ i_q=\text{unknown}.
+\end{cases}
+\label{eq:lifecycle}
+\end{equation}
+Writing $x_{zj}(m)$ for the recorded label on admissibility axis $j$, the verifier's
+known exclusion reasons and trusted-namespace support are
+\begin{align}
+\operatorname{reason}_z(m)
+&=\{j\in\{\mathrm{scope},\mathrm{policy},\mathrm{lifecycle}\}:x_{zj}(m)=0\},
+\label{eq:reasons}\\
+\mathcal{C}^{N}_z&=\{m\in\mathcal{M}:n_z(m)=1\},\qquad
+\pi^{N}_z=\operatorname{Rank}(q;\mathcal{C}^{N}_z).
+\label{eq:namespace-support}
+\end{align}
+For a feasible matched prefix of size $N$, the typed violation rate is
+\begin{equation}
+V^{(j)}_{qa}=\frac{1}{N}\sum_{m\in P_{qa}(\tau)}
+\mathbf{1}\{x_{zj}(m)=0\},
+\quad j\in\{\mathrm{scope},\mathrm{policy},\mathrm{lifecycle}\}.
+\label{eq:typed-violation}
+\end{equation}
+Finally, for leakage, utility, or refusal outcome $j$ and its own eligible population
+$\mathcal{Q}_j$, the strict-minus-base contrast is
+\begin{equation}
+\Delta_j=\frac{1}{|\mathcal{Q}_j|}\sum_{q\in\mathcal{Q}_j}
+\left(Y^{(j)}_{q,\mathrm{strict}}-Y^{(j)}_{q,\mathrm{base}}\right).
+\label{eq:safety-utility}
+\end{equation}
 
 For a matched prefix, known contamination is undefined when every item is unresolved;
 the lower and upper bounds remain defined.  Queries with no known usable anchors are
@@ -523,6 +640,15 @@ excluded from recall averages, and the evaluable rate is reported separately.  M
 averages never impute missing query metrics.  Duplicate ranked memory identifiers,
 missing assessments, negative runtime measurements, and non-finite values are
 rejected by the reference implementation.
+
+\begin{table}[ht]
+  \centering
+  \small
+  \caption{Source-macro diagnostics within feasible matched-recall prefixes.
+  These descriptive quantities do not use the infeasibility penalty.}
+  \label{tab:matched-prefix}
+  \input{generated/matched_prefix_diagnostics.tex}
+\end{table}
 
 \section{Natural-Corpus Construction and Arms}
 \label{app:arms}
@@ -598,7 +724,34 @@ An empty route in either router falls back to namespace-local dense retrieval.
   \input{generated/full_arm_results.tex}
 \end{table}
 
-\section{GateMem Scoring and Prediction}
+\section{GateMem Routing, Scoring, and Prediction}
+\label{app:gatemem}
+
+G0 is the exact upstream \texttt{rag\_naive} global TF--IDF route and G1 is the
+upstream \texttt{rag\_policy} route with released policy logic.  G2 starts at the
+authenticated asker, forms a connected component from explicit relationship IDs,
+and admits chunks spoken by principals in that component; it reads neither query or
+memory text nor leak targets when deciding support.  G3 adds only explicit pre-query
+delete or supersede operations.  Because the release contains none, G3 is
+trace-identical to G2.  G0 and G1 are upstream methods; G2 and G3 are diagnostics.
+
+Each reader prompt contains the question and ordered retrieved record IDs and texts,
+but not the arm name, scores, target strings, expected action, or gold answer.  Both
+readers use temperature zero, JSON mode, and at most 384 output tokens.  The runs are
+fresh, with no judge or output repair.  A strict parser accepts one object containing
+action, answer, structured answer, and a string-list audit field; the audit field is
+not scored, and parse failures receive conservative outcomes.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{generated/evidence_summary.pdf}
+  \caption{Observational GateMem evidence.  (a) Exposed-minus-unexposed answer
+  disclosure over \ReaderDiscordantCount{} discordant checkpoints.  (b) Predictive
+  value of exposure on \ReaderPredictionCount{} held-out rows.  (c) Reader A G1-minus-G0
+  leakage, bounded utility, and over-refusal.  Readers are not pooled; route contrasts
+  are non-causal and leakage and utility use different populations.}
+  \label{fig:gatemem-observational}
+\end{figure}
 
 Privacy checkpoints use the released privacy context-leak and answer-leak rules;
 safety checkpoints use the corresponding deletion rules.  The disclosure outcome
@@ -614,7 +767,26 @@ route width.  The augmented model adds only target exposure.  Each held-out epis
 is scored by a model fit on all other episodes.  Brier and log-loss differences are
 then resampled over episodes with 10,000 deterministic bootstrap replicates.
 
+\section{Controlled Exposure Construction}
+\label{app:paired-construction}
+
+Each of the 16 scenarios has two paraphrased query pairs, allow and block conditions,
+and three manipulated roles: a relevant focal candidate, an irrelevant-admissible
+candidate, and an irrelevant-inadmissible candidate.  The focal candidate is
+admissible under allow and inadmissible under block.  For every
+query--condition--candidate unit, two requests differ only in whether that candidate
+is exposed.  This yields 192 paired units and 384 requests for each reader.
+
+Every candidate carries a unique literal marker absent from the query and all other
+candidates.  The normalized-substring scorer counts the marker even inside a refusal;
+appearance after withholding is hallucinated disclosure.  Requests are stateless,
+temperature-zero, and deterministically interleaved.  All three readers complete the
+panel with one attempt per request.  There is no transport retry, judge, output
+repair, selective rerun, or model pooling.  The released result package contains only
+content-free pair scores, aggregates, hashes, costs, and bootstrap intervals.
+
 \section{Mechanism Smoke}
+\label{app:smoke}
 
 The candidate-pool smoke uses four development packets and 16 evaluation packets,
 with 7--12 candidate records per packet.  Namespace support preserves observed
@@ -634,7 +806,7 @@ performance estimate.
 
 \section{Reproducibility and Provenance}
 
-All paper numbers are generated from three normalized CSV evidence families.  Each
+All paper numbers are generated from four normalized CSV evidence families.  Each
 CSV has a manifest recording its output hash, frozen source paths and hashes,
 source-snapshot identity, and transformation-script hash.  The natural execution
 manifest proves complete coverage of nine settings over 3,767 queries in 33,903

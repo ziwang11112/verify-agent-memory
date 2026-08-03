@@ -29,7 +29,7 @@ REQUIRED_COLUMNS = {
     "n",
     "notes",
 }
-REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 8)}
+REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 9)}
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 PROHIBITED_OUTPUT_LABELS = {"ncr_threshold", "ncr_a5"}
 EXPECTED_METRIC_COUNTS = {
@@ -39,6 +39,7 @@ EXPECTED_METRIC_COUNTS = {
     "C5": 48,
     "C6": 6,
     "C7": 4,
+    "C8": 15,
 }
 
 
@@ -182,6 +183,20 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
         if method not in {"threshold_router", "cluster_router"}:
             return None
         return (method, metric)
+    if claim_id == "C8":
+        reader = {
+            "gpt-5.6-sol": "openai",
+            "gemini-3.6-flash": "gemini",
+            "deepseek-v4-pro": "deepseek",
+        }.get(row["source"])
+        if reader and metric in {
+            "relevant_admissible_effect",
+            "relevant_inadmissible_effect",
+            "irrelevant_admissible_effect",
+            "irrelevant_inadmissible_effect",
+            "selectivity_gap",
+        }:
+            return (reader, metric)
     return None
 
 
@@ -204,6 +219,13 @@ def _contract_interval_metric(row: Mapping[str, str]) -> str | None:
     if claim_id == "C6":
         method = row["contrast"].removesuffix("_minus_namespace_dense")
         return f"{method}_{metric}"
+    if claim_id == "C8":
+        reader = {
+            "gpt-5.6-sol": "openai",
+            "gemini-3.6-flash": "gemini",
+            "deepseek-v4-pro": "deepseek",
+        }.get(row["source"])
+        return f"{reader}_{metric}" if reader else None
     return None
 
 
@@ -393,6 +415,13 @@ def validate_evidence(repository_root: Path) -> list[str]:
                 errors.append(f"{prefix} lacks mechanism-smoke boundary")
             if row["claim_id"] == "C7" and "released_field_upper_bound" not in row["notes"]:
                 errors.append(f"{prefix} lacks lifecycle upper-bound boundary")
+            if row["claim_id"] == "C8":
+                notes = row["notes"]
+                if (
+                    "controlled_prompt_intervention" not in notes
+                    or "providers_not_pooled" not in notes
+                ):
+                    errors.append(f"{prefix} lacks controlled-exposure boundaries")
 
             claim = claims.get(claim_id)
             contract_path = _contract_value_path(row)

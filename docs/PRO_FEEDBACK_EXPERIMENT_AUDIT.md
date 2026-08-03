@@ -18,7 +18,7 @@ empirical claim.
 | Counterfactual admissibility pairs | Complete | `results/counterfactual_admissibility/` | Bind the primary and posthoc boundaries separately |
 | Practical top-k frontier | Complete | `natural_top_k_pareto.csv` | Use fixed-budget comparisons instead of emphasizing top-k 100 alone |
 | Same-population stage trace | Substantially complete on GateMem | Frozen routes, assembled prompts, and fresh reader answers for the same 2,218 checkpoints | State that route differences remain observational interventions |
-| Randomized or paired exposure intervention | Zero-call design complete; empirical run pending | `counterfactual_exposure_protocol.json`, pure construction/scoring module, and zero-call tests | Freeze exact reader snapshots and cost caps before any paid execution |
+| Randomized or paired exposure intervention | Complete for the frozen controlled population | `results/counterfactual_exposure/`, `evidence/normalized/counterfactual_exposure.csv`, and the hash-bound execution manifest | Preserve reader-specific estimates and the constructed-population boundary |
 | Direct RaMem comparison | Not comparable on the current governance populations | RaMem supports LoCoMo and LongMemEval-S, while this audit targets scope, policy, and lifecycle labels | Cite and contrast; do not port it as a nominal baseline without a common estimand |
 
 ## What Is Already Established
@@ -34,18 +34,27 @@ algorithm:
    on the frozen public-development sample.
 4. Strong verifiers can classify the focal counterfactual correctly while changing
    stable candidates that should not change, primarily through false denial.
+5. In a paired prompt intervention, all three frozen readers respond much more to
+   relevant admissible evidence than to relevant inadmissible evidence. The
+   selectivity gaps range from 0.65625 to 0.90625, but DeepSeek retains a positive
+   relevant-inadmissible exposure effect of 0.15625 [0.03125, 0.3125]. Reader
+   selectivity therefore does not replace pre-prompt verification.
 
-## Remaining Empirical Gap
+## Identification Gap Closed Within the Controlled Scope
 
-The unanswered empirical question is whether controlled exposure of a memory changes
-the final answer differently in the four relevance-by-admissibility cells. Existing
-GateMem route comparisons observe full retrieval-to-answer traces, but route policies
-alter more than one piece of context and exposure is not assigned independently. The
-new zero-call protocol therefore manipulates one candidate at a time while holding
-the query and all other candidates fixed. Its dataset contract, request construction,
-literal scorer, and bootstrap are implemented and tested; no reader result exists
-until a separately approved execution is complete.
+The paired experiment closes the specific identification gap raised by the review:
+whether assigned exposure changes literal final-answer disclosure differently in the
+four relevance-by-admissibility cells. It manipulates one candidate at a time while
+holding the query and all other candidates fixed. Each of the three frozen readers
+completed 192 paired units (384 requests), and all estimates use scenario-level
+bootstrap intervals without pooling readers.
+
+This evidence remains deliberately narrow. The 16 scenarios are controlled
+constructions, disclosure is detected by a literal marker scorer, and the experiment
+does not estimate natural prevalence, internal causal use, or production safety.
+Natural GateMem route comparisons remain observational because route policies alter
+more than one piece of context.
 
 No additional clustering, Bayesian indexing, broad public benchmark, or nominal
-RaMem port is prioritized. Those additions would increase surface area without
-addressing the remaining identification gap.
+RaMem port is prioritized. The next work is evidence packaging, manuscript boundary
+checking, and reproducibility verification rather than another reader run.

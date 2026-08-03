@@ -131,6 +131,9 @@ def _write_ascii_lines(path: Path, lines: Sequence[str]) -> None:
 
 
 def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
+    def exposure(source: str, metric: str) -> Row:
+        return _one(rows, claim_id="C8", source=source, metric=metric)
+
     return {
         "reader_a": _one(
             rows,
@@ -375,6 +378,19 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             claim_id="C7",
             metric="prohibited_superseded_exposure_delta",
         ),
+        "openai_exposure_admissible": exposure("gpt-5.6-sol", "relevant_admissible_effect"),
+        "openai_exposure_inadmissible": exposure("gpt-5.6-sol", "relevant_inadmissible_effect"),
+        "openai_exposure_gap": exposure("gpt-5.6-sol", "selectivity_gap"),
+        "gemini_exposure_admissible": exposure("gemini-3.6-flash", "relevant_admissible_effect"),
+        "gemini_exposure_inadmissible": exposure(
+            "gemini-3.6-flash", "relevant_inadmissible_effect"
+        ),
+        "gemini_exposure_gap": exposure("gemini-3.6-flash", "selectivity_gap"),
+        "deepseek_exposure_admissible": exposure("deepseek-v4-pro", "relevant_admissible_effect"),
+        "deepseek_exposure_inadmissible": exposure(
+            "deepseek-v4-pro", "relevant_inadmissible_effect"
+        ),
+        "deepseek_exposure_gap": exposure("deepseek-v4-pro", "selectivity_gap"),
     }
 
 
@@ -389,6 +405,80 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
         _macro("ReaderPredictionCount", _count(selected["reader_a_brier"])),
         _macro("GOneLeakageCount", _count(selected["g1_leakage"])),
         _macro("GOneUtilityCount", _count(selected["g1_utility"])),
+        _macro("ExposureScenarioCount", "16"),
+        _macro("ExposurePairsPerReader", "192"),
+        _macro(
+            "OpenAIExposureAdmissible",
+            _plain(_number(selected["openai_exposure_admissible"])),
+        ),
+        _macro(
+            "OpenAIExposureAdmissibleCI",
+            _ci(selected["openai_exposure_admissible"], signed=False),
+        ),
+        _macro(
+            "OpenAIExposureInadmissible",
+            _plain(_number(selected["openai_exposure_inadmissible"])),
+        ),
+        _macro(
+            "OpenAIExposureInadmissibleCI",
+            _ci(selected["openai_exposure_inadmissible"], signed=False),
+        ),
+        _macro(
+            "OpenAIExposureGap",
+            _plain(_number(selected["openai_exposure_gap"])),
+        ),
+        _macro(
+            "OpenAIExposureGapCI",
+            _ci(selected["openai_exposure_gap"], signed=False),
+        ),
+        _macro(
+            "GeminiExposureAdmissible",
+            _plain(_number(selected["gemini_exposure_admissible"])),
+        ),
+        _macro(
+            "GeminiExposureAdmissibleCI",
+            _ci(selected["gemini_exposure_admissible"], signed=False),
+        ),
+        _macro(
+            "GeminiExposureInadmissible",
+            _plain(_number(selected["gemini_exposure_inadmissible"])),
+        ),
+        _macro(
+            "GeminiExposureInadmissibleCI",
+            _ci(selected["gemini_exposure_inadmissible"], signed=False),
+        ),
+        _macro(
+            "GeminiExposureGap",
+            _plain(_number(selected["gemini_exposure_gap"])),
+        ),
+        _macro(
+            "GeminiExposureGapCI",
+            _ci(selected["gemini_exposure_gap"], signed=False),
+        ),
+        _macro(
+            "DeepSeekExposureAdmissible",
+            _plain(_number(selected["deepseek_exposure_admissible"])),
+        ),
+        _macro(
+            "DeepSeekExposureAdmissibleCI",
+            _ci(selected["deepseek_exposure_admissible"], signed=False),
+        ),
+        _macro(
+            "DeepSeekExposureInadmissible",
+            _plain(_number(selected["deepseek_exposure_inadmissible"])),
+        ),
+        _macro(
+            "DeepSeekExposureInadmissibleCI",
+            _ci(selected["deepseek_exposure_inadmissible"], signed=False),
+        ),
+        _macro(
+            "DeepSeekExposureGap",
+            _plain(_number(selected["deepseek_exposure_gap"])),
+        ),
+        _macro(
+            "DeepSeekExposureGapCI",
+            _ci(selected["deepseek_exposure_gap"], signed=False),
+        ),
         _macro(
             "LifecycleExposureCount",
             _count(selected["lifecycle_stale_delta"]),
@@ -618,18 +708,32 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
 def _write_main_table(path: Path, selected: Mapping[str, Row]) -> None:
     entries = [
         (
-            "Exposure/disclosure",
-            "Reader A risk difference",
-            _plain(_number(selected["reader_a"])),
-            _ci(selected["reader_a"], signed=False),
-            "C2",
+            "Paired exposure",
+            "GPT-5.6 selectivity gap",
+            _plain(_number(selected["openai_exposure_gap"])),
+            _ci(selected["openai_exposure_gap"], signed=False),
+            "C8",
         ),
         (
-            "Exposure/disclosure",
-            "Reader B risk difference",
-            _plain(_number(selected["reader_b"])),
-            _ci(selected["reader_b"], signed=False),
-            "C2",
+            "Paired exposure",
+            "Gemini 3.6 selectivity gap",
+            _plain(_number(selected["gemini_exposure_gap"])),
+            _ci(selected["gemini_exposure_gap"], signed=False),
+            "C8",
+        ),
+        (
+            "Paired exposure",
+            "DeepSeek V4 selectivity gap",
+            _plain(_number(selected["deepseek_exposure_gap"])),
+            _ci(selected["deepseek_exposure_gap"], signed=False),
+            "C8",
+        ),
+        (
+            "Paired exposure",
+            "DeepSeek inadmissible effect",
+            _plain(_number(selected["deepseek_exposure_inadmissible"])),
+            _ci(selected["deepseek_exposure_inadmissible"], signed=False),
+            "C8",
         ),
         (
             "G1 vs. G0",
@@ -658,20 +762,6 @@ def _write_main_table(path: Path, selected: Mapping[str, Row]) -> None:
             _signed(_number(selected["namespace_contamination_delta"])),
             _ci(selected["namespace_contamination_delta"]),
             "C5",
-        ),
-        (
-            "Threshold vs. namespace",
-            "Evidence recall",
-            _signed(_number(selected["threshold_recall_delta"])),
-            _ci(selected["threshold_recall_delta"]),
-            "C6",
-        ),
-        (
-            "Cluster vs. namespace",
-            "Evidence recall",
-            _signed(_number(selected["cluster_recall_delta"]), digits=4),
-            _ci(selected["cluster_recall_delta"], digits=4),
-            "C6",
         ),
         (
             "Lifecycle upper bound",

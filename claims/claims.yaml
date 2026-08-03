@@ -443,3 +443,133 @@ claims:
       - "Limitations"
     verification_tests:
       - "test_confidence_intervals_contain_estimates"
+
+  - id: C8
+    status: controlled_prompt_intervention
+    claim: "In fixed constructed scenarios, exposing relevant admissible evidence increased target disclosure more than exposing relevant inadmissible evidence across three separately reported readers; DeepSeek V4 Pro also showed a positive relevant-inadmissible exposure effect."
+    estimand: "Within-unit exposed-minus-withheld target-disclosure effects in four construction-defined relevance-by-admissibility cells, plus the relevant-admissible minus relevant-inadmissible effect contrast."
+    population: "Sixteen controlled scenarios spanning principal scope, policy purpose, lifecycle intent, and as-of time; 192 paired units and 384 stateless requests per reader."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+    execution_commit: "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+    source_artifacts:
+      - "results/counterfactual_exposure/manifest.json"
+      - "results/counterfactual_exposure/cell_metrics.csv"
+      - "results/counterfactual_exposure/bootstrap_ci.csv"
+      - "results/counterfactual_exposure/provider_usage.csv"
+    exact_values:
+      openai:
+        model: "gpt-5.6-sol"
+        relevant_admissible_effect: 0.90625
+        relevant_inadmissible_effect: 0.0
+        irrelevant_admissible_effect: 0.046875
+        irrelevant_inadmissible_effect: 0.0
+        selectivity_gap: 0.90625
+      gemini:
+        model: "gemini-3.6-flash"
+        relevant_admissible_effect: 0.8125
+        relevant_inadmissible_effect: 0.0
+        irrelevant_admissible_effect: 0.03125
+        irrelevant_inadmissible_effect: 0.0
+        selectivity_gap: 0.8125
+      deepseek:
+        model: "deepseek-v4-pro"
+        relevant_admissible_effect: 0.8125
+        relevant_inadmissible_effect: 0.15625
+        irrelevant_admissible_effect: 0.0
+        irrelevant_inadmissible_effect: 0.0
+        selectivity_gap: 0.65625
+      scenarios: 16
+      paired_units_per_reader: 192
+      requests_per_reader: 384
+      total_provider_calls_including_fixtures: 1155
+      model_pooling: false
+    confidence_intervals:
+      - metric: "openai_relevant_admissible_effect"
+        estimate: 0.90625
+        lower: 0.71875
+        upper: 1.0
+      - metric: "openai_relevant_inadmissible_effect"
+        estimate: 0.0
+        lower: -0.15625
+        upper: 0.125
+      - metric: "openai_irrelevant_admissible_effect"
+        estimate: 0.046875
+        lower: 0.0
+        upper: 0.140625
+      - metric: "openai_irrelevant_inadmissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "openai_selectivity_gap"
+        estimate: 0.90625
+        lower: 0.8125
+        upper: 0.96875
+      - metric: "gemini_relevant_admissible_effect"
+        estimate: 0.8125
+        lower: 0.6875
+        upper: 0.9375
+      - metric: "gemini_relevant_inadmissible_effect"
+        estimate: 0.0
+        lower: -0.0625
+        upper: 0.0625
+      - metric: "gemini_irrelevant_admissible_effect"
+        estimate: 0.03125
+        lower: 0.0
+        upper: 0.09375
+      - metric: "gemini_irrelevant_inadmissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "gemini_selectivity_gap"
+        estimate: 0.8125
+        lower: 0.6875
+        upper: 0.9375
+      - metric: "deepseek_relevant_admissible_effect"
+        estimate: 0.8125
+        lower: 0.71875
+        upper: 0.875
+      - metric: "deepseek_relevant_inadmissible_effect"
+        estimate: 0.15625
+        lower: 0.03125
+        upper: 0.3125
+      - metric: "deepseek_irrelevant_admissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "deepseek_irrelevant_inadmissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "deepseek_selectivity_gap"
+        estimate: 0.65625
+        lower: 0.5
+        upper: 0.8125
+    allowed_wording:
+      - "In the controlled prompt-level intervention, exposure increased disclosure substantially more for relevant admissible than relevant inadmissible evidence for each separately reported reader."
+      - "All three selectivity-gap intervals excluded zero."
+      - "DeepSeek V4 Pro showed a positive relevant-inadmissible exposure effect, indicating residual disclosure risk when filtering is deferred to the reader."
+    forbidden_wording:
+      - "The experiment estimates inadmissible-memory prevalence in natural agent histories."
+      - "The readers causally used the disclosed memory in their internal reasoning."
+      - "A positive selectivity gap establishes deployment safety."
+      - "GPT-5.6 Sol and Gemini have zero inadmissible-disclosure risk."
+      - "The three readers were pooled into one effect estimate."
+      - "This is an official benchmark result."
+    known_limitations:
+      - "The intervention uses sixteen constructed scenarios with literal target markers rather than a natural retrieval population."
+      - "Disclosure is detected by a fixed literal scorer and does not identify the reader's internal reasoning."
+      - "Provider estimates are reported separately and are never pooled."
+      - "Axis-specific estimates contain only four scenarios and are diagnostic."
+      - "The result applies to the exact frozen prompts and model snapshots."
+      - "Observed disclosure can occur even when the manipulated candidate is withheld; a zero paired effect is not a zero-risk claim."
+    paper_locations:
+      - "Retrieval Admissibility Methodology"
+      - "Experimental Design"
+      - "Controlled Exposure Results"
+      - "Figure 2"
+      - "Limitations"
+    verification_tests:
+      - "test_counterfactual_exposure_claim_requires_controlled_boundary"
+      - "test_counterfactual_exposure_claim_requires_no_pooling_boundary"
+      - "test_confidence_intervals_contain_estimates"

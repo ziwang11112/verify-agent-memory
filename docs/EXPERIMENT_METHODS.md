@@ -234,7 +234,10 @@ client. It can validate the protocol, materialize 384 provider-neutral requests 
 reader, and score a separately supplied complete response bundle. No empirical
 reader result or paid-call authorization is implied by this code path. A separate
 provider runner is hash-bound to an execution amendment and remains unusable for paid
-commands without an external exact-commit unlock.
+commands without an external exact-commit unlock. One separately authorized frozen
+execution has completed; its content-free result package is
+`results/counterfactual_exposure/`. That result does not add provider access to the
+construction CLI or authorize a rerun.
 
 ## Local Smoke
 

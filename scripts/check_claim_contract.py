@@ -45,10 +45,15 @@ REQUIRED_SOURCE_FIELDS = {
     "public_paper_label",
     "contains_raw_text_or_private_content",
 }
-SOURCE_CATEGORIES = {"PORT_AND_REFACTOR", "IMPORT_AS_FROZEN_AGGREGATE"}
+SOURCE_CATEGORIES = {
+    "PORT_AND_REFACTOR",
+    "IMPORT_AS_FROZEN_AGGREGATE",
+    "GENERATED_FROM_HASH_BOUND_EXECUTION",
+}
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 MIGRATION_SNAPSHOT = "a28093110325968c26906223e9eb0f1e078f6aad"
 NATURAL_EXECUTION_COMMIT = "8e34e3d41c56e1699696bc27be95cdac7c9528e5"
+COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT = "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
 
 
 def _is_sequence(value: Any) -> bool:
@@ -172,6 +177,19 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
         if "same-provider" not in limitations:
             errors.append(f"{claim_id} must include a same-provider limitation")
 
+    exposure = claim_by_id.get("C8")
+    if exposure:
+        limitations = _combined_text(exposure.get("known_limitations"))
+        if exposure.get("status") != "controlled_prompt_intervention":
+            errors.append("C8 must remain a controlled prompt intervention")
+        exact_values = exposure.get("exact_values")
+        if not isinstance(exact_values, Mapping) or exact_values.get("model_pooling") is not False:
+            errors.append("C8.model_pooling must be false")
+        if "constructed" not in limitations:
+            errors.append("C8 must include a constructed-scenario limitation")
+        if "never pooled" not in limitations:
+            errors.append("C8 must include a no-pooling limitation")
+
     if readable_contract is not None:
         for claim_id in claim_by_id:
             if f"### {claim_id}:" not in readable_contract:
@@ -216,9 +234,15 @@ def validate_source_index(source_data: Any, contract_data: Any) -> list[str]:
         source_hash = artifact.get("source_sha256")
         if not isinstance(source_hash, str) or not SHA256_PATTERN.fullmatch(source_hash):
             errors.append(f"{artifact_id}.source_sha256 must be a lowercase SHA-256")
-        if artifact.get("frozen_commit") != MIGRATION_SNAPSHOT:
+        category = artifact.get("category")
+        if category == "GENERATED_FROM_HASH_BOUND_EXECUTION":
+            if artifact.get("frozen_commit") != COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT:
+                errors.append(
+                    f"{artifact_id}.frozen_commit must match the paired-exposure execution"
+                )
+        elif artifact.get("frozen_commit") != MIGRATION_SNAPSHOT:
             errors.append(f"{artifact_id}.frozen_commit must match the migration snapshot")
-        if artifact.get("category") not in SOURCE_CATEGORIES:
+        if category not in SOURCE_CATEGORIES:
             errors.append(f"{artifact_id}.category is not allowed")
         if not isinstance(artifact.get("contains_raw_text_or_private_content"), bool):
             errors.append(f"{artifact_id}.contains_raw_text_or_private_content must be boolean")

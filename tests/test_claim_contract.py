@@ -119,6 +119,30 @@ def test_gatemem_claim_requires_same_provider_limitation() -> None:
     assert "C3 must include a same-provider limitation" in validate(data)
 
 
+def test_counterfactual_exposure_claim_requires_controlled_boundary() -> None:
+    data = load_valid_contract()
+    exposure = claim(data, "C8")
+    exposure["known_limitations"] = [
+        item for item in exposure["known_limitations"] if "constructed" not in item
+    ]
+    assert "C8 must include a constructed-scenario limitation" in validate(data)
+
+
+def test_counterfactual_exposure_claim_requires_no_pooling_boundary() -> None:
+    data = load_valid_contract()
+    exposure = claim(data, "C8")
+    exposure["known_limitations"] = [
+        item for item in exposure["known_limitations"] if "never pooled" not in item
+    ]
+    assert "C8 must include a no-pooling limitation" in validate(data)
+
+
+def test_counterfactual_exposure_claim_forbids_model_pooling() -> None:
+    data = load_valid_contract()
+    claim(data, "C8")["exact_values"]["model_pooling"] = None
+    assert "C8.model_pooling must be false" in validate(data)
+
+
 def test_readable_contract_must_render_every_claim() -> None:
     data = load_valid_contract()
     assert "CLAIM_CONTRACT.md does not render C7" in validate_contract(data, "### C1: only")

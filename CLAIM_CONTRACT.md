@@ -205,6 +205,43 @@ system inferred intent or state, or recommend deleting every stale memory.
 **Boundary:** Query intent and lifecycle state are released inputs. Historical
 queries may require records that are stale for current-state queries.
 
+## Controlled Prompt Intervention
+
+### C8: Paired exposure and target disclosure
+
+**Status:** Controlled prompt intervention
+
+Sixteen constructed scenarios independently vary relevance and admissibility across
+principal scope, policy purpose, lifecycle intent, and as-of time. For each
+query-condition-candidate unit, the reader receives two stateless requests that differ
+only in whether the manipulated candidate is exposed. Each reader completed 192 paired
+units (384 requests). Reader estimates are separate and are never pooled.
+
+| Reader | Relevant + admissible effect | Relevant + inadmissible effect | Selectivity gap (95% CI) |
+| --- | ---: | ---: | ---: |
+| `gpt-5.6-sol` | 0.90625 | 0.00000 | 0.90625 [0.81250, 0.96875] |
+| `gemini-3.6-flash` | 0.81250 | 0.00000 | 0.81250 [0.68750, 0.93750] |
+| `deepseek-v4-pro` | 0.81250 | 0.15625 | 0.65625 [0.50000, 0.81250] |
+
+The DeepSeek relevant-inadmissible effect has a 95% scenario-bootstrap interval of
+`[0.03125, 0.31250]`. OpenAI and Gemini have aggregate estimates of zero in that
+cell, but their exposed disclosure rates are not zero and a zero paired effect is not
+a zero-risk statement. Irrelevant-admissible effects are 0.046875, 0.03125, and 0.0;
+irrelevant-inadmissible effects are 0.0 for all three readers.
+
+**Allowed:** In this controlled prompt-level intervention, exposure increased target
+disclosure substantially more for relevant admissible than relevant inadmissible
+evidence for each reader. DeepSeek retained a positive relevant-inadmissible exposure
+effect, supporting pre-prompt verification rather than reliance on reader restraint.
+
+**Forbidden:** Do not call disclosure internal causal use, pool readers, infer
+natural-history prevalence, claim production safety, describe OpenAI or Gemini as
+having zero inadmissible-disclosure risk, or present this as an official benchmark.
+
+**Boundary:** The population contains sixteen constructed scenarios with literal
+markers and a fixed rule-based disclosure scorer. Axis-specific estimates have four
+scenarios each. There was no judge, retry, output repair, or selective rerun.
+
 ## Writing Rule
 
 Every manuscript sentence that asserts an empirical result must map to one claim ID.

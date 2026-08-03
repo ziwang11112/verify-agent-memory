@@ -27,16 +27,18 @@ labels, and verdicts are preserved in the example manifest. The figure defines t
 verification target and required observations. It does not infer policy, scope,
 intent, or lifecycle state, and it does not estimate population prevalence.
 
-## Figure 2: Exposure Is Informative, but Filtering Is Costly
+## Figure 2: Controlled Exposure Is Selective but Not a Safety Boundary
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
-| a | 721 GateMem exposure-discordant checkpoints | Exposed-minus-unexposed answer-disclosure risk difference | Exposure is strongly associated with answer disclosure for each reader |
-| b | 4,470 held-out GateMem rows | Exposure-augmented minus baseline Brier score and log loss | Exposure improves held-out prediction under two proper scores |
-| c | 1,490 leakage and 728 distinct bounded-utility checkpoints | G1-minus-G0 leakage, utility, and over-refusal | Stricter filtering exposes a safety--utility frontier |
+| a | 16 controlled scenarios; 192 paired units per reader | Literal target-disclosure rates with the relevant candidate withheld versus exposed, split by admissibility | Assigned exposure strongly changes disclosure for admissible evidence but has much less effect for inadmissible evidence |
+| b | Same paired population and three frozen readers | Exposed-minus-withheld disclosure effects in all four relevance-by-admissibility cells | The response is specific to evidence that is both relevant and admissible rather than exposure alone |
+| c | Same paired population | Relevant-admissible minus relevant-inadmissible effect, with the inadmissible effect shown separately | All readers have a positive selectivity gap, while DeepSeek retains a positive inadmissible exposure effect |
 
-**Boundaries:** Readers are same-provider and never pooled. Exposure/disclosure and G1/G0
-comparisons are associative, not causal. Leakage and utility populations differ.
+**Boundaries:** The three readers are reported separately and never pooled. Whiskers
+are 95% scenario-bootstrap intervals. The estimand is a controlled prompt-level
+effect on literal disclosure in a constructed population, not internal causal use,
+natural prevalence, production safety, or an official benchmark result.
 
 ## Figure 3: Namespace Support Carries the Retrieval Gain
 
@@ -53,6 +55,19 @@ There is no downstream reader result for this population. Lifecycle is an
 observed-field upper bound, not a deployable classifier. Panel d reverses the sign of
 lower-is-better risk and exposure quantities so that positive always denotes a
 favorable change.
+
+## Appendix Figure 4: Natural Route Traces Are Observational
+
+| Panel | Population | Quantity | Intended read |
+| --- | --- | --- | --- |
+| a | 721 GateMem exposure-discordant checkpoints | Exposed-minus-unexposed answer-disclosure risk difference | Exposure is strongly associated with answer disclosure for each reader |
+| b | 4,470 held-out GateMem rows | Exposure-augmented minus baseline Brier score and log loss | Exposure improves held-out prediction under two proper scores |
+| c | 1,490 leakage and 728 distinct bounded-utility checkpoints | G1-minus-G0 leakage, utility, and over-refusal | Stricter filtering exposes a safety--utility frontier |
+
+**Boundaries:** GateMem readers are same-provider and never pooled. Exposure/disclosure
+and G1/G0 route comparisons are associative, not causal. Leakage and utility
+populations differ. This figure complements but does not share a population or
+estimand with Figure 2.
 
 ## Rendering
 

@@ -1,7 +1,7 @@
 # Evidence Package
 
 The `normalized/` directory contains content-free aggregate measurements for claims
-C2-C7. It does not contain benchmark conversations, query text, memory text, model
+C2-C8. It does not contain benchmark conversations, query text, memory text, model
 responses, embeddings, or per-query identifiers.
 
 The `examples/` directory contains four deliberately selected, abridged
@@ -16,6 +16,7 @@ identifiers are retained solely to make the qualitative examples auditable.
 | `normalized/gatemem.csv` | Separate fixed-reader exposure/use associations and a clean-reader leakage-utility trade-off |
 | `normalized/mechanism_smoke.csv` | Sixteen curated candidate-pool evaluation packets only |
 | `normalized/natural_evaluation.csv` | Source-macro evaluation over 87 groups, 182,908 memories, and 3,767 queries |
+| `normalized/counterfactual_exposure.csv` | Reader-separated paired prompt interventions over 16 controlled scenarios |
 
 Every CSV uses the same schema:
 
@@ -56,6 +57,8 @@ uv run --extra dev python scripts/verify_evidence.py
 The verifier rejects changed CSVs, changed transformation code, unindexed or changed
 source hashes, path traversal, non-finite values, malformed intervals, retired method
 labels, values or intervals that drift from `claims/claims.yaml`, and missing
-claim-specific interpretation boundaries. Figure-example JSON is separately
+claim-specific interpretation boundaries. Paired-exposure evidence is additionally
+bound to the exact execution commit and a content-free publication manifest.
+Figure-example JSON is separately
 validated by the paper artifact builder and hash-bound in
 `paper/generated/artifact_manifest.json`.

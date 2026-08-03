@@ -372,3 +372,47 @@ artifacts:
     transformation_required: "Extract frozen boundaries and conclusions; omit historical status language."
     public_paper_label: "full public-source evaluation"
     contains_raw_text_or_private_content: false
+
+  - id: counterfactual_exposure_manifest
+    category: GENERATED_FROM_HASH_BOUND_EXECUTION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+    source_path: "results/counterfactual_exposure/manifest.json"
+    source_sha256: "a8574e39b2fa23a65491ead0329954251bd9cde51344330ee94e39e3c4afeda1"
+    intended_normalized_destination: "evidence/manifests/counterfactual_exposure.json"
+    transformation_required: "Preserve execution, protocol, checkpoint, response-bundle, scoring, cost, and content-free publication receipts."
+    public_paper_label: "paired counterfactual exposure execution manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: counterfactual_exposure_cells
+    category: GENERATED_FROM_HASH_BOUND_EXECUTION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+    source_path: "results/counterfactual_exposure/cell_metrics.csv"
+    source_sha256: "98c9bd7fb04f5c945aa90b08ff05d4d265c461f736be85a5c46e87ef70072140"
+    intended_normalized_destination: "evidence/normalized/counterfactual_exposure.csv"
+    transformation_required: "Select overall construction-defined cells and preserve reader-separated exposed, withheld, and paired-effect estimates."
+    public_paper_label: "paired exposure cell metrics"
+    contains_raw_text_or_private_content: false
+
+  - id: counterfactual_exposure_bootstrap
+    category: GENERATED_FROM_HASH_BOUND_EXECUTION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+    source_path: "results/counterfactual_exposure/bootstrap_ci.csv"
+    source_sha256: "3e745921ba8e66304e656bcaca96bc63a4db0303c5c01c93fad5a1200a391dd9"
+    intended_normalized_destination: "evidence/normalized/counterfactual_exposure.csv"
+    transformation_required: "Preserve all four relevance-by-admissibility effects and the selectivity gap with scenario-bootstrap intervals; never pool readers."
+    public_paper_label: "paired exposure uncertainty"
+    contains_raw_text_or_private_content: false
+
+  - id: counterfactual_exposure_usage
+    category: GENERATED_FROM_HASH_BOUND_EXECUTION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+    source_path: "results/counterfactual_exposure/provider_usage.csv"
+    source_sha256: "ff62365d1c6a7fca4df8c95afcc37ac11832088d8e6a72b8cc49646c30f55699"
+    intended_normalized_destination: "evidence/manifests/counterfactual_exposure.json"
+    transformation_required: "Retain content-free call, token, latency, cost, checkpoint, and score receipts; do not publish responses."
+    public_paper_label: "paired exposure execution usage"
+    contains_raw_text_or_private_content: false
