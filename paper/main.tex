@@ -6,6 +6,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
+\usepackage{array}
 \usepackage{booktabs}
 \usepackage{float}
 \usepackage{graphicx}
@@ -251,77 +252,138 @@ effect in the constructed population, not internal model use or natural prevalen
 
 \section{Experimental Design}
 
-We follow the enforcement path from support to verification to reader exposure.
-Table~\ref{tab:experiment-map} fixes the distinct populations; they are never pooled.
+We evaluate each boundary in the enforcement path separately: candidate support,
+metadata reliability, text-only verification, and downstream exposure.  Table~\ref{tab:experiment-map}
+states the data, comparisons, and primary outcomes for every main experiment.  The
+natural, public-development, and constructed populations are never pooled.
 
-\begin{table}[H]
+\begin{table}[!t]
   \centering
   \footnotesize
-  \setlength{\tabcolsep}{5pt}
-  \caption{Experimental units and observables.  Populations are not pooled.}
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.08}
+  \caption{Main experimental setup.  Each row is a separate population; exact
+  revision hashes and the complete parameter grid are retained in the appendix.}
   \label{tab:experiment-map}
-  \begin{tabular}{@{}p{0.18\textwidth}p{0.27\textwidth}p{0.49\textwidth}@{}}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.29\textwidth}
+                       >{\raggedright\arraybackslash}p{0.37\textwidth}
+                       >{\raggedright\arraybackslash}p{0.27\textwidth}@{}}
     \toprule
-    Unit & Population & Comparison and observable \\
+    Experiment and data & Systems compared & Primary outcomes \\
     \midrule
-    Natural support & 23 dev. + 87 eval. groups; 3,767 eval. queries & Frozen
-      global/namespace rankings at $k\in\{10,20,50,100\}$ \\
-    Metadata reliability & Same 87 groups; 10 seeds/channel & Axis attribution and
-      false allow, false deny, missing, or namespace swap \\
-    Text verification & 24 calibration + 72 analysis cases & Released oracle versus
-      GPT-5.6 and Gemini on fixed top-20 pools \\
-    Controlled verification & 16 scenarios; 32 focal + 64 stable pairs & Focal
-      consistency, stable overflip, and error type \\
-    Paired exposure & 16 scenarios; $3\times384$ answers & Candidate withheld versus
-      exposed; cell effects and selectivity gap \\
+    \textbf{Natural support.} Public RHELM + MemOps; 23 development and
+      \NaturalGroupCount{} evaluation groups; \NaturalQueryCount{} evaluation queries
+      & Nine frozen retrieval arms. Primary: global versus namespace dense at
+      $k\in\{10,20,50,100\}$ & Evidence recall, feasible rate at $\tau=.8$,
+      admissibility risk, candidates scored \\
+    \addlinespace[2pt]
+    \textbf{Metadata reliability.} Same evaluation groups; 10 seeds per channel and
+      eight corruption rates & Frozen namespace, policy, lifecycle, and combined
+      filters under false allow, false deny, missing, and swap errors & Joint
+      dominance, typed violations, route work \\
+    \addlinespace[2pt]
+    \textbf{Natural verification.} 96 public-development queries; 24 calibration and
+      72 analysis cases; fixed top-20 pools & Namespace dense, released-field oracle,
+      and direct/abstaining text filters from GPT-5.6 Sol and Gemini 3.6 Flash & Route
+      utility--risk and violation discrimination \\
+    \addlinespace[2pt]
+    \textbf{Controlled verification.} \ExposureScenarioCount{} scenarios; 32 focal
+      and 64 stable pairs & Keep-all control, released-label oracle, GPT-5.6 Sol,
+      Gemini 3.6 Flash, DeepSeek V4 Pro & Focal consistency, stable overflip, false
+      denial/admission \\
+    \addlinespace[2pt]
+    \textbf{Paired exposure.} Same scenarios; \ExposurePairsPerReader{} pairs and
+      384 requests per reader & One candidate withheld versus exposed for each of the
+      three readers & Cell-specific disclosure effect and selectivity gap \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\paragraph{Natural retrieval and robustness.}
-The main audit combines public RHELM and MemOps sources
-\citep{zhang2026rhelm,hao2026memops}.  Development contains 23 disjoint groups,
-45,978 memories, and 1,104 queries; evaluation contains \NaturalGroupCount{} groups,
-\NaturalMemoryCount{} memories, and \NaturalQueryCount{} queries.  Released evidence
-IDs, provenance, and deterministic operation replay provide anchors and states; there
-is no candidate subsampling, positive injection, or human-overlap label.  Nine frozen
-arms share a pinned Qwen3-Embedding-8B revision and exact inner-product ranking.  A
-165-setting grid is selected on development with the historical v1 non-usable risk;
-the \NaturalRouteRows{} evaluation routes receive no retuning or repair
-(Appendix~\ref{app:arms}).  We post-hoc re-score frozen global/namespace prefixes at
-$k\in\{10,20,50,100\}$ with v2 admissibility risk and separately evaluate corrected
-\texttt{released\_governance\_oracle\_v2} semantics without tuning.
+\subsection{Datasets and splits}
 
-Corruption changes only method-visible metadata; labels, embeddings, dense scores,
-and settings stay fixed.  False allow, false deny, missingness, and namespace swap are
-nested over ten seeds at rates $\{0,.02,.05,.10,.20,.30,.40,.50\}$.  Support-expanding
-false allow and source swap trigger full-corpus reranking.  Dominance requires no lower
-feasibility and no higher v2 risk; reported break-even values are adjacent observed
-grid points, not interpolated thresholds.
+The natural retrieval audit combines public RHELM conversation histories and MemOps
+profiles and operation traces \citep{zhang2026rhelm,hao2026memops}.  Development has
+23 disjoint persona/profile groups, 45,978 memories, and 1,104 queries; evaluation has
+\NaturalGroupCount{} groups, \NaturalMemoryCount{} memories, and
+\NaturalQueryCount{} queries.  For RHELM, a query can retrieve only turns strictly
+earlier than its date; for MemOps, every method-visible dialogue memory in the split
+is eligible for global retrieval.  Namespace support then restricts candidates to the
+query persona or profile.  Released evidence IDs, provenance, and deterministic
+operation replay provide relevance anchors and governance states.  We use no
+candidate subsampling, positive injection, or human-overlap label.
 
-\paragraph{Inference and exposure.}
-The natural diagnostic fixes top-20 pools for 96 public-development cases, selecting
-thresholds on 24 and applying them once to 72.  Released fields define an oracle;
-\texttt{gpt-5.6-sol} and \texttt{gemini-3.6-flash} infer from text and are reported
-separately.  A separate 16-scenario diagnostic varies principal, policy purpose,
-lifecycle intent, or as-of time, with 32 focal and 64 stable pairs; support requires
-focal consistency $\geq.80$ and stable overflip $\leq.05$.
+The text-verification diagnostic is a stable-hash sample of 96 public-development
+queries: 32 RHELM current-state, 32 MemOps current-state, and 32 MemOps history
+queries.  Eight cases per stratum select thresholds and 24 per stratum form the 72-case
+analysis set.  A separate constructed diagnostic contains four scenarios for each of
+principal scope, policy purpose, lifecycle intent, and as-of time.  Each scenario has
+two paraphrased query pairs over a fixed three-candidate pool.  The paired exposure
+experiment reuses those governing conditions with independently frozen relevance and
+admissibility labels.  These diagnostic populations are not estimates of natural
+prevalence.
 
-The paired exposure experiment uses the same four axes in \ExposureScenarioCount{}
-constructed scenarios.  With query and background fixed, one candidate is withheld
-or exposed, yielding \ExposurePairsPerReader{} paired units and 384 requests for each
-of GPT-5.6, Gemini 3.6, and DeepSeek V4 Pro.  A literal scorer, one attempt, and no
-judge, repair, selective rerun, or pooling are used (Appendix~\ref{app:paired-construction}).
-Appendices~\ref{app:gatemem} and \ref{app:smoke} report the observational GateMem audit
-\citep{ren2026gatemem} and the candidate-pool implementation smoke.
+\subsection{Models and comparison systems}
 
-\paragraph{Outcomes and boundaries.}
-Historical v1 and post-hoc v2 risks retain distinct names.  We report recall,
-feasibility at $\tau=.8$, v2 risk and its two components, typed violations, and work.
-Fixed-budget, controlled-verification, and paired-exposure intervals use 10,000
-source- or scenario-clustered replicates; corruption means are descriptive.  The
-natural run has no downstream reader and is not an official benchmark score; candidate
-counts are not production cost.  All values are hash-bound normalized evidence.
+All dense retrieval arms use the pinned \texttt{Qwen/Qwen3-Embedding-8B} snapshot:
+4,096-dimensional float32 vectors, a 512-token maximum, unit-normalized last-token
+pooling, exact inner product, and stable memory-ID tie breaking.  The nine
+development-selected arms are global BM25, global dense, BM25--dense reciprocal-rank
+fusion, recency-augmented dense, namespace dense, query-agnostic current-only,
+historical released-field v1, a threshold router, and a cluster router.  The primary
+v2 support analysis holds the global- and namespace-dense rankings fixed across four
+budgets; policy-only, lifecycle-only, and combined released-governance filters are
+untuned attribution diagnostics.  Appendix~\ref{app:arms} gives the exact model
+revision, scoring equations, and selected settings.
+
+Natural text verification compares the fixed namespace-dense top-20 pool with a
+released-field oracle, a thresholded text filter, and an abstaining variant using
+complete outputs from \texttt{gpt-5.6-sol} and \texttt{gemini-3.6-flash}.  The
+controlled verifier and paired-exposure panels also include
+\texttt{deepseek-v4-pro}.  Each model sees the same semantic task contract; provider
+adapters do not change its meaning, and only complete bundles enter a comparison.
+The paired readers are run at temperature zero, with one accepted response per
+request and no judge, semantic repair, selective rerun, or cross-model pooling.
+
+\subsection{Metrics}
+
+The primary natural-retrieval outcomes are evidence recall, feasible rate at target
+recall $\tau=.8$, and the penalized admissibility upper risk defined in
+Section~3.3.  We report its infeasibility and feasible-prefix components so that
+greater coverage cannot masquerade as cleaner retrieved context.  Conditional
+summaries include known violation rate, label coverage, lower and upper bounds, and
+wrong-scope, policy-disallowed, and lifecycle-incompatible exposure.  Candidates
+scored and route width measure algorithmic work, not deployment latency.
+
+For natural text verification, classifier diagnostics include balanced accuracy,
+Brier score, ECE, ROC-AUC, PR-AUC, violation precision and recall, abstention
+coverage, and required-anchor false-denial rate.  Controlled verification uses strict
+focal-pair consistency and stable-control overflip as primary outcomes, with false
+denial and false admission locating the error direction.  Paired exposure uses the
+exposed-minus-withheld disclosure effect in each relevance-by-admissibility cell and
+the selectivity gap in Equation~\ref{eq:paired-exposure}; refusal and hallucinated
+disclosure are diagnostics.  Thus retrieval, verification, and disclosure are scored
+at the stage where each is observable.
+
+\subsection{Selection, uncertainty, and boundaries}
+
+A 165-setting retrieval grid is selected on development only using a lexicographic
+objective: maximize feasible rate, minimize historical v1 penalized non-usable upper
+risk, then break ties by known-label risk, recall, work, and stable setting ID.  The
+\NaturalRouteRows{} evaluation routes receive no retuning or repair.  Corrected v2
+results are post-hoc re-scores of frozen rankings, and the released-governance v2
+oracle receives no tuning.  Metadata corruption changes only method-visible fields;
+labels, embeddings, dense scores, and retrieval settings remain fixed.  Each channel
+uses nested rates $\{0,.02,.05,.10,.20,.30,.40,.50\}$ over ten seeds; support-expanding
+errors rerank the resulting candidate set.  A dominance break is an adjacent observed
+grid bracket, not an interpolated population threshold.
+
+Natural retrieval is macro-averaged within source and then equally across RHELM and
+MemOps.  Fixed-budget, verifier, and exposure intervals use 10,000 source- or
+scenario-clustered bootstrap replicates; corruption means are descriptive.  The
+natural run has no downstream reader, models and experimental populations are never
+pooled, and none of these results is an official RHELM, MemOps, or GateMem benchmark
+score.  Appendices~\ref{app:gatemem} and \ref{app:smoke} retain the secondary
+observational GateMem audit \citep{ren2026gatemem} and implementation smoke.
 
 \section{Results}
 
