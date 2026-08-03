@@ -37,8 +37,8 @@ MODEL_LABELS = {
 }
 MODEL_COLORS = {
     "OpenAI": "#195B9A",
-    "Gemini": "#9A4D8E",
-    "DeepSeek": "#248A8D",
+    "Gemini": "#D9822B",
+    "DeepSeek": "#7B5AA6",
 }
 CELL_ORDER = (
     "relevant_admissible",
@@ -47,10 +47,10 @@ CELL_ORDER = (
     "irrelevant_inadmissible",
 )
 CELL_LABELS = {
-    "relevant_admissible": "Relevant + admissible",
-    "relevant_inadmissible": "Relevant + inadmissible",
-    "irrelevant_admissible": "Irrelevant + admissible",
-    "irrelevant_inadmissible": "Irrelevant + inadmissible",
+    "relevant_admissible": "Relevant / admissible",
+    "relevant_inadmissible": "Relevant / inadmissible",
+    "irrelevant_admissible": "Irrelevant / admissible",
+    "irrelevant_inadmissible": "Irrelevant / inadmissible",
 }
 GAP_CONTRAST = "relevant_admissible_minus_relevant_inadmissible_exposure_effect"
 
@@ -183,27 +183,9 @@ def source_data_rows(models: Sequence[ModelData]) -> tuple[dict[str, object], ..
     for model in models:
         for cell in CELL_ORDER:
             data = model.cells[cell]
-            for exposure, value in (
-                ("withheld", data.withheld_disclosure),
-                ("exposed", data.exposed_disclosure),
-            ):
-                rows.append(
-                    {
-                        "panel": "a",
-                        "provider": model.provider,
-                        "model": model.model,
-                        "cell": cell,
-                        "metric": "disclosure_rate",
-                        "exposure": exposure,
-                        "value": value,
-                        "ci_lower": "",
-                        "ci_upper": "",
-                        "unit_count": 32 if cell.startswith("relevant_") else 64,
-                    }
-                )
             rows.append(
                 {
-                    "panel": "b",
+                    "panel": "a",
                     "provider": model.provider,
                     "model": model.model,
                     "cell": cell,
@@ -217,7 +199,7 @@ def source_data_rows(models: Sequence[ModelData]) -> tuple[dict[str, object], ..
             )
         rows.append(
             {
-                "panel": "c",
+                "panel": "b",
                 "provider": model.provider,
                 "model": model.model,
                 "cell": "relevant_admissible_minus_relevant_inadmissible",
@@ -227,6 +209,21 @@ def source_data_rows(models: Sequence[ModelData]) -> tuple[dict[str, object], ..
                 "ci_lower": model.selectivity_gap.lower,
                 "ci_upper": model.selectivity_gap.upper,
                 "unit_count": 64,
+            }
+        )
+        residual = model.cells["relevant_inadmissible"].effect
+        rows.append(
+            {
+                "panel": "b",
+                "provider": model.provider,
+                "model": model.model,
+                "cell": "relevant_inadmissible",
+                "metric": "residual_inadmissible_exposure_effect",
+                "exposure": "exposed_minus_withheld",
+                "value": residual.value,
+                "ci_lower": residual.lower,
+                "ci_upper": residual.upper,
+                "unit_count": 32,
             }
         )
     return tuple(rows)
@@ -240,16 +237,16 @@ def apply_style() -> None:
             "svg.fonttype": "none",
             "svg.hashsalt": "counterfactual-exposure-v1",
             "pdf.fonttype": 42,
-            "font.size": 7,
-            "axes.titlesize": 8,
-            "axes.labelsize": 7,
-            "xtick.labelsize": 6.4,
-            "ytick.labelsize": 6.4,
+            "font.size": 8.8,
+            "axes.titlesize": 9.2,
+            "axes.labelsize": 8.8,
+            "xtick.labelsize": 7.8,
+            "ytick.labelsize": 7.8,
             "axes.spines.right": False,
             "axes.spines.top": False,
             "axes.linewidth": 0.8,
             "legend.frameon": False,
-            "legend.fontsize": 6.2,
+            "legend.fontsize": 7.8,
             "figure.facecolor": "white",
             "axes.facecolor": "white",
         }
@@ -262,7 +259,7 @@ def _panel_label(axis: plt.Axes, label: str) -> None:
         1.08,
         label,
         transform=axis.transAxes,
-        fontsize=9,
+        fontsize=10,
         fontweight="bold",
         ha="left",
         va="top",
@@ -270,96 +267,6 @@ def _panel_label(axis: plt.Axes, label: str) -> None:
 
 
 def _panel_a(axis: plt.Axes, models: Sequence[ModelData]) -> None:
-    admissible_color = "#238B57"
-    inadmissible_color = "#C44E52"
-    for index, model in enumerate(models):
-        for offset, cell, color, marker in (
-            (-0.14, "relevant_admissible", admissible_color, "o"),
-            (0.14, "relevant_inadmissible", inadmissible_color, "s"),
-        ):
-            data = model.cells[cell]
-            x = index + offset
-            axis.plot(
-                (x, x),
-                (data.withheld_disclosure, data.exposed_disclosure),
-                color=color,
-                linewidth=1.6,
-                alpha=0.8,
-                zorder=1,
-            )
-            axis.scatter(
-                x,
-                data.withheld_disclosure,
-                marker=marker,
-                s=24,
-                facecolor="white",
-                edgecolor=color,
-                linewidth=1.0,
-                zorder=3,
-            )
-            axis.scatter(
-                x,
-                data.exposed_disclosure,
-                marker=marker,
-                s=29,
-                facecolor=color,
-                edgecolor="white",
-                linewidth=0.7,
-                zorder=4,
-            )
-            axis.text(
-                x,
-                min(1.02, data.exposed_disclosure + 0.055),
-                f"{data.exposed_disclosure:.2f}",
-                ha="center",
-                va="bottom",
-                fontsize=5.7,
-                color=color,
-                fontweight="bold",
-            )
-    axis.set_xticks(range(len(models)))
-    axis.set_xticklabels(
-        [MODEL_LABELS[model.provider] for model in models], rotation=18, ha="right"
-    )
-    axis.set_ylim(-0.03, 1.08)
-    axis.set_yticks((0, 0.25, 0.5, 0.75, 1.0))
-    axis.set_ylabel("Target disclosure rate")
-    axis.set_title("Exposure drives admissible disclosure", loc="left", fontweight="bold")
-    axis.grid(axis="y", color="#E6E8EA", linewidth=0.6)
-    handles = (
-        Line2D([], [], marker="o", color=admissible_color, label="Relevant + admissible"),
-        Line2D([], [], marker="s", color=inadmissible_color, label="Relevant + inadmissible"),
-        Line2D(
-            [],
-            [],
-            marker="o",
-            linestyle="none",
-            markerfacecolor="white",
-            markeredgecolor="#666666",
-            label="Withheld",
-        ),
-        Line2D(
-            [],
-            [],
-            marker="o",
-            linestyle="none",
-            markerfacecolor="#666666",
-            markeredgecolor="white",
-            label="Exposed",
-        ),
-    )
-    axis.legend(
-        handles=handles,
-        loc="lower center",
-        bbox_to_anchor=(0.5, -0.37),
-        ncol=2,
-        columnspacing=0.8,
-        handletextpad=0.4,
-    )
-    _panel_label(axis, "a")
-
-
-def _panel_b(axis: plt.Axes, models: Sequence[ModelData]) -> None:
     y_base = np.arange(len(CELL_ORDER))[::-1]
     offsets = (0.18, 0.0, -0.18)
     axis.axhspan(2.55, 3.45, color="#EAF5EE", zorder=-3)
@@ -390,7 +297,7 @@ def _panel_b(axis: plt.Axes, models: Sequence[ModelData]) -> None:
     axis.set_xlim(-0.22, 1.08)
     axis.set_xticks((-0.2, 0, 0.4, 0.8, 1.0))
     axis.set_xlabel("Paired exposure effect (exposed minus withheld)")
-    axis.set_title("Paired effects by evidence cell", loc="left", fontweight="bold")
+    axis.set_title("Exposure effects by evidence cell", loc="left", fontweight="bold")
     axis.grid(axis="x", color="#E6E8EA", linewidth=0.6)
     handles = tuple(
         Line2D(
@@ -411,10 +318,10 @@ def _panel_b(axis: plt.Axes, models: Sequence[ModelData]) -> None:
         columnspacing=0.7,
         handletextpad=0.3,
     )
-    _panel_label(axis, "b")
+    _panel_label(axis, "a")
 
 
-def _panel_c(axis: plt.Axes, models: Sequence[ModelData]) -> None:
+def _panel_b(axis: plt.Axes, models: Sequence[ModelData]) -> None:
     y = np.arange(len(models))[::-1]
     axis.axvline(0, color="#6D7379", linewidth=0.8, linestyle="--", zorder=0)
     for position, model in zip(y, models, strict=True):
@@ -439,7 +346,7 @@ def _panel_c(axis: plt.Axes, models: Sequence[ModelData]) -> None:
             f"{gap.value:.2f}",
             ha="left",
             va="center",
-            fontsize=6.0,
+            fontsize=7.2,
             color=color,
             fontweight="bold",
         )
@@ -455,12 +362,27 @@ def _panel_c(axis: plt.Axes, models: Sequence[ModelData]) -> None:
             markerfacecolor="white",
             markeredgewidth=1.0,
         )
+        if risk.lower > 0:
+            axis.annotate(
+                f"{risk.value:+.3f} [{risk.lower:.3f}, {risk.upper:.3f}]",
+                xy=(risk.value, position - 0.13),
+                xytext=(0.38, position + 0.48),
+                fontsize=7.0,
+                color="#A83236",
+                fontweight="bold",
+                arrowprops={
+                    "arrowstyle": "-",
+                    "color": "#A83236",
+                    "linewidth": 0.7,
+                },
+            )
     axis.set_yticks(y)
     axis.set_yticklabels([MODEL_LABELS[model.provider] for model in models])
     axis.set_xlim(-0.18, 1.10)
+    axis.set_ylim(-0.45, 2.45)
     axis.set_xticks((0, 0.25, 0.5, 0.75, 1.0))
     axis.set_xlabel("Paired effect")
-    axis.set_title("Selectivity vs residual risk", loc="left", fontweight="bold")
+    axis.set_title("Residual leakage remains", loc="left", fontweight="bold")
     axis.grid(axis="x", color="#E6E8EA", linewidth=0.6)
     handles = (
         Line2D([], [], marker="o", linestyle="none", color="#555555", label="Selectivity gap"),
@@ -482,25 +404,24 @@ def _panel_c(axis: plt.Axes, models: Sequence[ModelData]) -> None:
         ncol=1,
         handletextpad=0.35,
     )
-    _panel_label(axis, "c")
+    _panel_label(axis, "b")
 
 
 def render_figure(models: Sequence[ModelData], output_dir: Path) -> tuple[Path, ...]:
     apply_style()
-    figure = plt.figure(figsize=(7.2, 3.35), constrained_layout=False)
+    figure = plt.figure(figsize=(7.2, 3.2), constrained_layout=False)
     grid = figure.add_gridspec(
         1,
-        3,
-        width_ratios=(1.18, 1.55, 1.0),
-        left=0.07,
+        2,
+        width_ratios=(1.45, 1.0),
+        left=0.17,
         right=0.98,
         top=0.88,
-        bottom=0.27,
-        wspace=0.62,
+        bottom=0.24,
+        wspace=0.48,
     )
     _panel_a(figure.add_subplot(grid[0, 0]), models)
     _panel_b(figure.add_subplot(grid[0, 1]), models)
-    _panel_c(figure.add_subplot(grid[0, 2]), models)
     output_dir.mkdir(parents=True, exist_ok=True)
     paths = tuple(output_dir / f"{FIGURE_BASENAME}.{suffix}" for suffix in ("svg", "pdf", "png"))
     figure.savefig(paths[0], metadata={"Date": None})
@@ -515,19 +436,18 @@ def render_figure(models: Sequence[ModelData], output_dir: Path) -> tuple[Path, 
 def caption_text() -> str:
     return """# Figure Caption
 
-**Controlled exposure changes disclosure selectively, but readers remain an unsafe
-last line of defense.** **a,** Target-disclosure rates when the manipulated relevant
-candidate is withheld (open marker) or exposed (filled marker), separately for
-construction-defined admissible and inadmissible candidates. **b,** Paired
-exposed-minus-withheld disclosure effects in the four relevance-by-admissibility cells.
-Points are reader-specific estimates; whiskers are 95% scenario-bootstrap intervals
-(10,000 replicates; 16 scenarios). **c,** Difference between the relevant-admissible
-and relevant-inadmissible exposure effects. Readers are reported separately and never
-pooled. Red squares show the relevant-inadmissible exposure effect; its interval is
-strictly positive for DeepSeek V4 Pro. Each reader completed 384 stateless requests (192 paired
-units), with no judge, retry, output repair, or selective rerun. The construction is a
-controlled prompt-level diagnostic, not an official benchmark or natural-corpus
-prevalence estimate.
+**Exposure converts residual verification errors into disclosure.** **a,** Paired
+exposed-minus-withheld disclosure effects in the four relevance-by-admissibility
+cells. Points are reader-specific estimates; whiskers are 95% scenario-bootstrap
+intervals (10,000 replicates; 16 scenarios). **b,** Selectivity gap between the
+relevant-admissible and relevant-inadmissible exposure effects (circles), alongside
+the residual relevant-inadmissible effect (open red squares). Readers are reported
+separately and never pooled. The residual interval is strictly positive for DeepSeek
+V4 Pro (+0.156 [0.031, 0.312]), showing that reader restraint cannot guarantee safety
+after an inadmissible memory reaches the prompt. Each reader completed 384 stateless
+requests (192 paired units), with no judge, retry, output repair, or selective rerun.
+The construction is a controlled prompt-level diagnostic, not an official benchmark
+or natural-corpus prevalence estimate.
 """
 
 
@@ -565,13 +485,14 @@ def generate(results_dir: Path, output_dir: Path) -> Mapping[str, object]:
         "schema_version": 1,
         "status": "publication_figure_from_controlled_content_free_results",
         "core_conclusion": (
-            "exposure increases disclosure more for relevant admissible than relevant "
-            "inadmissible evidence across three separately reported readers"
+            "exposure increases admissible disclosure selectively, but a strictly positive "
+            "residual inadmissible effect for DeepSeek shows that reader restraint cannot "
+            "guarantee safety after prompt exposure"
         ),
         "archetype": "quantitative_grid",
         "backend": "python_matplotlib",
         "final_width_in": 7.2,
-        "final_height_in": 3.35,
+        "final_height_in": 3.2,
         "png_dpi": 300,
         "svg_text_editable": True,
         "bootstrap_replicates": 10000,

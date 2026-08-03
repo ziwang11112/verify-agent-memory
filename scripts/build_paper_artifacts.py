@@ -1212,7 +1212,7 @@ def _save_figure(figure: object, stem: Path) -> None:
     )
 
 
-def _write_pipeline_figure(path: Path, cases: Sequence[FigureCase]) -> None:
+def _write_verification_examples_figure(path: Path, cases: Sequence[FigureCase]) -> None:
     _configure_matplotlib()
     import matplotlib.pyplot as plt
     from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
@@ -1537,6 +1537,377 @@ def _write_pipeline_figure(path: Path, cases: Sequence[FigureCase]) -> None:
     )
 
     figure.tight_layout(pad=0.15)
+    _save_figure(figure, path)
+    plt.close(figure)
+
+
+def _write_pipeline_figure(path: Path, cases: Sequence[FigureCase]) -> None:
+    _configure_matplotlib()
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
+
+    figure, axis = plt.subplots(figsize=(7.1, 3.55))
+    axis.set_xlim(0, 1)
+    axis.set_ylim(0, 1)
+    axis.axis("off")
+
+    colors = {
+        "allowed": "#2E8B57",
+        "blocked": "#B64342",
+        "unknown": "#8A9199",
+        "trusted": "#2F6B9A",
+        "neutral": "#4F5963",
+        "line": "#CAD0D6",
+        "pale_blue": "#EDF4FA",
+        "pale_green": "#EAF5EE",
+        "pale_red": "#FCEEEE",
+        "pale_gray": "#F3F5F7",
+    }
+
+    def rounded_box(
+        x: float,
+        y: float,
+        width: float,
+        height: float,
+        *,
+        facecolor: str = "#FFFFFF",
+        edgecolor: str | None = None,
+        linewidth: float = 0.8,
+        radius: float = 0.008,
+    ) -> FancyBboxPatch:
+        patch = FancyBboxPatch(
+            (x, y),
+            width,
+            height,
+            boxstyle=f"round,pad=0.006,rounding_size={radius}",
+            facecolor=facecolor,
+            edgecolor=edgecolor or colors["line"],
+            linewidth=linewidth,
+        )
+        axis.add_patch(patch)
+        return patch
+
+    def arrow(
+        start: tuple[float, float],
+        end: tuple[float, float],
+        *,
+        color: str = "#77818A",
+        width: float = 1.0,
+    ) -> None:
+        axis.add_patch(
+            FancyArrowPatch(
+                start,
+                end,
+                arrowstyle="-|>",
+                mutation_scale=9,
+                linewidth=width,
+                color=color,
+                shrinkA=1,
+                shrinkB=1,
+            )
+        )
+
+    lisbon = next(case for case in cases if case["case_id"] == "superseded_lisbon_date")
+    old_memory = next(memory for memory in lisbon["memories"] if memory["state"] == "superseded")
+
+    # Panel a: one memory, two query conditions, opposite admissibility verdicts.
+    axis.text(0.018, 0.965, "a", fontsize=8, weight="bold", va="top")
+    axis.text(
+        0.044,
+        0.965,
+        "The same relevant memory can switch eligibility",
+        fontsize=7.2,
+        weight="bold",
+        va="top",
+        color="#22272D",
+    )
+    rounded_box(
+        0.075,
+        0.755,
+        0.385,
+        0.105,
+        facecolor=colors["pale_gray"],
+        edgecolor=colors["unknown"],
+    )
+    axis.text(
+        0.2675,
+        0.833,
+        "SAME STORED MEMORY",
+        ha="center",
+        va="center",
+        fontsize=5.4,
+        weight="bold",
+        color=colors["neutral"],
+    )
+    axis.text(
+        0.2675,
+        0.785,
+        textwrap.fill(str(old_memory["text"]), width=52),
+        ha="center",
+        va="center",
+        fontsize=6.0,
+        color="#24292F",
+        linespacing=1.1,
+    )
+
+    query_specs = (
+        (
+            0.018,
+            "HISTORY QUERY",
+            "Which departure date was recorded before the latest confirmation?",
+            "KEEP",
+            "relevant + lifecycle-compatible",
+            colors["allowed"],
+            colors["pale_green"],
+        ),
+        (
+            0.278,
+            "CURRENT-STATE QUERY",
+            str(lisbon["query"]),
+            "DROP",
+            "relevant + lifecycle-incompatible",
+            colors["blocked"],
+            colors["pale_red"],
+        ),
+    )
+    for x, heading, query, decision, reason, color, facecolor in query_specs:
+        arrow((0.2675, 0.748), (x + 0.118, 0.692), color=color, width=0.9)
+        rounded_box(x, 0.492, 0.235, 0.190, facecolor="#FFFFFF", edgecolor=color)
+        axis.text(
+            x + 0.012,
+            0.648,
+            heading,
+            fontsize=5.2,
+            weight="bold",
+            color=color,
+            va="center",
+        )
+        axis.text(
+            x + 0.012,
+            0.590,
+            textwrap.fill(query, width=34),
+            fontsize=5.3,
+            color="#272C31",
+            va="center",
+            linespacing=1.12,
+        )
+        rounded_box(
+            x + 0.012,
+            0.510,
+            0.211,
+            0.043,
+            facecolor=facecolor,
+            edgecolor=color,
+            linewidth=0.6,
+            radius=0.005,
+        )
+        axis.text(
+            x + 0.022,
+            0.531,
+            decision,
+            fontsize=5.4,
+            weight="bold",
+            color=color,
+            va="center",
+        )
+        axis.text(
+            x + 0.070,
+            0.531,
+            reason,
+            fontsize=4.55,
+            color=colors["neutral"],
+            va="center",
+        )
+    axis.text(
+        0.2675,
+        0.460,
+        "Admissibility belongs to the memory-query pair, not the memory alone.",
+        ha="center",
+        va="center",
+        fontsize=5.8,
+        weight="bold",
+        color=colors["neutral"],
+    )
+
+    # Panel b: conceptual relevance-by-admissibility matrix.
+    axis.text(0.520, 0.965, "b", fontsize=8, weight="bold", va="top")
+    axis.text(
+        0.546,
+        0.965,
+        "The dangerous quadrant is relevant but inadmissible",
+        fontsize=7.2,
+        weight="bold",
+        va="top",
+        color="#22272D",
+    )
+    matrix_x, matrix_y = 0.610, 0.515
+    cell_w, cell_h = 0.180, 0.155
+    cell_specs = (
+        (0, 1, colors["pale_green"], colors["allowed"], "Useful evidence"),
+        (1, 1, colors["pale_red"], colors["blocked"], "Dangerous memory"),
+        (0, 0, colors["pale_gray"], colors["unknown"], "Ordinary noise"),
+        (1, 0, "#F7F1F1", "#A87070", "Inadmissible noise"),
+    )
+    for col, row, facecolor, edgecolor, label in cell_specs:
+        x = matrix_x + col * cell_w
+        y = matrix_y + row * cell_h
+        axis.add_patch(
+            Rectangle(
+                (x, y),
+                cell_w,
+                cell_h,
+                facecolor=facecolor,
+                edgecolor=edgecolor,
+                linewidth=1.1 if label == "Dangerous memory" else 0.7,
+            )
+        )
+        axis.text(
+            x + cell_w / 2,
+            y + cell_h / 2,
+            label,
+            ha="center",
+            va="center",
+            fontsize=5.8,
+            weight="bold" if label in {"Useful evidence", "Dangerous memory"} else "normal",
+            color=edgecolor,
+        )
+    axis.text(
+        matrix_x + cell_w / 2,
+        matrix_y + 2 * cell_h + 0.020,
+        "ADMISSIBLE",
+        ha="center",
+        fontsize=5.2,
+        weight="bold",
+        color=colors["allowed"],
+    )
+    axis.text(
+        matrix_x + 1.5 * cell_w,
+        matrix_y + 2 * cell_h + 0.020,
+        "INADMISSIBLE",
+        ha="center",
+        fontsize=5.2,
+        weight="bold",
+        color=colors["blocked"],
+    )
+    axis.text(
+        matrix_x - 0.020,
+        matrix_y + 1.5 * cell_h,
+        "RELEVANT",
+        ha="right",
+        va="center",
+        rotation=90,
+        fontsize=5.2,
+        weight="bold",
+        color=colors["neutral"],
+    )
+    axis.text(
+        matrix_x - 0.020,
+        matrix_y + 0.5 * cell_h,
+        "IRRELEVANT",
+        ha="right",
+        va="center",
+        rotation=90,
+        fontsize=5.2,
+        weight="bold",
+        color=colors["neutral"],
+    )
+    axis.text(
+        0.790,
+        0.475,
+        "Unknown labels remain unresolved; they are never silently treated as pass.",
+        ha="center",
+        va="center",
+        fontsize=5.0,
+        color=colors["unknown"],
+    )
+
+    # Panel c: enforcement path and figure navigation.
+    axis.text(0.018, 0.395, "c", fontsize=8, weight="bold", va="top")
+    axis.text(
+        0.044,
+        0.395,
+        "Eligibility must be enforced before prompt exposure",
+        fontsize=7.2,
+        weight="bold",
+        va="top",
+        color="#22272D",
+    )
+    stage_specs = (
+        (0.035, 0.112, "STORED", "memory + metadata", colors["pale_gray"], colors["neutral"]),
+        (0.220, 0.112, "RETRIEVED", "semantic candidates", colors["pale_blue"], colors["trusted"]),
+        (0.405, 0.145, "VERIFY", "scope / policy / lifecycle", "#E4F2EE", colors["allowed"]),
+        (0.620, 0.112, "EXPOSED", "assembled prompt", "#F5F1F8", "#7B5AA6"),
+        (0.805, 0.112, "DISCLOSED", "final answer", "#FFF2E8", "#B86C31"),
+    )
+    for x, width, heading, detail, facecolor, edgecolor in stage_specs:
+        rounded_box(
+            x,
+            0.190,
+            width,
+            0.105,
+            facecolor=facecolor,
+            edgecolor=edgecolor,
+            linewidth=1.2 if heading == "VERIFY" else 0.8,
+        )
+        axis.text(
+            x + width / 2,
+            0.258,
+            heading,
+            ha="center",
+            va="center",
+            fontsize=5.7,
+            weight="bold",
+            color=edgecolor,
+        )
+        axis.text(
+            x + width / 2,
+            0.218,
+            detail,
+            ha="center",
+            va="center",
+            fontsize=4.45,
+            color=colors["neutral"],
+        )
+    for start_x, end_x in ((0.151, 0.214), (0.332, 0.398), (0.551, 0.613), (0.732, 0.798)):
+        arrow((start_x, 0.242), (end_x, 0.242), width=0.9)
+    axis.annotate(
+        "enforcement boundary",
+        xy=(0.478, 0.302),
+        xytext=(0.478, 0.342),
+        ha="center",
+        va="center",
+        fontsize=5.0,
+        weight="bold",
+        color=colors["allowed"],
+        arrowprops={"arrowstyle": "-|>", "color": colors["allowed"], "lw": 0.8},
+    )
+    navigation = (
+        (0.128, "support + metadata", "Figure 2"),
+        (0.478, "selective verifier", "Figure 3"),
+        (0.790, "reader consequence", "Figure 4"),
+    )
+    for x, label, figure_label in navigation:
+        axis.text(x, 0.134, label, ha="center", fontsize=4.7, color=colors["neutral"])
+        axis.text(
+            x,
+            0.094,
+            figure_label,
+            ha="center",
+            fontsize=5.2,
+            weight="bold",
+            color=colors["trusted"],
+        )
+    axis.text(
+        0.985,
+        0.025,
+        "Example-derived counterfactual from an audited MemOps record",
+        ha="right",
+        va="bottom",
+        fontsize=4.4,
+        color=colors["unknown"],
+    )
+
+    figure.tight_layout(pad=0.12)
     _save_figure(figure, path)
     plt.close(figure)
 
@@ -1978,124 +2349,196 @@ def _write_constraint_reliability_figure(path: Path, selected: Mapping[str, Row]
     _configure_matplotlib()
     import matplotlib.pyplot as plt
     import numpy as np
+    from matplotlib.patches import FancyArrowPatch, Rectangle
 
-    figure = plt.figure(figsize=(7.1, 4.55), layout="constrained")
-    grid = figure.add_gridspec(
-        2,
-        2,
-        height_ratios=(1.08, 1.0),
-        width_ratios=(1.02, 0.98),
-        hspace=0.16,
-        wspace=0.22,
+    plt.rcParams.update(
+        {
+            "font.size": 9.5,
+            "axes.titlesize": 10.0,
+            "axes.labelsize": 9.5,
+            "xtick.labelsize": 8.5,
+            "ytick.labelsize": 8.5,
+            "legend.fontsize": 8.0,
+        }
     )
-    top_axis = figure.add_subplot(grid[0, :])
-    attribution_axis = figure.add_subplot(grid[1, 0])
-    bracket_axis = figure.add_subplot(grid[1, 1])
+    figure = plt.figure(figsize=(7.1, 3.6), constrained_layout=False)
+    grid = figure.add_gridspec(
+        1,
+        3,
+        width_ratios=(1.16, 1.0, 1.40),
+        left=0.075,
+        right=0.985,
+        top=0.86,
+        bottom=0.18,
+        wspace=0.58,
+    )
+    frontier_axis = figure.add_subplot(grid[0, 0])
+    attribution_axis = figure.add_subplot(grid[0, 1])
+    bracket_axis = figure.add_subplot(grid[0, 2])
 
     colors = {
-        "recall": "#2F6B9A",
-        "feasible": "#2E8B57",
-        "risk": "#B65A3A",
+        "global": "#555D66",
+        "namespace": "#087F8C",
+        "policy": "#2E8B57",
+        "lifecycle": "#B64342",
+        "combined": "#2F6B9A",
+        "dominant": "#2E8B57",
         "neutral": "#5B6168",
         "interval": "#D89B45",
         "bad": "#B64342",
     }
 
-    top_ks = np.array([10, 20, 50, 100], dtype=float)
-    top_specs = (
-        ("evidence_recall_delta", "Recall", colors["recall"], False),
-        ("feasible_rate_delta", "Feasible rate", colors["feasible"], False),
-        (
-            "penalized_admissibility_upper_risk_delta",
-            "Admissibility-risk reduction",
-            colors["risk"],
-            True,
-        ),
-    )
-    for metric, label, color, reverse in top_specs:
-        values = [
-            _interval_values(selected[f"c9_k{int(top_k)}_{metric}"], reverse=reverse)
-            for top_k in top_ks
-        ]
-        estimates = np.array([value[0] for value in values])
-        lower = np.array([value[1] for value in values])
-        upper = np.array([value[2] for value in values])
-        top_axis.plot(top_ks, estimates, marker="o", linewidth=1.7, markersize=4.5, color=color)
-        top_axis.fill_between(top_ks, lower, upper, color=color, alpha=0.13, linewidth=0)
-        top_axis.text(
-            103,
-            estimates[-1],
-            label,
-            color=color,
-            fontsize=6.7,
-            va="center",
-            clip_on=False,
+    for top_k in (10, 20, 50, 100):
+        global_risk = _number(selected[f"c9_k{top_k}_global_penalized_admissibility_upper_risk"])
+        namespace_risk = _number(
+            selected[f"c9_k{top_k}_namespace_penalized_admissibility_upper_risk"]
         )
-    top_axis.axhline(0, color="#8C9298", linewidth=0.7)
-    top_axis.set_xticks(top_ks)
-    top_axis.set_xlim(7, 120)
-    top_axis.set_ylim(-0.005, 0.31)
-    top_axis.set_xlabel("Retrieval budget (top-k)")
-    top_axis.set_ylabel("Namespace benefit over global dense")
-    top_axis.set_title("a  Trusted support helps at every tested budget", loc="left", weight="bold")
-    top_axis.grid(axis="y", color="#E7E9EC", linewidth=0.6)
+        global_recall = _number(selected[f"c9_k{top_k}_global_evidence_recall"])
+        namespace_recall = _number(selected[f"c9_k{top_k}_namespace_evidence_recall"])
+        frontier_axis.add_patch(
+            FancyArrowPatch(
+                (global_risk, global_recall),
+                (namespace_risk, namespace_recall),
+                arrowstyle="-|>",
+                mutation_scale=9,
+                linewidth=1.4,
+                color=colors["namespace"],
+                alpha=0.9,
+                zorder=2,
+            )
+        )
+        frontier_axis.scatter(
+            global_risk,
+            global_recall,
+            s=24,
+            facecolor="#FFFFFF",
+            edgecolor=colors["global"],
+            linewidth=1.0,
+            zorder=3,
+        )
+        frontier_axis.scatter(
+            namespace_risk,
+            namespace_recall,
+            s=28,
+            facecolor=colors["namespace"],
+            edgecolor="#FFFFFF",
+            linewidth=0.7,
+            zorder=4,
+        )
+        frontier_axis.annotate(
+            f"k={top_k}",
+            (namespace_risk, namespace_recall),
+            xytext=(4, -11 if top_k in {50, 100} else 3),
+            textcoords="offset points",
+            fontsize=7.0,
+            weight="bold",
+            color=colors["namespace"],
+        )
+        if top_k in {20, 100}:
+            feasible_delta = _number(selected[f"c9_k{top_k}_feasible_rate_delta"])
+            frontier_axis.text(
+                (global_risk + namespace_risk) / 2,
+                (global_recall + namespace_recall) / 2 - (0.030 if top_k == 20 else 0.040),
+                rf"$\Delta F={feasible_delta:+.3f}$",
+                fontsize=6.5,
+                ha="center",
+                color=colors["neutral"],
+            )
+    frontier_axis.set_xlim(0.30, 0.88)
+    frontier_axis.set_ylim(0.27, 0.92)
+    frontier_axis.set_xlabel(r"Penalized admissibility risk  $\leftarrow$ better")
+    frontier_axis.set_ylabel("Evidence recall  (higher is better)")
+    frontier_axis.set_title(
+        "a  Constraints improve the frontier",
+        loc="left",
+        weight="bold",
+        fontsize=9.2,
+    )
+    frontier_axis.grid(color="#E7E9EC", linewidth=0.55)
+    frontier_axis.plot(
+        [],
+        [],
+        marker="o",
+        linestyle="none",
+        markerfacecolor="#FFFFFF",
+        markeredgecolor=colors["global"],
+        label="Global",
+    )
+    frontier_axis.plot(
+        [],
+        [],
+        marker="o",
+        linestyle="none",
+        color=colors["namespace"],
+        label="Namespace",
+    )
+    frontier_axis.legend(loc="lower left", fontsize=7.0, handletextpad=0.3)
 
     methods = (
-        ("policy_only", "Policy only"),
-        ("lifecycle_only", "Lifecycle only"),
-        ("governance_v2", "Policy + lifecycle (v2)"),
+        ("policy_only", "Policy only", colors["policy"], (-55, 7)),
+        ("lifecycle_only", "Lifecycle only", colors["lifecycle"], (5, -13)),
+        ("governance_v2", "Policy + lifecycle", colors["combined"], (-47, -2)),
     )
-    metric_specs = (
-        ("evidence_recall_delta", "Recall", colors["recall"], False, -0.18),
-        ("feasible_rate_delta", "Feasible", colors["feasible"], False, 0.0),
-        (
-            "penalized_admissibility_upper_risk_delta",
-            "Risk reduction",
-            colors["risk"],
-            True,
-            0.18,
-        ),
+    attribution_axis.add_patch(
+        Rectangle((0, 0), 0.18, 0.05, facecolor="#EAF5EE", edgecolor="none", zorder=-4)
     )
-    y_positions = np.arange(len(methods), dtype=float)
-    for metric, label, color, reverse, offset in metric_specs:
-        for y_position, (method, _method_label) in zip(y_positions, methods, strict=True):
-            estimate, lower, upper = _interval_values(
-                selected[f"c10_{method}_{metric}"], reverse=reverse
-            )
-            attribution_axis.errorbar(
-                estimate,
-                y_position + offset,
-                xerr=[[estimate - lower], [upper - estimate]],
-                fmt="o",
-                color=color,
-                markersize=4,
-                capsize=2,
-                linewidth=1,
-                label=label if y_position == 0 else None,
-            )
-    attribution_axis.axvline(0, color="#737980", linewidth=0.8)
-    attribution_axis.set_yticks(y_positions, [label for _method, label in methods])
-    attribution_axis.invert_yaxis()
-    attribution_axis.set_xlim(-0.065, 0.175)
-    attribution_axis.set_xlabel("Benefit over namespace dense")
-    attribution_axis.set_title("b  Policy, not lifecycle, drives gain", loc="left", weight="bold")
-    attribution_axis.grid(axis="x", color="#E7E9EC", linewidth=0.6)
+    attribution_axis.axvline(0, color="#7D848B", linewidth=0.75)
+    attribution_axis.axhline(0, color="#7D848B", linewidth=0.75)
+    for method, label, color, offset in methods:
+        x, x_low, x_high = _interval_values(
+            selected[f"c10_{method}_penalized_admissibility_upper_risk_delta"], reverse=True
+        )
+        y, y_low, y_high = _interval_values(selected[f"c10_{method}_evidence_recall_delta"])
+        feasible = _number(selected[f"c10_{method}_feasible_rate_delta"])
+        attribution_axis.errorbar(
+            x,
+            y,
+            xerr=[[x - x_low], [x_high - x]],
+            yerr=[[y - y_low], [y_high - y]],
+            fmt="o",
+            color=color,
+            markersize=5.0,
+            capsize=2.0,
+            linewidth=1.0,
+            markeredgecolor="#FFFFFF",
+            markeredgewidth=0.5,
+            zorder=3,
+        )
+        attribution_axis.annotate(
+            f"{label}\n" + rf"$\Delta F={feasible:+.3f}$",
+            (x, y),
+            xytext=offset,
+            textcoords="offset points",
+            fontsize=6.6,
+            color=color,
+            weight="bold",
+            linespacing=1.05,
+        )
+    attribution_axis.set_xlim(-0.035, 0.175)
+    attribution_axis.set_ylim(-0.025, 0.040)
+    attribution_axis.set_xlabel("Risk reduction  (right is better)")
+    attribution_axis.set_ylabel("Recall gain  (up is better)")
+    attribution_axis.set_title(
+        "b  Policy creates the gain", loc="left", weight="bold", fontsize=9.2
+    )
+    attribution_axis.grid(color="#E7E9EC", linewidth=0.55)
 
     channels = (
         ("policy_false_deny", "Policy false deny"),
         ("lifecycle_false_stale", "Lifecycle false stale"),
         ("namespace_false_deny", "Namespace false deny"),
-        ("namespace_missing", "Namespace missing"),
         ("namespace_swap", "Namespace label swap"),
         ("policy_false_allow", "Policy false allow"),
         ("policy_missing", "Policy missing / fail open"),
         ("namespace_false_allow", "Namespace false allow"),
     )
-    y_positions = np.arange(len(channels), dtype=float)
+    y_positions = np.array((0.0, 1.0, 2.0, 3.0, 4.7, 5.7, 6.7))
+    bracket_axis.axhspan(-0.45, 3.45, color="#FBEFEF", zorder=-4)
+    bracket_axis.axhspan(4.25, 7.15, color="#EEF4FA", zorder=-4)
     for y_position, (channel, _label) in zip(y_positions, channels, strict=True):
         last = _number(selected[f"c10_{channel}_last"])
         bracket_axis.plot(
-            [0, last], [y_position, y_position], color=colors["feasible"], linewidth=3
+            [0, last], [y_position, y_position], color=colors["dominant"], linewidth=3
         )
         first_key = f"c10_{channel}_first"
         if first_key in selected:
@@ -2110,17 +2553,51 @@ def _write_constraint_reliability_figure(path: Path, selected: Mapping[str, Row]
         else:
             bracket_axis.annotate(
                 "",
-                xy=(0.535, y_position),
+                xy=(0.525, y_position),
                 xytext=(last, y_position),
-                arrowprops={"arrowstyle": "->", "color": colors["feasible"], "lw": 1.2},
+                arrowprops={"arrowstyle": "->", "color": colors["dominant"], "lw": 1.2},
             )
     bracket_axis.set_yticks(y_positions, [label for _channel, label in channels])
     bracket_axis.invert_yaxis()
     bracket_axis.set_xlim(0, 0.55)
     bracket_axis.set_xticks(np.arange(0, 0.6, 0.1))
-    bracket_axis.set_xlabel("Corruption rate")
-    bracket_axis.set_title("c  Error direction shifts break-even", loc="left", weight="bold")
+    bracket_axis.set_xlabel("Metadata corruption rate")
+    bracket_axis.set_title(
+        "c  False-deny errors fail first", loc="left", weight="bold", fontsize=9.2
+    )
     bracket_axis.grid(axis="x", color="#E7E9EC", linewidth=0.6)
+    bracket_axis.text(
+        0.0,
+        -0.78,
+        "FAIL-CLOSED / FALSE DENY",
+        fontsize=6.8,
+        weight="bold",
+        color=colors["bad"],
+    )
+    bracket_axis.text(
+        0.0,
+        4.28,
+        "FAIL-OPEN / FALSE ALLOW",
+        fontsize=6.8,
+        weight="bold",
+        color=colors["combined"],
+    )
+    bracket_axis.annotate(
+        "benefit persists to .50\nbut wrong-scope exposure = .167",
+        xy=(0.50, 6.7),
+        xytext=(0.29, 6.05),
+        fontsize=6.0,
+        weight="bold",
+        color=colors["bad"],
+        va="center",
+        arrowprops={"arrowstyle": "-", "color": colors["bad"], "lw": 0.6},
+    )
+
+    figure.text(0.20, 0.965, "VALUE", ha="center", fontsize=8.0, weight="bold", color="#6B7279")
+    figure.text(0.50, 0.965, "SOURCE", ha="center", fontsize=8.0, weight="bold", color="#6B7279")
+    figure.text(0.82, 0.965, "FRAGILITY", ha="center", fontsize=8.0, weight="bold", color="#6B7279")
+    figure.text(0.35, 0.965, r"$\longrightarrow$", ha="center", fontsize=9.0, color="#A0A6AC")
+    figure.text(0.66, 0.965, r"$\longrightarrow$", ha="center", fontsize=9.0, color="#A0A6AC")
 
     _save_figure(figure, path)
     plt.close(figure)
@@ -2129,14 +2606,28 @@ def _write_constraint_reliability_figure(path: Path, selected: Mapping[str, Row]
 def _write_inference_gap_figure(path: Path, selected: Mapping[str, Row]) -> None:
     _configure_matplotlib()
     import matplotlib.pyplot as plt
-    import numpy as np
     from matplotlib.patches import Rectangle
 
-    figure, axes = plt.subplots(1, 3, figsize=(7.1, 3.0), layout="constrained")
+    plt.rcParams.update(
+        {
+            "font.size": 9.2,
+            "axes.titlesize": 9.2,
+            "axes.labelsize": 9.2,
+            "xtick.labelsize": 8.2,
+            "ytick.labelsize": 8.2,
+        }
+    )
+    figure, axes = plt.subplots(
+        1,
+        2,
+        figsize=(7.1, 3.2),
+        gridspec_kw={"width_ratios": (1.0, 1.12)},
+        layout="constrained",
+    )
     colors = {
         "oracle": "#2E8B57",
-        "openai": "#2F6B9A",
-        "gemini": "#B97A35",
+        "openai": "#195B9A",
+        "gemini": "#D9822B",
         "deepseek": "#7B5AA6",
         "risk": "#B64342",
     }
@@ -2146,69 +2637,75 @@ def _write_inference_gap_figure(path: Path, selected: Mapping[str, Row]) -> None
         ("openai_text_inferred", "GPT-5.6", colors["openai"]),
         ("gemini_text_inferred", "Gemini 3.6", colors["gemini"]),
     )
-    metric_specs = (
-        ("evidence_recall_delta", False, -0.17, "o"),
-        ("feasible_rate_delta", False, 0.0, "s"),
-        ("penalized_admissibility_upper_risk_delta", True, 0.17, "D"),
+    axes[0].add_patch(
+        Rectangle((0, 0), 0.03, 0.08, facecolor="#EAF5EE", edgecolor="none", zorder=-5)
     )
-    y_positions = np.arange(len(contrasts), dtype=float)
-    for metric, reverse, offset, marker in metric_specs:
-        for y_position, (contrast, _display, color) in zip(y_positions, contrasts, strict=True):
-            estimate, lower, upper = _interval_values(
-                selected[f"c11_{contrast}_{metric}"], reverse=reverse
-            )
-            axes[0].errorbar(
-                estimate,
-                y_position + offset,
-                xerr=[[estimate - lower], [upper - estimate]],
-                fmt=marker,
-                color=color,
-                markersize=4,
-                capsize=2,
-                linewidth=1,
-            )
+    axes[0].add_patch(
+        Rectangle((-0.12, -0.08), 0.12, 0.08, facecolor="#FCEEEE", edgecolor="none", zorder=-5)
+    )
+    axes[0].add_patch(
+        Rectangle((-0.12, 0), 0.12, 0.08, facecolor="#FFF6E8", edgecolor="none", zorder=-5)
+    )
     axes[0].axvline(0, color="#737980", linewidth=0.8)
-    axes[0].set_yticks(y_positions, [display for _contrast, display, _color in contrasts])
-    axes[0].invert_yaxis()
-    axes[0].set_xlim(-0.115, 0.085)
-    axes[0].set_xlabel("Benefit over namespace dense")
-    axes[0].set_title("a  Oracle headroom is unrealized", loc="left", weight="bold")
-    axes[0].grid(axis="x", color="#E7E9EC", linewidth=0.6)
-
-    models = (
-        ("openai_text_inferred", "GPT-5.6", colors["openai"]),
-        ("gemini_text_inferred", "Gemini 3.6", colors["gemini"]),
-    )
-    metrics = (
-        ("roc_auc", "ROC-AUC (higher)"),
-        ("violation_recall", "Violation recall (higher)"),
-        ("required_anchor_false_deny_rate", "Anchor false deny (lower)"),
-    )
-    x_positions = np.arange(len(metrics), dtype=float)
-    width = 0.34
-    for index, (model, label, color) in enumerate(models):
-        values = [_number(selected[f"c11_{model}_{metric}"]) for metric, _name in metrics]
-        axes[1].bar(
-            x_positions + (index - 0.5) * width,
-            values,
-            width=width,
-            color=color,
-            alpha=0.86,
-            label=label,
+    axes[0].axhline(0, color="#737980", linewidth=0.8)
+    label_offsets = {
+        "released_oracle": (7, 6),
+        "openai_text_inferred": (6, -15),
+        "gemini_text_inferred": (7, -15),
+    }
+    for contrast, display, color in contrasts:
+        x, x_lower, x_upper = _interval_values(selected[f"c11_{contrast}_feasible_rate_delta"])
+        y, y_lower, y_upper = _interval_values(
+            selected[f"c11_{contrast}_penalized_admissibility_upper_risk_delta"], reverse=True
         )
-    axes[1].set_xticks(x_positions, [label for _metric, label in metrics], rotation=20, ha="right")
-    axes[1].set_ylim(0, 0.72)
-    axes[1].set_ylabel("Rate")
-    axes[1].set_title("b  Natural text inference is weak", loc="left", weight="bold")
-    axes[1].legend(loc="upper right", fontsize=6)
-    axes[1].grid(axis="y", color="#E7E9EC", linewidth=0.6)
+        recall = _number(selected[f"c11_{contrast}_evidence_recall_delta"])
+        axes[0].errorbar(
+            x,
+            y,
+            xerr=[[x - x_lower], [x_upper - x]],
+            yerr=[[y - y_lower], [y_upper - y]],
+            fmt="o",
+            color=color,
+            markersize=5.5,
+            capsize=2.2,
+            linewidth=1.1,
+            markeredgecolor="#FFFFFF",
+            markeredgewidth=0.6,
+            zorder=3,
+        )
+        axes[0].annotate(
+            f"{display}\n" + rf"$\Delta R={recall:+.3f}$",
+            (x, y),
+            xytext=label_offsets[contrast],
+            textcoords="offset points",
+            fontsize=6.8,
+            weight="bold",
+            color=color,
+            linespacing=1.05,
+        )
+    axes[0].text(0.014, 0.067, "IDEAL", fontsize=6.5, weight="bold", color=colors["oracle"])
+    axes[0].text(
+        -0.115,
+        0.067,
+        "safer, but\nover-refuses",
+        fontsize=6.0,
+        color="#9A6D2F",
+        va="top",
+    )
+    axes[0].text(-0.115, -0.073, "worse on both", fontsize=6.0, color=colors["risk"])
+    axes[0].set_xlim(-0.12, 0.03)
+    axes[0].set_ylim(-0.08, 0.08)
+    axes[0].set_xlabel(r"$\Delta$ feasible rate  (right is better)")
+    axes[0].set_ylabel("Admissibility-risk reduction  (up is better)")
+    axes[0].set_title("a  Released fields help; text inference does not", loc="left", weight="bold")
+    axes[0].grid(color="#E7E9EC", linewidth=0.55)
 
     controlled = (
         ("gpt56_controlled", "GPT-5.6", colors["openai"]),
         ("gemini_controlled", "Gemini 3.6", colors["gemini"]),
         ("deepseek_controlled", "DeepSeek-V4", colors["deepseek"]),
     )
-    axes[2].add_patch(
+    axes[1].add_patch(
         Rectangle((0, 0.8), 0.05, 0.22, facecolor="#DCEEDB", edgecolor="none", zorder=0)
     )
     for contrast, label, color in controlled:
@@ -2217,38 +2714,53 @@ def _write_inference_gap_figure(path: Path, selected: Mapping[str, Row]) -> None
         x, x_lower, x_upper = _interval_values(x_row)
         y, y_lower, y_upper = _interval_values(y_row)
         false_deny = _number(selected[f"c11_{contrast}_stable_admissible_false_deny_rate"])
-        axes[2].errorbar(
+        axes[1].errorbar(
             x,
             y,
             xerr=[[x - x_lower], [x_upper - x]],
             yerr=[[y - y_lower], [y_upper - y]],
             fmt="o",
             color=color,
-            markersize=5,
+            markersize=5.8,
             capsize=2,
-            linewidth=1,
+            linewidth=1.1,
+            markeredgecolor="#FFFFFF",
+            markeredgewidth=0.6,
         )
         short_label = {
             "GPT-5.6": "GPT",
             "Gemini 3.6": "Gemini",
             "DeepSeek-V4": "DeepSeek",
         }[label]
-        axes[2].annotate(
+        label_offset = (6, 6) if short_label == "DeepSeek" else (4, -16)
+        axes[1].annotate(
             f"{short_label}\nFD={false_deny:.3f}",
             (x, y),
-            xytext=(4, -2 if y < 0.9 else -16),
+            xytext=label_offset,
             textcoords="offset points",
-            fontsize=5.5,
+            fontsize=7.0,
             color=color,
+            weight="bold",
+            va="bottom" if short_label == "DeepSeek" else "top",
         )
-    axes[2].axvline(0.05, color="#6E8B6A", linestyle="--", linewidth=0.7)
-    axes[2].axhline(0.8, color="#6E8B6A", linestyle="--", linewidth=0.7)
-    axes[2].set_xlim(-0.01, 0.41)
-    axes[2].set_ylim(0.5, 1.03)
-    axes[2].set_xlabel("Stable overflip (lower is better)")
-    axes[2].set_ylabel("Focal consistency")
-    axes[2].set_title("c  Rule-following is not selectivity", loc="left", weight="bold")
-    axes[2].grid(color="#E7E9EC", linewidth=0.6)
+    axes[1].axvline(0.05, color="#6E8B6A", linestyle="--", linewidth=0.7)
+    axes[1].axhline(0.8, color="#6E8B6A", linestyle="--", linewidth=0.7)
+    axes[1].text(
+        0.012,
+        1.005,
+        "supportive region",
+        fontsize=6.2,
+        color="#547651",
+        va="top",
+    )
+    axes[1].set_xlim(-0.01, 0.41)
+    axes[1].set_ylim(0.5, 1.03)
+    axes[1].set_xlabel("Stable overflip  (lower is better)")
+    axes[1].set_ylabel("Focal consistency  (higher is better)")
+    axes[1].set_title(
+        "b  Correct focal flips do not imply stable decisions", loc="left", weight="bold"
+    )
+    axes[1].grid(color="#E7E9EC", linewidth=0.6)
 
     _save_figure(figure, path)
     plt.close(figure)
@@ -2308,6 +2820,9 @@ def build(repository_root: Path) -> tuple[Path, ...]:
         output_root / "verification_pipeline.pdf",
         output_root / "verification_pipeline.png",
         output_root / "verification_pipeline.svg",
+        output_root / "verification_examples.pdf",
+        output_root / "verification_examples.png",
+        output_root / "verification_examples.svg",
         output_root / "evidence_summary.pdf",
         output_root / "evidence_summary.png",
         output_root / "evidence_summary.svg",
@@ -2327,6 +2842,7 @@ def build(repository_root: Path) -> tuple[Path, ...]:
     _write_matched_prefix_table(matched_prefix_table_path, selected)
     _write_smoke_table(smoke_table_path, selected)
     _write_pipeline_figure(output_root / "verification_pipeline", figure_examples)
+    _write_verification_examples_figure(output_root / "verification_examples", figure_examples)
     _write_evidence_figure(output_root / "evidence_summary", selected)
     _write_retrieval_figure(output_root / "retrieval_results", rows, selected)
     _write_constraint_reliability_figure(output_root / "constraint_reliability", selected)

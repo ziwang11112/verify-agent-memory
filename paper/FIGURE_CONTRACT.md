@@ -3,7 +3,7 @@
 This file fixes the message, evidence population, and claim boundary for every main
 paper figure. It is a review aid; `claims/claims.yaml` remains authoritative.
 
-## Figure 1: Concrete Retrieval Failures and the Verification Layer
+## Figure 1: The Dangerous Memory Is Relevant but Ineligible
 
 **Conclusion:** Topical overlap does not determine whether a retrieved record may
 support the current query. Scope, policy, and lifecycle must be checked against the
@@ -12,15 +12,14 @@ history query.
 
 | Panel | Role | Intended read |
 | --- | --- | --- |
-| a | RHELM wrong-namespace example | Market-related content from another principal remains inadmissible despite topical overlap |
-| b | MemOps supersession example | A confirmed current value must displace an invalidated earlier value for a current-state query |
-| c | MemOps forget example | The forget instruction remains usable while the prohibited detail is excluded |
-| d | MemOps historical-query example | Superseded states remain usable when the query explicitly asks for a timeline |
-| bottom strip | Record-level verification interface | Ranked IDs receive scope, policy, and query-conditioned lifecycle checks, a reasoned verdict, and an observable trace |
+| a | Same-memory MemOps counterfactual | A superseded date is retained for a history query and rejected for a current-state query |
+| b | Relevance-by-admissibility matrix | Relevant-inadmissible evidence is the dangerous quadrant; unresolved status is never silently passed |
+| c | Enforcement path and paper map | Verification occurs after retrieval but before prompt exposure; Figures 2--4 diagnose support, verifier, and reader failures |
 
-**Evidence:** C1 and four abridged records from the audited public-source packets
-listed in `evidence/examples/retrieval_admissibility_cases.json`. The examples are
-qualitative evidence, not a frequency or effect estimate.
+**Evidence:** C1 and the abridged superseded-Lisbon record from the audited MemOps
+packet listed in `evidence/examples/retrieval_admissibility_cases.json`. The history
+query is an example-derived counterfactual. The other three audited cases appear in
+Appendix Figure A1. These are qualitative examples, not frequency or effect estimates.
 
 **Boundary:** Text is abridged for figure legibility; packet IDs, memory IDs, source
 labels, and verdicts are preserved in the example manifest. The figure defines the
@@ -36,8 +35,8 @@ denies and source-label swaps erase utility earlier than fail-open errors.
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
-| a | 87 groups and 3,767 public-source queries | Namespace-minus-global recall, feasibility, and penalized admissibility-risk differences at top-$k\in\{10,20,50,100\}$ with paired intervals | Trusted support improves all three outcomes at every tested practical budget |
-| b | Same frozen settings and population | Policy-only, lifecycle-only, and corrected governance-v2 differences versus namespace dense | Released policy metadata drives the incremental gain; the coarse lifecycle-only approximation over-filters |
+| a | 87 groups and 3,767 public-source queries | Global-to-namespace movement in the absolute recall--penalized-admissibility-risk plane at top-$k\in\{10,20,50,100\}$; selected annotations give feasibility deltas | Trusted support moves every budget toward higher recall and lower risk |
+| b | Same frozen settings and population | Policy-only, lifecycle-only, and corrected governance-v2 points in the risk-reduction--recall-gain plane | Released policy metadata drives the incremental gain; the coarse lifecycle-only approximation over-filters |
 | c | Same population; 10 nested seeds per corruption channel | Joint utility--risk dominance over observed corruption rates, plus wrong-scope exposure and candidate work | Error direction matters: false denial and source-label swap damage utility sooner; fail-open support still leaks and expands work before aggregate dominance disappears |
 
 **Boundaries:** Top-$k$ and attribution intervals use 10,000 source-clustered
@@ -46,27 +45,26 @@ brackets are grid diagnostics, not interpolated thresholds. The historical v1
 non-usable selection score is not used as an admissibility-only outcome. This is not
 an official RHELM or MemOps submission.
 
-## Figure 3: Released Governance Headroom Does Not Transfer to Text-Only Verification
+## Figure 3: Semantic Verifiers Recognize Rules but Cannot Apply Them Selectively
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
-| a | 72 public-development cases; fixed top-20 candidates | Released oracle and text-inferred recall, feasibility, and admissibility-risk differences versus namespace dense | Released fields expose risk headroom, but text-only filters fail to realize it and can increase risk |
-| b | Same cases; 1,411 candidates with known admissibility | Admissibility ROC-AUC, violation recall, and required-anchor false denial | The gap is not explained by a missed downstream threshold alone |
-| c | 16 controlled scenarios and 32 focal pairs | Focal consistency versus stable-control overflip, with stable-admissible false denial | Strong focal rule-following coexists with over-filtering of memories whose status should remain unchanged |
+| a | 72 public-development cases; fixed top-20 candidates | Released-oracle and text-inferred feasibility versus sign-reversed admissibility-risk differences, with recall deltas | Released fields occupy the useful quadrant; text-only filters fail to realize the headroom and can worsen both outcomes |
+| b | 16 controlled scenarios and 32 focal pairs | Focal consistency versus stable-control overflip, with stable-admissible false denial | Strong focal rule-following coexists with over-filtering of memories whose status should remain unchanged |
 
-**Boundaries:** Panels a--b and c are separate public-development populations and are
+**Boundaries:** Panels a and b are separate public-development populations and are
 never pooled. OpenAI and Gemini are comparison-eligible in the natural diagnostic;
 OpenAI, Gemini, and DeepSeek are complete in the controlled diagnostic. Released
 metadata is an oracle reference, not a deployable method. The result does not cover
-latent production state or untested models.
+latent production state or untested models. Candidate-level ROC-AUC and operating-
+point diagnostics are reported in the appendix rather than mixed into the main plot.
 
-## Figure 4: Controlled Exposure Is Selective but Not a Safety Boundary
+## Figure 4: Exposure Converts Residual Verification Errors into Disclosure
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
-| a | 16 controlled scenarios; 192 paired units per reader | Literal target-disclosure rates with the relevant candidate withheld versus exposed, split by admissibility | Assigned exposure strongly changes disclosure for admissible evidence but has much less effect for inadmissible evidence |
-| b | Same paired population and three frozen readers | Exposed-minus-withheld disclosure effects in all four relevance-by-admissibility cells | The response is specific to evidence that is both relevant and admissible rather than exposure alone |
-| c | Same paired population | Relevant-admissible minus relevant-inadmissible effect, with the inadmissible effect shown separately | All readers have a positive selectivity gap, while DeepSeek retains a positive inadmissible exposure effect |
+| a | 16 controlled scenarios; 192 paired units per reader | Exposed-minus-withheld disclosure effects in all four relevance-by-admissibility cells | The empirical matrix closes the loop with Figure 1: the largest effects occur for relevant admissible evidence |
+| b | Same paired population | Relevant-admissible minus relevant-inadmissible effect, with the residual inadmissible effect shown separately | All readers have a positive selectivity gap, while DeepSeek retains a positive inadmissible exposure effect |
 
 **Boundaries:** The three readers are reported separately and never pooled. Whiskers
 are 95% scenario-bootstrap intervals. The estimand is assigned exposure under
@@ -74,7 +72,13 @@ construction-defined admissible and inadmissible query conditions, not an isolat
 causal effect of admissibility, internal model use, natural prevalence, production
 safety, or an official benchmark result.
 
-## Appendix Figure A1: Frozen Nine-Arm Retrieval Diagnostics
+## Appendix Figure A1: Additional Audited Admissibility Cases
+
+**Conclusion:** Wrong scope, supersession, explicit forgetting, and historical intent
+produce distinct eligibility decisions that the main same-memory example does not
+exhaust. These examples establish taxonomy coverage, not prevalence.
+
+## Appendix Figure A2: Frozen Nine-Arm Retrieval Diagnostics
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
@@ -86,7 +90,7 @@ safety, or an official benchmark result.
 v1. It is not the corrected governance-v2 attribution arm and cannot support a
 lifecycle-only claim.
 
-## Appendix Figure A2: Natural Route Traces Are Observational
+## Appendix Figure A3: Natural Route Traces Are Observational
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
@@ -107,5 +111,7 @@ estimand with Figure 2.
 - Visual-inspection output: PNG.
 - Error bars: 95% intervals from frozen evidence.
 - Zero reference: shown whenever a panel reports a delta.
-- Color vocabulary: neutral gray for global support, green for trusted namespace,
-  orange/blue for diagnostic routers, and purple for released-field upper bounds.
+- Status colors: green for admissible/benefit, red for inadmissible/risk, gray for
+  unresolved or global support, and teal for trusted namespace support.
+- Model colors: blue for GPT-5.6, orange for Gemini, and purple for DeepSeek in every
+  model-comparison figure.

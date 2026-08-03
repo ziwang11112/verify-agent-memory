@@ -33,8 +33,8 @@ def test_figure_data_matches_frozen_exposure_results() -> None:
 def test_source_data_contains_every_plotted_quantity() -> None:
     rows = figure.source_data_rows(figure.load_figure_data(RESULTS))
 
-    assert len(rows) == 39
-    assert {row["panel"] for row in rows} == {"a", "b", "c"}
+    assert len(rows) == 18
+    assert {row["panel"] for row in rows} == {"a", "b"}
     assert {row["provider"] for row in rows} == {"OpenAI", "Gemini", "DeepSeek"}
 
 
@@ -45,7 +45,7 @@ def test_rendered_figure_has_fixed_canvas_and_editable_svg(tmp_path: Path) -> No
     pdf = tmp_path / "counterfactual_exposure.pdf"
 
     with Image.open(png) as image:
-        assert image.size == (2160, 1005)
+        assert image.size == (2160, 960)
     assert "<text" in svg.read_text(encoding="utf-8")
     assert pdf.read_bytes().startswith(b"%PDF")
     assert manifest["png_pixel_audit"]["nonwhite_fraction"] > 0.03

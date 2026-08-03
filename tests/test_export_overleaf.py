@@ -23,6 +23,7 @@ def test_overleaf_export_flattens_inputs_and_collects_figures(tmp_path: Path) ->
         "evidence_summary.pdf",
         "inference_gap.pdf",
         "retrieval_results.pdf",
+        "verification_examples.pdf",
         "verification_pipeline.pdf",
     }
     assert {path.relative_to(output).as_posix() for path in written} == {
@@ -34,5 +35,6 @@ def test_overleaf_export_flattens_inputs_and_collects_figures(tmp_path: Path) ->
         "figure/evidence_summary.pdf",
         "figure/inference_gap.pdf",
         "figure/retrieval_results.pdf",
+        "figure/verification_examples.pdf",
         "figure/verification_pipeline.pdf",
     }

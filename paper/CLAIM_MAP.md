@@ -4,13 +4,13 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 
 | Claim | Paper location | Artifact | Required boundary |
 | --- | --- | --- | --- |
-| C1 | Introduction and Section 3.1 | Figure 1 | Abridged audited examples plus a definition; not a latent-intent inference procedure or prevalence estimate |
-| C2 | Section 3.4 and Appendix | Appendix Figure A2a--b | Association only; same-provider readers; no pooled estimate |
-| C3 | Section 3.4 and Appendix | Appendix Figure A2c | Leakage reduction has bounded utility and over-refusal costs |
+| C1 | Introduction and Section 3.1 | Figure 1 and Appendix Figure A1 | An audited same-memory example plus additional abridged cases; not a latent-intent inference procedure or prevalence estimate |
+| C2 | Section 3.4 and Appendix | Appendix Figure A3a--b | Association only; same-provider readers; no pooled estimate |
+| C3 | Section 3.4 and Appendix | Appendix Figure A3c | Leakage reduction has bounded utility and over-refusal costs |
 | C4 | Appendix | Mechanism-smoke table | Sixteen-packet implementation check, not a natural-corpus estimate |
-| C5 | Sections 3.3 and Appendix | Appendix Figure A1 | Frozen v1 penalized non-usable risk; trusted namespaces; not pure admissibility |
-| C6 | Section 5 and Appendix | Appendix Figure A1 | Negative result for two frozen diagnostic routers only |
-| C7 | Section 3.3 and Appendix | Appendix Figure A1 | Frozen historical v1 semantics, not corrected v2 or lifecycle-only headroom |
+| C5 | Sections 3.3 and Appendix | Appendix Figure A2 | Frozen v1 penalized non-usable risk; trusted namespaces; not pure admissibility |
+| C6 | Section 5 and Appendix | Appendix Figure A2 | Negative result for two frozen diagnostic routers only |
+| C7 | Section 3.3 and Appendix | Appendix Figure A2 | Frozen historical v1 semantics, not corrected v2 or lifecycle-only headroom |
 | C8 | Sections 3.4, 4, and 5.4 | Figure 4 | Assigned exposure under constructed query conditions; no isolated causal moderator; readers never pooled |
 | C9 | Sections 4 and 5.1 | Figure 2a | Post-hoc v2 scoring on frozen rankings; no retuning; source-clustered intervals |
 | C10 | Sections 4 and 5.2 | Figure 2b--c | Tested corruption mechanisms only; observed grid brackets are not population thresholds |

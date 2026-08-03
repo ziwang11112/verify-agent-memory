@@ -2,8 +2,8 @@
   "archetype": "quantitative_grid",
   "backend": "python_matplotlib",
   "bootstrap_replicates": 10000,
-  "core_conclusion": "exposure increases disclosure more for relevant admissible than relevant inadmissible evidence across three separately reported readers",
-  "final_height_in": 3.35,
+  "core_conclusion": "exposure increases admissible disclosure selectively, but a strictly positive residual inadmissible effect for DeepSeek shows that reader restraint cannot guarantee safety after prompt exposure",
+  "final_height_in": 3.2,
   "final_width_in": 7.2,
   "image_integrity": "direct_vector_plot_from_published_csv_no_image_adjustment",
   "inputs": [
@@ -24,42 +24,42 @@
   "official_result": false,
   "outputs": [
     {
-      "bytes": 3840,
+      "bytes": 2256,
       "path": "counterfactual_exposure_source_data.csv",
-      "sha256": "7aab9ba3f987190261d744f6d98683eb37a8f18e075d64297afceac4d1e1d2a4"
+      "sha256": "9eaea41c075db5f1c718aef9f05cc17e02219af31e47a54cb07e4d846238705c"
     },
     {
-      "bytes": 1051,
+      "bytes": 974,
       "path": "counterfactual_exposure_caption.md",
-      "sha256": "25098adb526d357b0dfbb471792204595d8a45a3153f7819adc8bb6be8040cef"
+      "sha256": "fdde34739052b9bfc2d5d7f28876dbf083c62acdd9060a3b47d985d76143c096"
     },
     {
-      "bytes": 53233,
+      "bytes": 37608,
       "path": "counterfactual_exposure.svg",
-      "sha256": "5bd4facbd5e04b70600b0ba50165ddb0a4253b209967658cc1496a6b76c44f10"
+      "sha256": "7d0f4a1517b86568c5efda4fb6158f43ffd0bfb5405c6b600348bce58819bcf6"
     },
     {
-      "bytes": 68091,
+      "bytes": 65591,
       "path": "counterfactual_exposure.pdf",
-      "sha256": "f2d1ad2979b9d94dbc28e2bfdb568007c60d53b4845f6fde5d6946bb9caa43c5"
+      "sha256": "933887228818ba0f6d8cea32dcca76c7334d594262e0f3e8ca9edb81a48edcba"
     },
     {
-      "bytes": 165524,
+      "bytes": 130642,
       "path": "counterfactual_exposure.png",
-      "sha256": "917d2b6adf5574519fe82a77306952de7747451954cdfda169fe262fef8d569b"
+      "sha256": "8ba947ccea62c877baf248d310bc452edb4cb7c5f3b0ed23406357bcf73b11bc"
     }
   ],
   "png_dpi": 300,
   "png_pixel_audit": {
     "channel_max": 255,
     "channel_min": 0,
-    "height_px": 1005,
-    "nonwhite_fraction": 0.13783397825686383,
+    "height_px": 960,
+    "nonwhite_fraction": 0.1648900462962963,
     "width_px": 2160
   },
   "provider_call_count": 0,
   "schema_version": 1,
-  "script_sha256": "03320cc58d17bce7a2f53427582d143c22563f1837fc7c372f65912c8b5f639a",
+  "script_sha256": "1d7ab9ec0c813392dc0dc3cfc9e632a3b86fe8de9c361c4e6964084402c516ca",
   "status": "publication_figure_from_controlled_content_free_results",
   "svg_text_editable": true
 }

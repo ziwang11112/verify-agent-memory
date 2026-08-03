@@ -1,6 +1,6 @@
 # The Wrong Memory at the Right Time
 
-**Verifying Retrieval Admissibility in Long-Term Agents**
+**Metadata Reliability and Enforcement Boundaries in Long-Term Agent Memory**
 
 Long-term memory is intended to prevent language agents from forgetting, but
 persistence creates a complementary verification problem: a retrieved memory can
@@ -8,6 +8,17 @@ be semantically relevant while being out of scope, prohibited, temporally
 incompatible, or otherwise inappropriate for the current question. **A memory can
 be relevant and still be inadmissible for the current query.** This project studies
 how to verify that distinction while preserving the useful evidence an agent needs.
+The current evidence follows one mechanism chain:
+
+```text
+Candidate support -> Metadata reliability -> Selective verification
+                  -> Prompt exposure -> Answer disclosure
+```
+
+The central finding is diagnostic: trusted eligibility metadata can improve the
+retrieval utility-risk frontier, but error direction matters, text-only verifiers do
+not reconstruct governance state selectively, and reader restraint cannot repair
+every mistake after prompt exposure.
 
 The evaluation surface separates four states:
 

@@ -20,6 +20,7 @@ REQUIRED_GENERATED_INPUTS = (
     "generated/matched_prefix_diagnostics.tex",
     "generated/mechanism_smoke.tex",
     "generated/verification_pipeline.pdf",
+    "generated/verification_examples.pdf",
     "generated/evidence_summary.pdf",
     "generated/retrieval_results.pdf",
     "generated/constraint_reliability.pdf",

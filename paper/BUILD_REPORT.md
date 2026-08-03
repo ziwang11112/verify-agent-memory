@@ -2,34 +2,34 @@
 
 ## Receipt
 
-- Built: August 2, 2026.
+- Built: August 3, 2026.
 - Command: `.venv\Scripts\python.exe -m scripts.compile_paper`.
 - Engine: MiKTeX pdfTeX 1.40.28 with BibTeX 0.99e.
 - Output: `paper/build/main.pdf` (ignored by Git).
 - Total pages: 21.
-- Main text ends: page 9.
-- References begin: page 9.
-- Appendices begin: page 10.
-- NeurIPS checklist begins: page 14.
+- Main text ends: page 8.
+- References begin: page 8.
+- Appendices begin: page 9.
+- NeurIPS checklist begins: page 15.
 - Content length: within the workshop's 4-9 page limit, excluding references and
   appendices.
 
 ## Validation
 
-- The revised methodology pages 3--4, experiment and results pages 5--9, first
-  appendix page 10, and appendix figures and tables through page 14 were rendered at inspection
-  resolution and visually inspected.
+- All 21 pages were rendered at inspection resolution and visually inspected,
+  including methodology pages 3--4, experiments and results pages 4--8, the first
+  appendix page 9, appendix figures and tables through page 14, and the checklist.
 - No clipped text, overlapping elements, broken tables, or unreadable figures were
   observed.
-- Figure 1's four audited query-memory cases, use/drop decisions, and compact
-  verification trace remain legible at compiled main-text width. Figure 2 reports
-  fixed-budget support, corrected axis attribution, and corruption brackets;
-  Figure 3 reports the released-oracle/text-inference gap and controlled overflip;
-  Figure 4 reports the controlled three-reader paired-exposure effects. The
-  observational GateMem evidence and frozen nine-arm retrieval diagnostics remain
-  in the appendix. All figures preserve readable labels and uncertainty marks, and
-  the selected-settings, nine-arm, matched-prefix, and mechanism-smoke tables remain
-  within their text blocks.
+- Figure 1 links the same-memory counterfactual, relevance-by-admissibility matrix,
+  and pre-prompt enforcement path. Figure 2 presents the value, source, and
+  fragility of metadata constraints in a single mechanism sequence. Figure 3 shows
+  the released-oracle/text-inference gap and controlled overflip; Figure 4 shows the
+  controlled three-reader paired-exposure effects and residual leakage. The four
+  additional audited examples, observational GateMem evidence, and frozen nine-arm
+  retrieval diagnostics remain in the appendix. All figures preserve readable
+  labels and uncertainty marks, and all generated tables remain within their text
+  blocks.
 - The final log contains no overfull box, undefined citation, undefined reference,
   rerun, or LaTeX error warning.
 - Remaining underfull box messages are benign line-breaking notices in body text and
