@@ -1541,27 +1541,31 @@ def _write_verification_examples_figure(path: Path, cases: Sequence[FigureCase])
     plt.close(figure)
 
 
-def _write_pipeline_figure(path: Path, cases: Sequence[FigureCase]) -> None:
+def _write_pipeline_figure(
+    path: Path,
+    cases: Sequence[FigureCase],
+    selected: Mapping[str, Row],
+) -> None:
     _configure_matplotlib()
     import matplotlib.pyplot as plt
-    from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
+    from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Rectangle
 
-    figure, axis = plt.subplots(figsize=(7.1, 3.55))
+    figure, axis = plt.subplots(figsize=(7.2, 3.4))
     axis.set_xlim(0, 1)
     axis.set_ylim(0, 1)
     axis.axis("off")
 
     colors = {
-        "allowed": "#2E8B57",
-        "blocked": "#B64342",
-        "unknown": "#8A9199",
-        "trusted": "#2F6B9A",
-        "neutral": "#4F5963",
-        "line": "#CAD0D6",
-        "pale_blue": "#EDF4FA",
+        "allowed": "#248553",
+        "blocked": "#C43D3D",
+        "trusted": "#2166A5",
+        "neutral": "#52606D",
+        "dark": "#20262D",
+        "line": "#C9D0D7",
+        "pale_blue": "#EEF5FA",
         "pale_green": "#EAF5EE",
-        "pale_red": "#FCEEEE",
-        "pale_gray": "#F3F5F7",
+        "pale_red": "#FBEDEE",
+        "pale_gray": "#F4F6F8",
     }
 
     def rounded_box(
@@ -1573,13 +1577,13 @@ def _write_pipeline_figure(path: Path, cases: Sequence[FigureCase]) -> None:
         facecolor: str = "#FFFFFF",
         edgecolor: str | None = None,
         linewidth: float = 0.8,
-        radius: float = 0.008,
+        radius: float = 0.006,
     ) -> FancyBboxPatch:
         patch = FancyBboxPatch(
             (x, y),
             width,
             height,
-            boxstyle=f"round,pad=0.006,rounding_size={radius}",
+            boxstyle=f"round,pad=0.005,rounding_size={radius}",
             facecolor=facecolor,
             edgecolor=edgecolor or colors["line"],
             linewidth=linewidth,
@@ -1587,21 +1591,56 @@ def _write_pipeline_figure(path: Path, cases: Sequence[FigureCase]) -> None:
         axis.add_patch(patch)
         return patch
 
+    def pill(
+        x: float,
+        y: float,
+        width: float,
+        label: str,
+        *,
+        facecolor: str,
+        edgecolor: str,
+        text_color: str,
+    ) -> None:
+        rounded_box(
+            x,
+            y,
+            width,
+            0.036,
+            facecolor=facecolor,
+            edgecolor=edgecolor,
+            linewidth=0.55,
+            radius=0.010,
+        )
+        axis.text(
+            x + width / 2,
+            y + 0.018,
+            label,
+            ha="center",
+            va="center",
+            fontsize=4.7,
+            weight="bold",
+            color=text_color,
+        )
+
     def arrow(
         start: tuple[float, float],
         end: tuple[float, float],
         *,
-        color: str = "#77818A",
-        width: float = 1.0,
+        color: str = "#7B848C",
+        width: float = 0.9,
+        linestyle: str | tuple[int, tuple[int, ...]] = "solid",
+        connectionstyle: str = "arc3",
     ) -> None:
         axis.add_patch(
             FancyArrowPatch(
                 start,
                 end,
                 arrowstyle="-|>",
-                mutation_scale=9,
+                mutation_scale=8,
                 linewidth=width,
+                linestyle=linestyle,
                 color=color,
+                connectionstyle=connectionstyle,
                 shrinkA=1,
                 shrinkB=1,
             )
@@ -1609,302 +1648,423 @@ def _write_pipeline_figure(path: Path, cases: Sequence[FigureCase]) -> None:
 
     lisbon = next(case for case in cases if case["case_id"] == "superseded_lisbon_date")
     old_memory = next(memory for memory in lisbon["memories"] if memory["state"] == "superseded")
+    current_memory = next(memory for memory in lisbon["memories"] if memory["state"] == "current")
 
-    # Panel a: one memory, two query conditions, opposite admissibility verdicts.
-    axis.text(0.018, 0.965, "a", fontsize=8, weight="bold", va="top")
+    recall_delta = 100 * _number(selected["c9_k20_evidence_recall_delta"])
+    risk_delta = 100 * _number(selected["c9_k20_penalized_admissibility_upper_risk_delta"])
+    overflip_values = [
+        100 * _number(selected[f"c11_{model}_stable_control_overflip_rate"])
+        for model in ("gpt56_controlled", "gemini_controlled", "deepseek_controlled")
+    ]
+    exposure_delta = 100 * _number(selected["deepseek_exposure_inadmissible"])
+
+    # Panel a: one audited retrieval case, with the pre-prompt decision made visible.
+    axis.text(0.014, 0.965, "a", fontsize=8, weight="bold", va="top")
     axis.text(
-        0.044,
+        0.040,
         0.965,
-        "The same relevant memory can switch eligibility",
-        fontsize=7.2,
+        "Retrieval finds related records; intent determines which may cross",
+        fontsize=8.0,
         weight="bold",
         va="top",
-        color="#22272D",
-    )
-    rounded_box(
-        0.075,
-        0.755,
-        0.385,
-        0.105,
-        facecolor=colors["pale_gray"],
-        edgecolor=colors["unknown"],
-    )
-    axis.text(
-        0.2675,
-        0.833,
-        "SAME STORED MEMORY",
-        ha="center",
-        va="center",
-        fontsize=5.4,
-        weight="bold",
-        color=colors["neutral"],
-    )
-    axis.text(
-        0.2675,
-        0.785,
-        textwrap.fill(str(old_memory["text"]), width=52),
-        ha="center",
-        va="center",
-        fontsize=6.0,
-        color="#24292F",
-        linespacing=1.1,
+        color=colors["dark"],
     )
 
-    query_specs = (
+    stage_labels = (
+        (0.100, "CURRENT QUERY"),
+        (0.350, "RETRIEVED CANDIDATES"),
+        (0.535, "ELIGIBILITY"),
+        (0.660, "READER PROMPT"),
+    )
+    for x, label in stage_labels:
+        axis.text(
+            x,
+            0.835,
+            label,
+            ha="center",
+            fontsize=5.3,
+            weight="bold",
+            color=colors["neutral"],
+        )
+
+    rounded_box(
+        0.018,
+        0.575,
+        0.165,
+        0.205,
+        facecolor=colors["pale_blue"],
+        edgecolor=colors["trusted"],
+        linewidth=0.9,
+    )
+    axis.text(
+        0.032,
+        0.745,
+        "CURRENT STATE",
+        fontsize=5.4,
+        weight="bold",
+        color=colors["trusted"],
+    )
+    axis.text(
+        0.032,
+        0.666,
+        textwrap.fill(str(lisbon["query"]), width=25),
+        fontsize=6.2,
+        color=colors["dark"],
+        va="center",
+        linespacing=1.14,
+    )
+    axis.text(
+        0.032,
+        0.600,
+        "intent = current",
+        fontsize=5.0,
+        color=colors["neutral"],
+    )
+
+    candidate_specs = (
         (
-            0.018,
-            "HISTORY QUERY",
-            "Which departure date was recorded before the latest confirmation?",
-            "KEEP",
-            "relevant + lifecycle-compatible",
-            colors["allowed"],
-            colors["pale_green"],
+            0.595,
+            "m_old  EARLIER RECORD",
+            str(old_memory["text"]),
+            "SUPERSEDED",
+            colors["pale_red"],
+            colors["blocked"],
         ),
         (
-            0.278,
-            "CURRENT-STATE QUERY",
-            str(lisbon["query"]),
-            "DROP",
-            "relevant + lifecycle-incompatible",
-            colors["blocked"],
-            colors["pale_red"],
+            0.385,
+            "m_now  LATEST RECORD",
+            str(current_memory["text"]),
+            "CURRENT",
+            colors["pale_green"],
+            colors["allowed"],
         ),
     )
-    for x, heading, query, decision, reason, color, facecolor in query_specs:
-        arrow((0.2675, 0.748), (x + 0.118, 0.692), color=color, width=0.9)
-        rounded_box(x, 0.492, 0.235, 0.190, facecolor="#FFFFFF", edgecolor=color)
+    for y, heading, memory_text, state, facecolor, state_color in candidate_specs:
+        rounded_box(0.220, y, 0.245, 0.145, facecolor="#FFFFFF", edgecolor=colors["line"])
+        axis.add_patch(Rectangle((0.220, y), 0.006, 0.145, facecolor=state_color, edgecolor="none"))
         axis.text(
-            x + 0.012,
-            0.648,
+            0.237,
+            y + 0.118,
             heading,
             fontsize=5.2,
             weight="bold",
-            color=color,
-            va="center",
+            color=colors["neutral"],
         )
         axis.text(
-            x + 0.012,
-            0.590,
-            textwrap.fill(query, width=34),
-            fontsize=5.3,
-            color="#272C31",
+            0.237,
+            y + 0.078,
+            textwrap.fill(memory_text, width=43),
+            fontsize=5.8,
+            color=colors["dark"],
             va="center",
-            linespacing=1.12,
+            linespacing=1.08,
         )
-        rounded_box(
-            x + 0.012,
-            0.510,
-            0.211,
-            0.043,
+        pill(
+            0.237,
+            y + 0.013,
+            0.090,
+            "RELATED",
+            facecolor=colors["pale_blue"],
+            edgecolor=colors["trusted"],
+            text_color=colors["trusted"],
+        )
+        pill(
+            0.338,
+            y + 0.013,
+            0.090,
+            state,
             facecolor=facecolor,
-            edgecolor=color,
-            linewidth=0.6,
-            radius=0.005,
+            edgecolor=state_color,
+            text_color=state_color,
         )
+
+    arrow((0.184, 0.675), (0.215, 0.665), color=colors["trusted"])
+    arrow((0.184, 0.650), (0.215, 0.455), color=colors["trusted"])
+
+    gate_specs = (
+        (0.600, "DROP", "state mismatch", colors["blocked"], colors["pale_red"]),
+        (0.390, "KEEP", "all checks pass", colors["allowed"], colors["pale_green"]),
+    )
+    for y, verdict, reason, color, facecolor in gate_specs:
+        rounded_box(0.490, y, 0.088, 0.125, facecolor=facecolor, edgecolor=color, linewidth=0.9)
         axis.text(
-            x + 0.022,
-            0.531,
-            decision,
-            fontsize=5.4,
+            0.534,
+            y + 0.084,
+            verdict,
+            ha="center",
+            fontsize=6.3,
             weight="bold",
             color=color,
-            va="center",
         )
         axis.text(
-            x + 0.070,
-            0.531,
+            0.534,
+            y + 0.042,
             reason,
-            fontsize=4.55,
+            ha="center",
+            fontsize=4.7,
             color=colors["neutral"],
-            va="center",
         )
+    arrow((0.466, 0.665), (0.486, 0.665), color=colors["blocked"])
+    arrow((0.466, 0.455), (0.486, 0.455), color=colors["allowed"])
+
+    axis.plot([0.600, 0.600], [0.275, 0.785], color="#9AA2AA", lw=0.8, ls=(0, (3, 2)))
+    axis.plot([0.592, 0.608], [0.655, 0.675], color=colors["blocked"], lw=1.3)
+    axis.plot([0.592, 0.608], [0.675, 0.655], color=colors["blocked"], lw=1.3)
+
+    rounded_box(
+        0.625,
+        0.410,
+        0.088,
+        0.190,
+        facecolor=colors["pale_green"],
+        edgecolor=colors["allowed"],
+        linewidth=0.9,
+    )
     axis.text(
-        0.2675,
-        0.460,
-        "Admissibility belongs to the memory-query pair, not the memory alone.",
+        0.669,
+        0.565,
+        "EXPOSED",
+        ha="center",
+        fontsize=5.2,
+        weight="bold",
+        color=colors["allowed"],
+    )
+    axis.text(
+        0.669,
+        0.505,
+        "m_now\nMarch 14",
         ha="center",
         va="center",
+        fontsize=5.7,
+        color=colors["dark"],
+        linespacing=1.15,
+    )
+    axis.text(
+        0.669,
+        0.435,
+        "m_old excluded",
+        ha="center",
+        fontsize=4.5,
+        color=colors["neutral"],
+    )
+    arrow((0.579, 0.455), (0.620, 0.495), color=colors["allowed"])
+    rounded_box(
+        0.625,
+        0.295,
+        0.088,
+        0.070,
+        facecolor="#FFFFFF",
+        edgecolor=colors["allowed"],
+        linewidth=0.75,
+    )
+    axis.text(
+        0.669,
+        0.330,
+        "ANSWER: March 14",
+        ha="center",
+        va="center",
+        fontsize=4.7,
+        weight="bold",
+        color=colors["allowed"],
+    )
+    arrow((0.669, 0.405), (0.669, 0.370), color=colors["allowed"])
+
+    arrow(
+        (0.454, 0.700),
+        (0.630, 0.575),
+        color=colors["blocked"],
+        width=0.85,
+        linestyle=(0, (3, 2)),
+        connectionstyle="arc3,rad=-0.34",
+    )
+    axis.text(
+        0.520,
+        0.758,
+        "without enforcement",
+        ha="center",
+        fontsize=4.7,
+        weight="bold",
+        color=colors["blocked"],
+    )
+
+    rounded_box(
+        0.018,
+        0.105,
+        0.560,
+        0.125,
+        facecolor=colors["pale_gray"],
+        edgecolor=colors["line"],
+        linewidth=0.65,
+    )
+    axis.text(
+        0.032,
+        0.198,
+        "SAME m_old, HISTORY INTENT",
+        fontsize=5.0,
+        weight="bold",
+        color=colors["trusted"],
+    )
+    axis.text(
+        0.032,
+        0.150,
+        "Which date was recorded before the latest confirmation?",
+        fontsize=5.4,
+        color=colors["dark"],
+    )
+    pill(
+        0.472,
+        0.142,
+        0.085,
+        "KEEP",
+        facecolor=colors["pale_green"],
+        edgecolor=colors["allowed"],
+        text_color=colors["allowed"],
+    )
+    axis.text(
+        0.298,
+        0.052,
+        "Eligibility belongs to the memory-query pair, not the record alone.",
+        ha="center",
         fontsize=5.8,
         weight="bold",
         color=colors["neutral"],
     )
 
-    # Panel b: conceptual relevance-by-admissibility matrix.
-    axis.text(0.520, 0.965, "b", fontsize=8, weight="bold", va="top")
+    # Panel b: compact evidence roadmap; rows are distinct populations and estimands.
+    axis.plot([0.735, 0.735], [0.04, 0.94], color="#D7DCE1", lw=0.8)
+    axis.text(0.755, 0.965, "b", fontsize=8, weight="bold", va="top")
     axis.text(
-        0.546,
+        0.781,
         0.965,
-        "The dangerous quadrant is relevant but inadmissible",
-        fontsize=7.2,
+        "The failure compounds downstream",
+        fontsize=7.8,
         weight="bold",
         va="top",
-        color="#22272D",
-    )
-    matrix_x, matrix_y = 0.610, 0.515
-    cell_w, cell_h = 0.180, 0.155
-    cell_specs = (
-        (0, 1, colors["pale_green"], colors["allowed"], "Useful evidence"),
-        (1, 1, colors["pale_red"], colors["blocked"], "Dangerous memory"),
-        (0, 0, colors["pale_gray"], colors["unknown"], "Ordinary noise"),
-        (1, 0, "#F7F1F1", "#A87070", "Inadmissible noise"),
-    )
-    for col, row, facecolor, edgecolor, label in cell_specs:
-        x = matrix_x + col * cell_w
-        y = matrix_y + row * cell_h
-        axis.add_patch(
-            Rectangle(
-                (x, y),
-                cell_w,
-                cell_h,
-                facecolor=facecolor,
-                edgecolor=edgecolor,
-                linewidth=1.1 if label == "Dangerous memory" else 0.7,
-            )
-        )
-        axis.text(
-            x + cell_w / 2,
-            y + cell_h / 2,
-            label,
-            ha="center",
-            va="center",
-            fontsize=5.8,
-            weight="bold" if label in {"Useful evidence", "Dangerous memory"} else "normal",
-            color=edgecolor,
-        )
-    axis.text(
-        matrix_x + cell_w / 2,
-        matrix_y + 2 * cell_h + 0.020,
-        "ADMISSIBLE",
-        ha="center",
-        fontsize=5.2,
-        weight="bold",
-        color=colors["allowed"],
+        color=colors["dark"],
     )
     axis.text(
-        matrix_x + 1.5 * cell_w,
-        matrix_y + 2 * cell_h + 0.020,
-        "INADMISSIBLE",
-        ha="center",
-        fontsize=5.2,
-        weight="bold",
-        color=colors["blocked"],
-    )
-    axis.text(
-        matrix_x - 0.020,
-        matrix_y + 1.5 * cell_h,
-        "RELEVANT",
-        ha="right",
-        va="center",
-        rotation=90,
-        fontsize=5.2,
-        weight="bold",
+        0.755,
+        0.895,
+        "Separate evaluations; no pooled estimate",
+        fontsize=4.8,
         color=colors["neutral"],
-    )
-    axis.text(
-        matrix_x - 0.020,
-        matrix_y + 0.5 * cell_h,
-        "IRRELEVANT",
-        ha="right",
-        va="center",
-        rotation=90,
-        fontsize=5.2,
-        weight="bold",
-        color=colors["neutral"],
-    )
-    axis.text(
-        0.790,
-        0.475,
-        "Unknown labels remain unresolved; they are never silently treated as pass.",
-        ha="center",
-        va="center",
-        fontsize=5.0,
-        color=colors["unknown"],
     )
 
-    # Panel c: enforcement path and figure navigation.
-    axis.text(0.018, 0.395, "c", fontsize=8, weight="bold", va="top")
-    axis.text(
-        0.044,
-        0.395,
-        "Eligibility must be enforced before prompt exposure",
-        fontsize=7.2,
-        weight="bold",
-        va="top",
-        color="#22272D",
+    evidence_rows = (
+        (
+            0.685,
+            "1",
+            "SUPPORT",
+            "Trusted namespace at k=20",
+            f"recall {recall_delta:+.1f} pp",
+            f"adm. risk {risk_delta:+.1f} pp",
+            "FIG. 2",
+            colors["allowed"],
+            colors["pale_green"],
+        ),
+        (
+            0.430,
+            "2",
+            "VERIFICATION",
+            "Stable-control overflip",
+            f"{min(overflip_values):.1f}-{max(overflip_values):.1f}%",
+            "across three text models",
+            "FIG. 3",
+            colors["trusted"],
+            colors["pale_blue"],
+        ),
+        (
+            0.175,
+            "3",
+            "EXPOSURE",
+            "Relevant-inadmissible effect",
+            f"{exposure_delta:+.1f} pp disclosure",
+            "DeepSeek; 95% CI > 0",
+            "FIG. 4",
+            colors["blocked"],
+            colors["pale_red"],
+        ),
     )
-    stage_specs = (
-        (0.035, 0.112, "STORED", "memory + metadata", colors["pale_gray"], colors["neutral"]),
-        (0.220, 0.112, "RETRIEVED", "semantic candidates", colors["pale_blue"], colors["trusted"]),
-        (0.405, 0.145, "VERIFY", "scope / policy / lifecycle", "#E4F2EE", colors["allowed"]),
-        (0.620, 0.112, "EXPOSED", "assembled prompt", "#F5F1F8", "#7B5AA6"),
-        (0.805, 0.112, "DISCLOSED", "final answer", "#FFF2E8", "#B86C31"),
-    )
-    for x, width, heading, detail, facecolor, edgecolor in stage_specs:
+    for y, number, heading, context, value, detail, figure_label, color, facecolor in evidence_rows:
         rounded_box(
-            x,
+            0.755,
+            y,
+            0.228,
             0.190,
-            width,
-            0.105,
             facecolor=facecolor,
-            edgecolor=edgecolor,
-            linewidth=1.2 if heading == "VERIFY" else 0.8,
+            edgecolor="#FFFFFF",
+            linewidth=0,
+            radius=0.004,
         )
+        axis.add_patch(Circle((0.773, y + 0.153), 0.012, facecolor=color, edgecolor="none"))
         axis.text(
-            x + width / 2,
-            0.258,
-            heading,
+            0.773,
+            y + 0.153,
+            number,
             ha="center",
             va="center",
-            fontsize=5.7,
+            fontsize=4.8,
             weight="bold",
-            color=edgecolor,
+            color="#FFFFFF",
         )
         axis.text(
-            x + width / 2,
-            0.218,
-            detail,
-            ha="center",
-            va="center",
-            fontsize=4.45,
-            color=colors["neutral"],
-        )
-    for start_x, end_x in ((0.151, 0.214), (0.332, 0.398), (0.551, 0.613), (0.732, 0.798)):
-        arrow((start_x, 0.242), (end_x, 0.242), width=0.9)
-    axis.annotate(
-        "enforcement boundary",
-        xy=(0.478, 0.302),
-        xytext=(0.478, 0.342),
-        ha="center",
-        va="center",
-        fontsize=5.0,
-        weight="bold",
-        color=colors["allowed"],
-        arrowprops={"arrowstyle": "-|>", "color": colors["allowed"], "lw": 0.8},
-    )
-    navigation = (
-        (0.128, "support + metadata", "Figure 2"),
-        (0.478, "selective verifier", "Figure 3"),
-        (0.790, "reader consequence", "Figure 4"),
-    )
-    for x, label, figure_label in navigation:
-        axis.text(x, 0.134, label, ha="center", fontsize=4.7, color=colors["neutral"])
-        axis.text(
-            x,
-            0.094,
-            figure_label,
-            ha="center",
+            0.793,
+            y + 0.158,
+            heading,
             fontsize=5.2,
             weight="bold",
-            color=colors["trusted"],
+            color=color,
+            va="center",
         )
+        axis.text(
+            0.970,
+            y + 0.158,
+            figure_label,
+            fontsize=4.4,
+            weight="bold",
+            color=colors["trusted"],
+            ha="right",
+            va="center",
+        )
+        axis.text(
+            0.773,
+            y + 0.111,
+            context,
+            fontsize=4.9,
+            color=colors["neutral"],
+        )
+        axis.text(
+            0.773,
+            y + 0.067,
+            value,
+            fontsize=6.4,
+            weight="bold",
+            color=color,
+        )
+        axis.text(
+            0.773,
+            y + 0.030,
+            detail,
+            fontsize=5.2 if heading == "SUPPORT" else 4.6,
+            weight="bold" if heading == "SUPPORT" else "normal",
+            color=color if heading == "SUPPORT" else colors["neutral"],
+        )
+
     axis.text(
-        0.985,
-        0.025,
-        "Example-derived counterfactual from an audited MemOps record",
-        ha="right",
-        va="bottom",
-        fontsize=4.4,
-        color=colors["unknown"],
+        0.869,
+        0.045,
+        "Decide before the prompt.",
+        ha="center",
+        fontsize=6.1,
+        weight="bold",
+        color=colors["dark"],
+    )
+    axis.text(
+        0.014,
+        0.012,
+        "Abridged audited MemOps example; right-side estimates come from distinct frozen analyses.",
+        fontsize=3.9,
+        color="#89919A",
     )
 
     figure.tight_layout(pad=0.12)
@@ -2841,7 +3001,7 @@ def build(repository_root: Path) -> tuple[Path, ...]:
     _write_full_arm_table(full_arm_table_path, rows)
     _write_matched_prefix_table(matched_prefix_table_path, selected)
     _write_smoke_table(smoke_table_path, selected)
-    _write_pipeline_figure(output_root / "verification_pipeline", figure_examples)
+    _write_pipeline_figure(output_root / "verification_pipeline", figure_examples, selected)
     _write_verification_examples_figure(output_root / "verification_examples", figure_examples)
     _write_evidence_figure(output_root / "evidence_summary", selected)
     _write_retrieval_figure(output_root / "retrieval_results", rows, selected)

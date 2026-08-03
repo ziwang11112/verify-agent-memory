@@ -3,28 +3,30 @@
 This file fixes the message, evidence population, and claim boundary for every main
 paper figure. It is a review aid; `claims/claims.yaml` remains authoritative.
 
-## Figure 1: The Dangerous Memory Is Relevant but Ineligible
+## Figure 1: Related Retrieval Is Not Eligible Evidence
 
-**Conclusion:** Topical overlap does not determine whether a retrieved record may
-support the current query. Scope, policy, and lifecycle must be checked against the
-query; an old state can be excluded for a current-state query yet retained for a
-history query.
+**Conclusion:** Semantic retrieval can surface both current and superseded records;
+authenticated eligibility metadata must decide which records may cross the prompt
+boundary. The same old record can be excluded for a current-state query and retained
+for a history query.
 
 | Panel | Role | Intended read |
 | --- | --- | --- |
-| a | Same-memory MemOps counterfactual | A superseded date is retained for a history query and rejected for a current-state query |
-| b | Relevance-by-admissibility matrix | Relevant-inadmissible evidence is the dangerous quadrant; unresolved status is never silently passed |
-| c | Enforcement path and paper map | Verification occurs after retrieval but before prompt exposure; Figures 2--4 diagnose support, verifier, and reader failures |
+| a | Audited candidate-level MemOps flow | A current query retrieves related March 7 and March 14 records; the superseded record is dropped before exposure but retained under a history intent |
+| b | Quantitative evidence roadmap | Distinct support, verification, and exposure analyses diagnose successive failure points without pooling populations or estimands |
 
-**Evidence:** C1 and the abridged superseded-Lisbon record from the audited MemOps
-packet listed in `evidence/examples/retrieval_admissibility_cases.json`. The history
-query is an example-derived counterfactual. The other three audited cases appear in
-Appendix Figure A1. These are qualitative examples, not frequency or effect estimates.
+**Evidence:** Panel a uses C1 and the abridged superseded-Lisbon pair from the audited
+MemOps packet listed in `evidence/examples/retrieval_admissibility_cases.json`; its
+history query is an example-derived counterfactual. Panel b indexes C9 top-20 support,
+C11 controlled stable overflip, and C8 controlled exposure. The three estimates come
+from distinct populations and are not combined. The other three audited cases appear
+in Appendix Figure A1.
 
 **Boundary:** Text is abridged for figure legibility; packet IDs, memory IDs, source
-labels, and verdicts are preserved in the example manifest. The figure defines the
-verification target and required observations. It does not infer policy, scope,
-intent, or lifecycle state, and it does not estimate population prevalence.
+labels, and verdicts are preserved in the example manifest. The dashed red bypass is
+a mechanism illustration, not an observed natural answer. The figure does not infer
+policy, scope, intent, or lifecycle state, estimate prevalence, or pool its roadmap
+statistics.
 
 ## Figure 2: Constraint Value Depends on Metadata Reliability
 

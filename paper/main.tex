@@ -89,13 +89,14 @@ decomposition of where eligibility enforcement succeeds and fails.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{generated/verification_pipeline.pdf}
-  \caption{Retrieval admissibility and its enforcement boundary.  (a) The same
-  audited MemOps record is retained for an example-derived history query and rejected
-  for a current-state query.  (b) Relevance and admissibility define distinct axes;
-  the dangerous case is relevant but inadmissible.  Unknown labels remain unresolved.
-  (c) Record identity is traced from storage to disclosure, with verification between
-  retrieval and prompt exposure.  The example is qualitative, not an effect or
-  prevalence estimate; additional audited cases appear in
+  \caption{From related retrieval to eligible evidence.  (a) An abridged audited
+  MemOps case places a superseded March 7 record and the latest March 14 confirmation
+  in the candidate set.  For a current-state query, the old record is dropped before
+  the prompt boundary; under an example-derived history intent, the same record is
+  kept.  The dashed red route depicts absent pre-prompt enforcement, not an observed
+  natural answer.  (b) Headline estimates from the natural-support, controlled-
+  verification, and controlled-exposure analyses; their populations and estimands are
+  distinct and are not pooled.  Additional audited cases appear in
   Appendix~\ref{app:verification-examples}.}
   \label{fig:pipeline}
 \end{figure}

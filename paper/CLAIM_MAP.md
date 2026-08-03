@@ -11,10 +11,10 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 | C5 | Sections 3.3 and Appendix | Appendix Figure A2 | Frozen v1 penalized non-usable risk; trusted namespaces; not pure admissibility |
 | C6 | Section 5 and Appendix | Appendix Figure A2 | Negative result for two frozen diagnostic routers only |
 | C7 | Section 3.3 and Appendix | Appendix Figure A2 | Frozen historical v1 semantics, not corrected v2 or lifecycle-only headroom |
-| C8 | Sections 3.4, 4, and 5.4 | Figure 4 | Assigned exposure under constructed query conditions; no isolated causal moderator; readers never pooled |
-| C9 | Sections 4 and 5.1 | Figure 2a | Post-hoc v2 scoring on frozen rankings; no retuning; source-clustered intervals |
+| C8 | Sections 3.4, 4, and 5.4 | Figure 1b roadmap and Figure 4 | Assigned exposure under constructed query conditions; no isolated causal moderator; readers never pooled |
+| C9 | Sections 4 and 5.1 | Figure 1b roadmap and Figure 2a | Post-hoc v2 scoring on frozen rankings; no retuning; source-clustered intervals |
 | C10 | Sections 4 and 5.2 | Figure 2b--c | Tested corruption mechanisms only; observed grid brackets are not population thresholds |
-| C11 | Sections 4 and 5.3 | Figure 3 | Natural and controlled public-development diagnostics are separate and never pooled |
+| C11 | Sections 4 and 5.3 | Figure 1b roadmap and Figure 3 | Natural and controlled public-development diagnostics are separate and never pooled |
 
 ## Paper-Level Claims
 

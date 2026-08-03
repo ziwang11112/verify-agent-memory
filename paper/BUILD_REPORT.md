@@ -21,8 +21,8 @@
   appendix page 9, appendix figures and tables through page 14, and the checklist.
 - No clipped text, overlapping elements, broken tables, or unreadable figures were
   observed.
-- Figure 1 links the same-memory counterfactual, relevance-by-admissibility matrix,
-  and pre-prompt enforcement path. Figure 2 presents the value, source, and
+- Figure 1 links an audited candidate-level retrieval failure, a query-conditioned
+  prompt boundary, and the three-stage evidence roadmap. Figure 2 presents the value, source, and
   fragility of metadata constraints in a single mechanism sequence. Figure 3 shows
   the released-oracle/text-inference gap and controlled overflip; Figure 4 shows the
   controlled three-reader paired-exposure effects and residual leakage. The four
