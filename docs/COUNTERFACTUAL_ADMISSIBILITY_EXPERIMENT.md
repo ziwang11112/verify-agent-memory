@@ -68,8 +68,8 @@ both sides and therefore cannot solve the focal flip.
 
 The preregistered supportive pattern is at least 0.80 global strict pair consistency,
 at least 0.75 on every axis, stable-control overflip no greater than 0.05, and positive
-mean directional margin. These thresholds organize this diagnostic; they are not an E6
-or M2 gate.
+mean directional margin. These thresholds organize this diagnostic; they are not an
+official benchmark or deployment gate.
 
 Even a positive result establishes only that a model can apply explicit visible
 conditions in controlled pairs. A negative result would show that the proposed verifier

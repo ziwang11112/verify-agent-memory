@@ -1,7 +1,7 @@
 # Retrieval Experiment Code Guide
 
 This document is an implementation map, not a manuscript or a result summary. It
-describes the executable non-Bayesian retrieval-admissibility experiment exposed by
+describes the executable retrieval-admissibility experiment exposed by
 this repository.
 
 ## Code Map
@@ -23,6 +23,7 @@ this repository.
 | Exposure CLI | `scripts/run_counterfactual_exposure_intervention.py` | Zero-call validation, provider-neutral request materialization, and local scoring |
 | Exposure provider CLI | `scripts/run_counterfactual_exposure_execution.py` | Unlock-gated fixtures, resumable execution, hard caps, and complete-bundle scoring |
 | Frozen settings | `experiments/frozen_natural_protocol.json` | Embedding, split, selection, and selected-arm configuration |
+| Robustness settings | `experiments/metadata_robustness_retrieval_protocol.json` | One immutable setting for each arm used by the public corruption smoke |
 | Robustness grid | `experiments/metadata_robustness_protocol.json` | Corruption channels, rates, seeds, invariants, and break-even definition |
 | Pareto grid | `experiments/top_k_pareto_protocol.json` | Frozen arms and `top_k` depths for recall-risk-cost analysis |
 | Exposure protocol | `experiments/counterfactual_exposure_protocol.json` | Hash-bound 2x2 intervention design with paid execution disabled |
@@ -30,8 +31,8 @@ this repository.
 | Supplemental results | `results/supplemental_natural/` | Content-free top-k, attribution, and metadata break-even diagnostics |
 | Supplemental verifier | `scripts/publish_supplemental_results.py` | Hash, schema, row-count, and content-boundary checks for the result package |
 
-No Bayesian mixture, CRP/PYP, split-merge, reader, judge, provider client, or model
-call is present in this execution path.
+The public retrieval path is local and zero-provider: no reader, judge, provider
+client, or model call is present in this execution path.
 
 ## Normalized Input
 
@@ -108,8 +109,8 @@ The threshold router assigns a memory to the most similar existing centroid when
 cosine is at least `theta`; otherwise it creates a cluster. At query time it selects
 at most `top_l` centroids meeting the same threshold.
 
-For the non-Bayesian cluster router, the existing- and new-cluster insertion scores
-are implemented as:
+For `cluster_router`, the existing- and new-cluster insertion scores are implemented
+as:
 
 ```text
 existing(k, x) = gamma * log(n_k + beta) + cosine(x, centroid_k) / tau
@@ -266,7 +267,7 @@ uv run --extra dev python -m scripts.run_retrieval_experiment select `
   --output tmp/selected_settings.jsonl
 uv run --extra dev python -m scripts.run_metadata_robustness `
   --cases tests/fixtures/retrieval_cases.jsonl `
-  --retrieval-protocol experiments/frozen_natural_protocol.json `
+  --retrieval-protocol experiments/metadata_robustness_retrieval_protocol.json `
   --robustness-protocol experiments/metadata_robustness_protocol.json `
   --output tmp/metadata_curve.jsonl `
   --break-even-output tmp/metadata_break_even.jsonl

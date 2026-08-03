@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from scripts.run_metadata_robustness import main
-from scripts.run_retrieval_experiment import load_cases
+from scripts.run_retrieval_experiment import load_cases, load_protocol
 from verify_agent_memory.experiment import SettingSummary
 from verify_agent_memory.retrieval import RetrievalArm
 from verify_agent_memory.robustness import (
@@ -244,3 +244,16 @@ def test_metadata_robustness_cli_smoke(tmp_path: Path) -> None:
     assert len(break_even.read_text(encoding="utf-8").splitlines()) == 1
     first_row = json.loads(output.read_text(encoding="utf-8").splitlines()[0])
     assert first_row["metric_schema_version"] == 2
+
+
+def test_checked_in_metadata_robustness_protocol_has_one_setting_per_arm() -> None:
+    protocol_path = ROOT / "experiments" / "metadata_robustness_protocol.json"
+    protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+    retrieval_path = ROOT / str(protocol["base_retrieval_protocol"])
+    _, _, configs = load_protocol(retrieval_path)
+
+    fixed_arms = {RetrievalArm(value) for value in protocol["fixed_arms"]}
+    selected = tuple(config for config in configs if config.arm in fixed_arms)
+
+    assert len(selected) == len(fixed_arms)
+    assert {config.arm for config in selected} == fixed_arms

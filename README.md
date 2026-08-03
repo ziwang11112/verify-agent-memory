@@ -36,7 +36,7 @@ private benchmark payloads, raw provider responses, credentials, embeddings, or
 checkpoints. Provider-backed historical diagnostics remain isolated from the public
 retrieval evaluator.
 
-For the code-level experiment contract, all nine non-Bayesian retrieval arms, the
+For the code-level experiment contract, all nine frozen retrieval arms, the
 dev-only setting-selection objective, and local smoke commands, see
 [docs/EXPERIMENT_METHODS.md](docs/EXPERIMENT_METHODS.md). This technical path is
 independent of the manuscript build.
@@ -58,6 +58,21 @@ authorized, hash-bound execution completed the frozen panel for GPT-5.6 Sol, Gem
 and receipts are published in
 [results/counterfactual_exposure/](results/counterfactual_exposure/); raw prompts and
 responses remain outside this repository.
+
+## Reproducibility
+
+The public package has three explicit reproducibility levels:
+
+| Level | Included here | Boundary |
+| --- | --- | --- |
+| Local code-path smoke | Synthetic retrieval fixture, frozen protocols, routing, scoring, robustness, Pareto, and zero-call exposure construction | Runs without benchmark downloads, credentials, or model calls |
+| Evidence and paper verification | Content-free normalized evidence, source receipts, claim checks, generated tables, and figures | Recomputes every published aggregate from the checked-in normalized evidence |
+| Historical full execution | Source identities and construction contracts | Raw benchmark text, embeddings, routes, provider prompts, and responses are intentionally excluded and must not be inferred from the aggregate package |
+
+Start with the zero-cost commands in
+[docs/EXPERIMENT_METHODS.md](docs/EXPERIMENT_METHODS.md#local-smoke), then run the
+verification commands below. The local fixture validates implementation behavior;
+it is not a benchmark result.
 
 ## Current Scope
 
@@ -127,9 +142,8 @@ uv run --extra dev python scripts/verify_evidence.py
 uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
 ```
 
-Regenerating normalized evidence additionally requires the frozen provenance archive
-at `../bomi-codex-starter`:
-
-```powershell
-uv run --extra dev python scripts/import_frozen_evidence.py
-```
+The checked-in normalized evidence is fully verifiable without private material.
+Rebuilding the historical full executions is intentionally not a one-command public
+workflow because raw benchmark payloads, embeddings, routes, prompts, and responses
+are excluded. Exact upstream revisions and artifact identities are recorded in
+[PROVENANCE.md](PROVENANCE.md).

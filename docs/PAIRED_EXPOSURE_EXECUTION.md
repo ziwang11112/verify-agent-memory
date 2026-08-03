@@ -79,4 +79,4 @@ python -m scripts.run_counterfactual_exposure_execution score --provider OpenAI
 
 Replacing `OpenAI` with the other provider names runs their independent bundles. An
 approved execution remains a controlled public-development diagnostic, not an
-official benchmark, E6 gate, or full-paper decision.
+official benchmark or full-paper decision.

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "protocol_id": "metadata-robustness-v2",
-  "base_retrieval_protocol": "experiments/frozen_natural_protocol.json",
+  "base_retrieval_protocol": "experiments/metadata_robustness_retrieval_protocol.json",
   "target_recall": 0.8,
   "selection_risk": "admissibility_upper_bound",
   "fixed_arms": [
