@@ -101,6 +101,21 @@ def test_smoke_and_full_populations_are_distinct() -> None:
     assert "C4 and C5 must not use identical populations" in validate(data)
 
 
+def test_full_natural_claim_names_non_usable_risk_family() -> None:
+    data = load_valid_contract()
+    full = claim(data, "C5")
+    full["exact_values"]["penalized_contamination_upper_delta"] = full["exact_values"].pop(
+        "penalized_non_usable_upper_risk_delta"
+    )
+    assert "C5 must name the frozen v1 penalized non-usable upper risk" in validate(data)
+
+
+def test_historical_arm_claim_distinguishes_v1_and_v2() -> None:
+    data = load_valid_contract()
+    claim(data, "C7")["known_limitations"] = ["Released-field upper bound."]
+    assert "C7 must distinguish the historical v1 and corrected v2 semantics" in validate(data)
+
+
 def test_gatemem_claim_requires_non_causal_limitation() -> None:
     data = load_valid_contract()
     gate_claim = claim(data, "C2")

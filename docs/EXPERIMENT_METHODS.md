@@ -99,7 +99,8 @@ diagnostics with no development tuning; they do not alter the frozen nine-arm ru
 | `query_agnostic_current_only` | Deliberately misspecified ablation that removes released stale and superseded records for every query |
 | `namespace_policy_only` | Namespace support plus query-memory policy filtering, without lifecycle filtering |
 | `namespace_lifecycle_only` | Namespace support plus query-intent lifecycle filtering, without policy filtering |
-| `released_intent_lifecycle_upper_bound` | Namespace support; policy-disallowed records are removed for every query; current-state queries additionally remove released stale and superseded records, while history queries retain lifecycle states |
+| `released_intent_lifecycle_upper_bound` | Frozen historical v1 arm: namespace support; policy and lifecycle filters are both applied only to current-state queries, while history queries retain all namespace-local records |
+| `released_governance_oracle_v2` | Corrected post-hoc v2 arm: namespace support; query-memory policy decisions apply to every query, while current-state queries additionally remove released stale and superseded records and history queries retain lifecycle states |
 | `threshold_router` | Online namespace-local centroid assignment at cosine threshold `theta`; route to at most `top_l` qualifying clusters |
 | `cluster_router` | Online namespace-local A5 centroid assignment and routing with size, cosine, and new-cluster scores |
 
@@ -142,10 +143,17 @@ that missing mass explicit. The unqualified legacy `contamination_*` Python prop
 remain aliases of `non_usable_*`; new JSON output never labels them as pure
 admissibility contamination.
 
-An infeasible query receives risk `1.0` only in the penalized development-selection
-and aggregate-risk quantity. Conditional matched-prefix metrics remain undefined for
-infeasible queries. Queries with no known usable anchors are recall-unevaluable and
-are excluded rather than assigned zero.
+An infeasible query receives risk `1.0` only in a penalized aggregate-risk quantity.
+Conditional matched-prefix metrics remain undefined for infeasible queries. Queries
+with no known usable anchors are recall-unevaluable and are excluded rather than
+assigned zero. The two risk families are always named explicitly:
+
+- `penalized_non_usable_upper_risk` is the historical v1 selection outcome and
+  combines unresolved relevance with admissibility;
+- `penalized_admissibility_upper_risk` is the v2 post-hoc governance outcome and
+  excludes relevance-only failures from the conditional component.
+
+Neither quantity is called unqualified "penalized conservative risk."
 
 Every setting summary also decomposes each penalized upper risk into an
 `infeasibility_risk_component` and a feasible-prefix conditional-risk contribution.
@@ -170,7 +178,9 @@ arm with this lexicographic objective:
 
 The historical frozen v1 protocol records `selection_risk=non_usable_upper_bound`
 because that is what selected the published settings; it is not retroactively renamed
-as an admissibility-only result. New selection defaults to
+as an admissibility-only result. Post-hoc v2 analyses reuse the frozen settings and
+rankings and report `penalized_admissibility_upper_risk`; they do not claim that this
+metric participated in development selection. New protocols may explicitly select
 `admissibility_upper_bound`. The selected settings remain immutable evaluation inputs,
 and the CLI does not tune or alter them during an evaluation run.
 

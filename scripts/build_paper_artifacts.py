@@ -242,7 +242,7 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             rows,
             claim_id="C5",
             contrast="namespace_dense_minus_global_dense",
-            metric="conservative_contamination_delta",
+            metric="penalized_non_usable_upper_risk_delta",
         ),
         "namespace_wrong_scope": _one(
             rows,
@@ -266,61 +266,61 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             rows,
             claim_id="C5",
             contrast="global_dense",
-            metric="penalized_contamination_upper",
+            metric="penalized_non_usable_upper_risk",
         ),
         "namespace_penalized_risk": _one(
             rows,
             claim_id="C5",
             contrast="namespace_dense",
-            metric="penalized_contamination_upper",
+            metric="penalized_non_usable_upper_risk",
         ),
         "global_known_contamination": _one(
             rows,
             claim_id="C5",
             contrast="global_dense_matched_prefix",
-            metric="known_contamination",
+            metric="known_non_usable_rate",
         ),
         "global_label_coverage": _one(
             rows,
             claim_id="C5",
             contrast="global_dense_matched_prefix",
-            metric="label_coverage",
+            metric="non_usable_label_coverage",
         ),
         "global_lower_bound": _one(
             rows,
             claim_id="C5",
             contrast="global_dense_matched_prefix",
-            metric="lower_bound",
+            metric="non_usable_lower_bound",
         ),
         "global_upper_bound": _one(
             rows,
             claim_id="C5",
             contrast="global_dense_matched_prefix",
-            metric="upper_bound",
+            metric="non_usable_upper_bound",
         ),
         "namespace_known_contamination": _one(
             rows,
             claim_id="C5",
             contrast="namespace_dense_matched_prefix",
-            metric="known_contamination",
+            metric="known_non_usable_rate",
         ),
         "namespace_label_coverage": _one(
             rows,
             claim_id="C5",
             contrast="namespace_dense_matched_prefix",
-            metric="label_coverage",
+            metric="non_usable_label_coverage",
         ),
         "namespace_lower_bound": _one(
             rows,
             claim_id="C5",
             contrast="namespace_dense_matched_prefix",
-            metric="lower_bound",
+            metric="non_usable_lower_bound",
         ),
         "namespace_upper_bound": _one(
             rows,
             claim_id="C5",
             contrast="namespace_dense_matched_prefix",
-            metric="upper_bound",
+            metric="non_usable_upper_bound",
         ),
         "threshold_recall_delta": _one(
             rows,
@@ -332,7 +332,7 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             rows,
             claim_id="C6",
             contrast="threshold_router_minus_namespace_dense",
-            metric="conservative_contamination_delta",
+            metric="penalized_non_usable_upper_risk_delta",
         ),
         "cluster_recall_delta": _one(
             rows,
@@ -344,7 +344,7 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             rows,
             claim_id="C6",
             contrast="cluster_router_minus_namespace_dense",
-            metric="conservative_contamination_delta",
+            metric="penalized_non_usable_upper_risk_delta",
         ),
         "threshold_fallback_rate": _one(
             rows,
@@ -366,7 +366,7 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
         "lifecycle_contamination_delta": _one(
             rows,
             claim_id="C7",
-            metric="conservative_contamination_delta",
+            metric="penalized_non_usable_upper_risk_delta",
         ),
         "lifecycle_stale_delta": _one(
             rows,
@@ -827,7 +827,7 @@ def _write_full_arm_table(path: Path, rows: Sequence[Row]) -> None:
     for arm, label, _short_label, _family, _marker in NATURAL_ARMS:
         recall = _natural_arm_row(rows, arm, "evidence_recall")
         feasible = _natural_arm_row(rows, arm, "feasible_rate")
-        risk = _natural_arm_row(rows, arm, "penalized_contamination_upper")
+        risk = _natural_arm_row(rows, arm, "penalized_non_usable_upper_risk")
         candidates = _natural_arm_row(rows, arm, "mean_candidates_scored")
         lines.append(
             f"{label} & {_plain(_number(recall))}"

@@ -152,10 +152,10 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
         if absolute or "_delta" in metric:
             return (absolute or metric,)
         if contrast.endswith("_matched_prefix") and metric in {
-            "known_contamination",
-            "label_coverage",
-            "lower_bound",
-            "upper_bound",
+            "known_non_usable_rate",
+            "non_usable_label_coverage",
+            "non_usable_lower_bound",
+            "non_usable_upper_bound",
         }:
             arm = contrast.removesuffix("_matched_prefix")
             if arm in {"global_dense", "namespace_dense"}:
@@ -173,7 +173,7 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
         } and metric in {
             "evidence_recall",
             "feasible_rate",
-            "penalized_contamination_upper",
+            "penalized_non_usable_upper_risk",
             "mean_candidates_scored",
         }:
             return ("arm_summary", contrast, metric)

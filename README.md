@@ -66,8 +66,8 @@ responses remain outside this repository.
 - Keep natural-route exposure-to-leakage results associative, and bound the separate
   paired intervention to controlled prompt-level disclosure effects.
 - Separate a small mechanism smoke from the full public-source evaluation.
-- Treat released lifecycle and intent fields as an upper bound, not a deployable
-  blind inference method.
+- Keep the frozen historical released-field v1 arm distinct from the corrected v2
+  governance diagnostic; neither is a deployable blind inference method.
 - Preserve source artifact identities through deterministic normalization.
 
 See [CLAIM_CONTRACT.md](CLAIM_CONTRACT.md), [MIGRATION_ALLOWLIST.md](MIGRATION_ALLOWLIST.md),
@@ -80,11 +80,11 @@ and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
 - Restricting exposure lowers leakage but also reduces bounded utility and increases
   over-refusal.
 - Trusted released namespaces improve recall and feasible rate while reducing the
-  preregistered penalized conservative risk on the public-source evaluation.
+  preregistered penalized non-usable upper risk on the public-source evaluation.
 - The evaluated threshold and cluster routers do not establish incremental utility
   beyond namespace support.
-- Released intent and lifecycle fields show upper-bound headroom, not deployable
-  blind inference performance.
+- Corrected v2 attribution shows that released policy metadata drives the incremental
+  governance gain; the evaluated coarse lifecycle-only rule hurts retrieval.
 - In controlled counterfactual pairs, GPT-5.6 Sol and Gemini 3.6 Flash follow every
   focal eligibility flip, but all three complete providers fail the preregistered
   stable-control overflip ceiling. Explicit LLM verification is therefore not yet a

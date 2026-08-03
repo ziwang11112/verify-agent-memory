@@ -7,6 +7,7 @@ method_label_mapping:
   ncr_a5: cluster_router
   namespace_current_only: current_only_filter
   namespace_source_intent_lifecycle: released_intent_lifecycle_upper_bound
+  namespace_policy_lifecycle_v2: released_governance_oracle_v2
   flat_bm25_dense_rrf: hybrid_rrf
 
 artifacts:

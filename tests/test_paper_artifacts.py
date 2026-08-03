@@ -21,7 +21,7 @@ def test_paper_evidence_selectors_cover_primary_claims() -> None:
     assert selected["smoke_global_recall"]["claim_id"] == "C4"
     assert selected["namespace_recall_delta"]["claim_id"] == "C5"
     assert selected["namespace_wrong_scope"]["estimate"] == "0.0"
-    assert selected["global_penalized_risk"]["metric"] == "penalized_contamination_upper"
+    assert selected["global_penalized_risk"]["metric"] == "penalized_non_usable_upper_risk"
     assert selected["namespace_label_coverage"]["contrast"] == "namespace_dense_matched_prefix"
     assert selected["threshold_recall_delta"]["claim_id"] == "C6"
     assert selected["threshold_fallback_rate"]["metric"] == "fallback_rate"

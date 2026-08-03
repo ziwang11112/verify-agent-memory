@@ -10,7 +10,7 @@ empirical claim.
 | --- | --- | --- | --- |
 | Separate relevance error from admissibility violation | Complete in metric schema v2 | `metrics.py`, `experiment.py`, `natural_admissibility_attribution.csv` | Promote only after the claim contract binds the supplemental result |
 | Decompose penalized risk into infeasibility and conditional risk | Complete | `experiment.py`, supplemental natural tables | Preserve both components in every paper table |
-| Apply policy independently of lifecycle intent | Complete | `released_intent_lifecycle_upper_bound` and policy-only attribution arm | Keep the arm labeled as a released-field upper bound |
+| Apply policy independently of lifecycle intent | Complete in corrected v2 | `released_governance_oracle_v2` and policy-only attribution arm | Preserve `released_intent_lifecycle_upper_bound` as frozen historical v1; never merge the two semantics |
 | Make policy query-conditioned | Complete as a released approximation | Query-memory `PolicyDecision` and `PolicyPurpose` in `retrieval.py` | Do not claim a general policy engine |
 | Replace binary current/history semantics with general temporal validity | Bounded, not solved | Two-intent limitation plus controlled as-of-time pairs | Keep natural-corpus lifecycle claims explicitly approximate |
 | Metadata corruption and break-even | Complete | `metadata_robustness_protocol.json`, `natural_*_break_even.json` | Move the result into the claim contract before manuscript use |

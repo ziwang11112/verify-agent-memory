@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "protocol_id": "metadata-robustness-v1",
+  "protocol_id": "metadata-robustness-v2",
   "base_retrieval_protocol": "experiments/frozen_natural_protocol.json",
   "target_recall": 0.8,
   "selection_risk": "admissibility_upper_bound",
@@ -8,7 +8,7 @@
     "global_dense",
     "namespace_dense",
     "query_agnostic_current_only",
-    "released_intent_lifecycle_upper_bound"
+    "released_governance_oracle_v2"
   ],
   "channels": [
     "namespace_false_allow",

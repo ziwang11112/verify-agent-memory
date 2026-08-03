@@ -167,6 +167,24 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
     if smoke and full and smoke.get("population") == full.get("population"):
         errors.append("C4 and C5 must not use identical populations")
 
+    if full:
+        exact_values = full.get("exact_values")
+        wording = _combined_text(full.get("allowed_wording"))
+        if not isinstance(exact_values, Mapping) or (
+            "penalized_non_usable_upper_risk_delta" not in exact_values
+        ):
+            errors.append("C5 must name the frozen v1 penalized non-usable upper risk")
+        if "non-usable" not in wording:
+            errors.append("C5 allowed wording must identify the non-usable risk family")
+
+    historical = claim_by_id.get("C7")
+    if historical:
+        limitations = _combined_text(historical.get("known_limitations"))
+        if historical.get("status") != "frozen_historical_released_field_v1":
+            errors.append("C7 must remain the frozen historical released-field v1 claim")
+        if "v1 arm" not in limitations or "corrected v2" not in limitations:
+            errors.append("C7 must distinguish the historical v1 and corrected v2 semantics")
+
     for claim_id in GATEMEM_CLAIM_IDS:
         claim = claim_by_id.get(claim_id)
         if not claim:

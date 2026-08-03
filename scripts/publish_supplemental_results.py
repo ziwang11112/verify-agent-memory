@@ -12,6 +12,7 @@ from verify_agent_memory.provenance import sha256_file
 
 DATA_FILES = (
     "natural_top_k_pareto.csv",
+    "natural_top_k_paired_deltas.csv",
     "natural_admissibility_attribution.csv",
     "natural_admissibility_attribution_deltas.csv",
     "natural_namespace_corruption_seed_rows.csv",
@@ -20,12 +21,16 @@ DATA_FILES = (
     "natural_governance_corruption_seed_rows.csv",
     "natural_governance_corruption_summary.csv",
     "natural_governance_break_even.json",
+    "natural_namespace_support_expansion_seed_rows.csv",
+    "natural_namespace_support_expansion_summary.csv",
+    "natural_namespace_support_expansion_break_even.json",
 )
 SOURCE_MANIFESTS = (
     "natural_top_k_pareto_manifest.json",
     "natural_admissibility_attribution_manifest.json",
     "natural_namespace_break_even_manifest.json",
     "natural_governance_break_even_manifest.json",
+    "natural_namespace_support_expansion_manifest.json",
 )
 FORBIDDEN_COLUMNS = {
     "query_id",
@@ -41,12 +46,15 @@ FORBIDDEN_COLUMNS = {
 }
 EXPECTED_ROWS = {
     "natural_top_k_pareto.csv": 45,
+    "natural_top_k_paired_deltas.csv": 24,
     "natural_admissibility_attribution.csv": 5,
     "natural_admissibility_attribution_deltas.csv": 12,
     "natural_namespace_corruption_seed_rows.csv": 160,
     "natural_namespace_corruption_summary.csv": 16,
     "natural_governance_corruption_seed_rows.csv": 560,
     "natural_governance_corruption_summary.csv": 56,
+    "natural_namespace_support_expansion_seed_rows.csv": 160,
+    "natural_namespace_support_expansion_summary.csv": 16,
 }
 
 
@@ -80,8 +88,10 @@ def _source_output_hashes(input_dir: Path) -> dict[str, str]:
     attribution = _object(input_dir / "natural_admissibility_attribution_manifest.json")
     namespace = _object(input_dir / "natural_namespace_break_even_manifest.json")
     governance = _object(input_dir / "natural_governance_break_even_manifest.json")
+    expansion = _object(input_dir / "natural_namespace_support_expansion_manifest.json")
     return {
         "natural_top_k_pareto.csv": str(top_k["output_sha256"]),
+        "natural_top_k_paired_deltas.csv": str(top_k["paired_delta_output_sha256"]),
         "natural_admissibility_attribution.csv": str(attribution["main_output_sha256"]),
         "natural_admissibility_attribution_deltas.csv": str(attribution["delta_output_sha256"]),
         "natural_namespace_corruption_seed_rows.csv": str(namespace["seed_rows_sha256"]),
@@ -90,6 +100,9 @@ def _source_output_hashes(input_dir: Path) -> dict[str, str]:
         "natural_governance_corruption_seed_rows.csv": str(governance["seed_rows_sha256"]),
         "natural_governance_corruption_summary.csv": str(governance["summary_sha256"]),
         "natural_governance_break_even.json": str(governance["break_even_sha256"]),
+        "natural_namespace_support_expansion_seed_rows.csv": str(expansion["seed_rows_sha256"]),
+        "natural_namespace_support_expansion_summary.csv": str(expansion["summary_sha256"]),
+        "natural_namespace_support_expansion_break_even.json": str(expansion["break_even_sha256"]),
     }
 
 

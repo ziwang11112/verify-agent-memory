@@ -65,7 +65,7 @@ def test_namespace_support_excludes_more_similar_wrong_namespace() -> None:
     assert namespace_result.candidates_scored == 1
 
 
-def test_released_lifecycle_filter_is_query_conditioned() -> None:
+def test_historical_and_v2_released_governance_semantics_are_distinct() -> None:
     memories = (
         memory("current", "a", (1.0, 0.0)),
         memory("stale", "a", (0.9, 0.43589), state=LifecycleState.STALE),
@@ -86,6 +86,12 @@ def test_released_lifecycle_filter_is_query_conditioned() -> None:
         memories,
         query(intent=QueryIntent.HISTORY),
         config(RetrievalArm.RELEASED_INTENT_LIFECYCLE_UPPER_BOUND),
+        policy_decisions=policies,
+    )
+    governance_v2 = route(
+        memories,
+        query(intent=QueryIntent.HISTORY),
+        config(RetrievalArm.RELEASED_GOVERNANCE_ORACLE_V2),
         policy_decisions=policies,
     )
     operation_trace = route(
@@ -116,7 +122,8 @@ def test_released_lifecycle_filter_is_query_conditioned() -> None:
     )
 
     assert current.ranked_memory_ids == ("current",)
-    assert set(history.ranked_memory_ids) == {"current", "stale"}
+    assert set(history.ranked_memory_ids) == {"current", "stale", "blocked"}
+    assert set(governance_v2.ranked_memory_ids) == {"current", "stale"}
     assert set(operation_trace.ranked_memory_ids) == {"current", "stale", "blocked"}
     assert set(policy_only.ranked_memory_ids) == {"current", "stale"}
     assert set(lifecycle_only.ranked_memory_ids) == {"current", "blocked"}

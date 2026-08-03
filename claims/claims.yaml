@@ -210,7 +210,7 @@ claims:
 
   - id: C5
     status: frozen_public_source_evaluation
-    claim: "Trusted namespace support improves evidence recall and feasible rate while reducing the preregistered penalized conservative risk score on the full public-source evaluation; conditional matched-prefix diagnostics retain substantial unresolved-label uncertainty."
+    claim: "Trusted namespace support improves evidence recall and feasible rate while reducing the preregistered penalized non-usable upper risk on the full public-source evaluation; this frozen v1 risk combines relevance and admissibility, while conditional matched-prefix diagnostics retain substantial unresolved-label uncertainty."
     estimand: "Source-macro namespace-dense minus global-dense differences under settings frozen on development data."
     population: "87 public-evaluation groups, 182,908 memories, and 3,767 queries from public RHELM and MemOps sources."
     source_repository: "ziwang11112/bomi"
@@ -231,63 +231,63 @@ claims:
       namespace_dense_recall: 0.8656633800606317
       recall_delta: 0.14882826330375917
       feasible_rate_delta: 0.22299559357118776
-      conservative_contamination_delta: -0.03595773739158996
+      penalized_non_usable_upper_risk_delta: -0.03595773739158996
       namespace_wrong_scope_leakage: 0.0
       arm_summary:
         global_bm25:
           evidence_recall: 0.44776903140185376
           feasible_rate: 0.283601672038156
-          penalized_contamination_upper: 0.9133942077399828
+          penalized_non_usable_upper_risk: 0.9133942077399828
           mean_candidates_scored: 90121.7017208413
         global_dense:
           feasible_rate: 0.5388709970223009
-          penalized_contamination_upper: 0.87262599261847
+          penalized_non_usable_upper_risk: 0.87262599261847
           mean_candidates_scored: 90121.7017208413
         global_bm25_dense_rrf:
           evidence_recall: 0.6912213957478431
           feasible_rate: 0.5026252319328167
-          penalized_contamination_upper: 0.8825852235335776
+          penalized_non_usable_upper_risk: 0.8825852235335776
           mean_candidates_scored: 90121.7017208413
         global_recency_dense:
           evidence_recall: 0.7280520903395933
           feasible_rate: 0.5504411144091872
-          penalized_contamination_upper: 0.8643161513639288
+          penalized_non_usable_upper_risk: 0.8643161513639288
           mean_candidates_scored: 90121.7017208413
         namespace_dense:
           feasible_rate: 0.7618665905934887
-          penalized_contamination_upper: 0.83666825522688
+          penalized_non_usable_upper_risk: 0.83666825522688
           mean_candidates_scored: 1551.24455090498
         namespace_current_only:
           evidence_recall: 0.8241231984310543
           feasible_rate: 0.6724707829486058
-          penalized_contamination_upper: 0.8454370075050248
+          penalized_non_usable_upper_risk: 0.8454370075050248
           mean_candidates_scored: 1549.2815422736608
         released_intent_lifecycle_upper_bound:
           evidence_recall: 0.8685655633342699
           feasible_rate: 0.7630996362161767
-          penalized_contamination_upper: 0.8280008822515305
+          penalized_non_usable_upper_risk: 0.8280008822515305
           mean_candidates_scored: 1525.3117518914164
         threshold_router:
           evidence_recall: 0.8426619415074053
           feasible_rate: 0.7350478483000238
-          penalized_contamination_upper: 0.838768546153027
+          penalized_non_usable_upper_risk: 0.838768546153027
           mean_candidates_scored: 1470.2036564635873
         cluster_router:
           evidence_recall: 0.8650541968065657
           feasible_rate: 0.7609418063764727
-          penalized_contamination_upper: 0.8368345912489837
+          penalized_non_usable_upper_risk: 0.8368345912489837
           mean_candidates_scored: 1530.5978691651362
       matched_prefix_diagnostics:
         global_dense:
-          known_contamination: 0.5753141896331887
-          label_coverage: 0.5380305342399545
-          lower_bound: 0.3078604096597722
-          upper_bound: 0.7698298754198178
+          known_non_usable_rate: 0.5753141896331887
+          non_usable_label_coverage: 0.5380305342399545
+          non_usable_lower_bound: 0.3078604096597722
+          non_usable_upper_bound: 0.7698298754198178
         namespace_dense:
-          known_contamination: 0.3478583416917444
-          label_coverage: 0.35548034155637087
-          lower_bound: 0.13368622297660057
-          upper_bound: 0.7782058814202297
+          known_non_usable_rate: 0.3478583416917444
+          non_usable_label_coverage: 0.35548034155637087
+          non_usable_lower_bound: 0.13368622297660057
+          non_usable_upper_bound: 0.7782058814202297
       provider_calls: 0
       reader_calls: 0
       judge_calls: 0
@@ -301,25 +301,25 @@ claims:
         estimate: 0.22299559357118776
         lower: 0.19215639764499312
         upper: 0.2550192349092993
-      - metric: "conservative_contamination_delta"
+      - metric: "penalized_non_usable_upper_risk_delta"
         estimate: -0.03595773739158996
         lower: -0.04161096210584043
         upper: -0.030300871013945373
     allowed_wording:
-      - "Trusted namespace support improved recall and feasible rate while reducing the preregistered penalized conservative risk score on this public-source evaluation."
+      - "Trusted namespace support improved recall and feasible rate while reducing the preregistered penalized non-usable upper risk on this public-source evaluation."
       - "Namespace-constrained arms had zero measured wrong-scope leakage under trusted released namespaces."
-      - "Descriptively, resolved contamination and the lower bound were smaller inside the feasible matched prefixes, but label coverage was also lower and the conditional upper bound remained high."
+      - "Descriptively, the resolved non-usable rate and lower bound were smaller inside feasible matched prefixes, but non-usable label coverage was also lower and the conditional upper bound remained high."
     forbidden_wording:
       - "This is an official RHELM or MemOps benchmark submission."
       - "Namespace support improves downstream answer quality."
       - "The result generalizes to noisy or inferred namespaces."
-      - "The conservative contamination bound is fully resolved contamination."
-      - "The penalized conservative risk score is a pure conditional contamination estimate."
+      - "The non-usable upper bound is a pure admissibility-violation estimate."
+      - "The penalized non-usable upper risk is a pure conditional contamination estimate."
       - "Namespace support reduced the conditional matched-prefix upper bound."
     known_limitations:
       - "This is a public-source evaluation, not an official RHELM or MemOps leaderboard result."
       - "There is no downstream reader outcome for this population."
-      - "The preregistered penalized conservative risk assigns 1.0 to infeasible queries and feasible queries without a resolved contamination label."
+      - "The preregistered penalized non-usable upper risk assigns 1.0 to infeasible queries and feasible queries without a resolved non-usable label."
       - "Non-required same-namespace memories remain unresolved; the namespace-dense conditional matched-prefix label coverage is 0.3555 and its upper bound is 0.7782."
       - "The result applies to trusted released namespaces, not noisy or inferred scope."
       - "Confidence intervals are source-macro bootstrap intervals."
@@ -347,18 +347,18 @@ claims:
     exact_values:
       threshold_router:
         recall_delta: -0.02300143855322647
-        conservative_contamination_delta: 0.002100290926146948
+        penalized_non_usable_upper_risk_delta: 0.002100290926146948
         fallback_rate: 0.9654434838372002
       cluster_router:
         recall_delta: -0.0006091832540661147
-        conservative_contamination_delta: 0.00016633602210371686
+        penalized_non_usable_upper_risk_delta: 0.00016633602210371686
         mean_route_width: 1.0
     confidence_intervals:
       - metric: "threshold_router_recall_delta"
         estimate: -0.02300143855322647
         lower: -0.028847707336523126
         upper: -0.017317948465240634
-      - metric: "threshold_router_conservative_contamination_delta"
+      - metric: "threshold_router_penalized_non_usable_upper_risk_delta"
         estimate: 0.002100290926146948
         lower: 0.0014764578849710322
         upper: 0.0028535816018647026
@@ -366,13 +366,13 @@ claims:
         estimate: -0.0006091832540661147
         lower: -0.0018749435257974158
         upper: 0.0
-      - metric: "cluster_router_conservative_contamination_delta"
+      - metric: "cluster_router_penalized_non_usable_upper_risk_delta"
         estimate: 0.00016633602210371686
         lower: -0.0000005268072220290817
         upper: 0.0005125056073667471
     allowed_wording:
       - "Additional threshold and cluster routing did not establish practical incremental utility beyond trusted namespace support."
-      - "The threshold router reduced recall and slightly increased the preregistered penalized conservative risk."
+      - "The threshold router reduced recall and slightly increased the preregistered penalized non-usable upper risk."
       - "The cluster router was practically indistinguishable from namespace-dense retrieval on primary quality metrics."
     forbidden_wording:
       - "A novel router outperformed the baseline."
@@ -390,9 +390,9 @@ claims:
       - "test_confidence_intervals_contain_estimates"
 
   - id: C7
-    status: released_field_upper_bound
-    claim: "Released query intent and lifecycle fields reveal measurable upper-bound headroom without a detected recall loss."
-    estimand: "Source-macro released-intent lifecycle upper-bound minus namespace-dense differences."
+    status: frozen_historical_released_field_v1
+    claim: "The frozen historical released-field v1 arm reduced penalized non-usable upper risk and stale or superseded exposure without a detected recall loss; corrected v2 attribution shows that this result must not be interpreted as lifecycle-only headroom."
+    estimand: "Source-macro historical released-intent lifecycle v1 minus namespace-dense differences under the original route semantics."
     population: "The full public-source evaluation, using released query intent and lifecycle state fields unavailable to a blind deployable router."
     source_repository: "ziwang11112/bomi"
     source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
@@ -405,7 +405,7 @@ claims:
       - "reports/stage3_natural_corpus_admissibility_eval/summary.md"
     exact_values:
       recall_delta: 0.002902183273638267
-      conservative_contamination_delta: -0.008667372975349542
+      penalized_non_usable_upper_risk_delta: -0.008667372975349542
       prohibited_stale_exposure_delta: -0.0024748348518966855
       prohibited_superseded_exposure_delta: -0.010397352446049897
     confidence_intervals:
@@ -413,7 +413,7 @@ claims:
         estimate: 0.002902183273638267
         lower: -0.002335748541581875
         upper: 0.00789680524506095
-      - metric: "conservative_contamination_delta"
+      - metric: "penalized_non_usable_upper_risk_delta"
         estimate: -0.008667372975349542
         lower: -0.010697065709710664
         upper: -0.006749619443899795
@@ -426,17 +426,19 @@ claims:
         lower: -0.011767800847179462
         upper: -0.009085607368030274
     allowed_wording:
-      - "Released intent and lifecycle fields provide an upper bound on lifecycle-aware retrieval headroom."
-      - "The upper-bound arm reduced the preregistered penalized conservative risk and prohibited stale or superseded exposure without a detected recall loss."
+      - "The historical v1 released-field arm reduced the preregistered penalized non-usable upper risk and prohibited stale or superseded exposure without a detected recall loss."
+      - "This frozen v1 result is retained for reproducibility and is not evidence that lifecycle filtering alone helps."
     forbidden_wording:
       - "We developed a deployable lifecycle filter that improves retrieval."
       - "The system inferred query intent and lifecycle state from raw inputs."
       - "All stale memories should be deleted."
+      - "Lifecycle metadata drives the incremental retrieval gain."
     known_limitations:
       - "This is a released-field upper bound, not a deployable blind method."
       - "Query intent and lifecycle state are provided to the diagnostic arm rather than inferred."
       - "The recall interval includes zero."
       - "Historical queries can require records that are stale for current-state queries."
+      - "The v1 arm applies released policy filtering only to current-state queries; corrected v2 attribution is reported separately."
     paper_locations:
       - "Public-Source Audit"
       - "Discussion"
@@ -446,7 +448,7 @@ claims:
 
   - id: C8
     status: controlled_prompt_intervention
-    claim: "In fixed constructed scenarios, exposing relevant admissible evidence increased target disclosure more than exposing relevant inadmissible evidence across three separately reported readers; DeepSeek V4 Pro also showed a positive relevant-inadmissible exposure effect."
+    claim: "In fixed constructed scenarios, assigned exposure had different target-disclosure effects under construction-defined admissible and inadmissible query conditions while focal relevance was held fixed; DeepSeek V4 Pro also showed a positive relevant-inadmissible exposure effect."
     estimand: "Within-unit exposed-minus-withheld target-disclosure effects in four construction-defined relevance-by-admissibility cells, plus the relevant-admissible minus relevant-inadmissible effect contrast."
     population: "Sixteen controlled scenarios spanning principal scope, policy purpose, lifecycle intent, and as-of time; 192 paired units and 384 stateless requests per reader."
     source_repository: "ziwang11112/verify-agent-memory"
@@ -546,7 +548,8 @@ claims:
         lower: 0.5
         upper: 0.8125
     allowed_wording:
-      - "In the controlled prompt-level intervention, exposure increased disclosure substantially more for relevant admissible than relevant inadmissible evidence for each separately reported reader."
+      - "Assigned exposure had different disclosure effects under construction-defined admissible and inadmissible query conditions while focal relevance was held fixed."
+      - "In the controlled prompt-level intervention, exposure increased disclosure substantially more in the relevant-admissible cell than in the relevant-inadmissible cell for each separately reported reader."
       - "All three selectivity-gap intervals excluded zero."
       - "DeepSeek V4 Pro showed a positive relevant-inadmissible exposure effect, indicating residual disclosure risk when filtering is deferred to the reader."
     forbidden_wording:
@@ -555,6 +558,7 @@ claims:
       - "A positive selectivity gap establishes deployment safety."
       - "GPT-5.6 Sol and Gemini have zero inadmissible-disclosure risk."
       - "The three readers were pooled into one effect estimate."
+      - "Admissibility itself was isolated as the only causal moderator of disclosure."
       - "This is an official benchmark result."
     known_limitations:
       - "The intervention uses sixteen constructed scenarios with literal target markers rather than a natural retrieval population."

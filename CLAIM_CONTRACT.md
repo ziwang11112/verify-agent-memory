@@ -127,34 +127,35 @@ The evaluation applied settings selected once on development data to 87 groups,
 | Namespace-dense recall | 0.865663 | n/a |
 | Global-dense feasible rate | 0.538871 | n/a |
 | Namespace-dense feasible rate | 0.761867 | n/a |
-| Global-dense penalized conservative risk | 0.872626 | n/a |
-| Namespace-dense penalized conservative risk | 0.836668 | n/a |
+| Global-dense penalized non-usable upper risk | 0.872626 | n/a |
+| Namespace-dense penalized non-usable upper risk | 0.836668 | n/a |
 | Recall difference | 0.148828 | [0.129460, 0.168372] |
 | Feasible-rate difference | 0.222996 | [0.192156, 0.255019] |
-| Conservative-contamination difference | -0.035958 | [-0.041611, -0.030301] |
+| Penalized non-usable upper-risk difference | -0.035958 | [-0.041611, -0.030301] |
 | Namespace wrong-scope leakage | 0.000000 | n/a |
 
-The preregistered penalized conservative risk assigns `1.0` to an infeasible query
-or a feasible query without a resolved contamination label. It is therefore not a
-pure conditional contamination estimate. Among feasible matched prefixes:
+The preregistered penalized non-usable upper risk assigns `1.0` to an infeasible
+query or a feasible query without a resolved non-usability label. It combines
+relevance and admissibility and is therefore neither a pure admissibility estimate
+nor a pure conditional contamination estimate. Among feasible matched prefixes:
 
-| Support | Known contamination | Label coverage | Lower bound | Upper bound |
+| Support | Known non-usable rate | Non-usable label coverage | Lower bound | Upper bound |
 | --- | ---: | ---: | ---: | ---: |
 | Global dense | 0.575314 | 0.538031 | 0.307860 | 0.769830 |
 | Namespace dense | 0.347858 | 0.355480 | 0.133686 | 0.778206 |
 
 **Allowed:** Trusted namespace support improved recall and feasible rate while
-reducing the preregistered penalized conservative risk score on this public-source
+reducing the preregistered penalized non-usable upper risk on this public-source
 evaluation. Namespace arms had zero measured wrong-scope leakage under trusted
-released namespaces. Descriptively, resolved contamination and the lower bound were
-smaller inside feasible matched prefixes, but label coverage was also lower and the
-conditional upper bound remained high.
+released namespaces. Descriptively, the resolved non-usable rate and lower bound
+were smaller inside feasible matched prefixes, but non-usable label coverage was
+also lower and the conditional upper bound remained high.
 
 **Forbidden:** Do not call this an official RHELM or MemOps submission, claim a
-downstream answer-quality effect, generalize to noisy or inferred namespaces, or
-describe the conservative bound as fully resolved contamination. Do not describe the
-penalized risk as a pure conditional contamination estimate or claim that namespace
-support reduced the conditional matched-prefix upper bound.
+downstream answer-quality effect, generalize beyond the tested corruption mechanisms
+or deployment environments, or describe this bound as pure admissibility
+contamination. Do not describe the penalized risk as a pure conditional estimate or
+claim that namespace support reduced the conditional matched-prefix upper bound.
 
 **Boundary:** Non-required same-namespace memories remain unresolved. There is no
 reader outcome for this population. Intervals are source-macro bootstrap intervals.
@@ -165,7 +166,7 @@ reader outcome for this population. Intervals are source-macro bootstrap interva
 
 **Status:** Diagnostic negative result
 
-| Contrast against namespace dense | Recall difference | 95% CI | Penalized conservative risk difference | 95% CI |
+| Contrast against namespace dense | Recall difference | 95% CI | Penalized non-usable upper-risk difference | 95% CI |
 | --- | ---: | ---: | ---: | ---: |
 | Threshold router | -0.023001 | [-0.028848, -0.017318] | 0.002100 | [0.001476, 0.002854] |
 | Cluster router | -0.000609 | [-0.001875, 0.000000] | 0.000166 | [-0.000001, 0.000513] |
@@ -182,28 +183,33 @@ universally useless, or claim exact identity on every full-evaluation query.
 **Boundary:** This result covers two frozen diagnostic variants, not the class of all
 possible routing methods.
 
-## Upper-Bound Result
+## Historical Released-Field Result
 
-### C7: Released intent and lifecycle headroom
+### C7: Frozen historical released-field v1
 
-**Status:** Released-field upper bound
+**Status:** Frozen historical released-field v1
 
 | Upper-bound minus namespace dense | Difference | 95% CI |
 | --- | ---: | ---: |
 | Recall | 0.002902 | [-0.002336, 0.007897] |
-| Penalized conservative risk | -0.008667 | [-0.010697, -0.006750] |
+| Penalized non-usable upper risk | -0.008667 | [-0.010697, -0.006750] |
 | Prohibited-stale exposure | -0.002475 | [-0.003401, -0.001653] |
 | Prohibited-superseded exposure | -0.010397 | [-0.011768, -0.009086] |
 
-**Allowed:** Released query intent and lifecycle fields reveal upper-bound headroom
-without a detected recall loss. The diagnostic reduced penalized conservative risk
-and prohibited stale or superseded exposure.
+**Allowed:** The historical v1 released-field arm reduced the preregistered penalized
+non-usable upper risk and prohibited stale or superseded exposure without a detected
+recall loss. This result is retained for reproducibility and is not evidence that
+lifecycle filtering alone helps.
 
 **Forbidden:** Do not describe this as a deployable lifecycle filter, claim the
-system inferred intent or state, or recommend deleting every stale memory.
+system inferred intent or state, recommend deleting every stale memory, or claim
+that lifecycle metadata drove the incremental retrieval gain.
 
-**Boundary:** Query intent and lifecycle state are released inputs. Historical
-queries may require records that are stale for current-state queries.
+**Boundary:** Query intent and lifecycle state are released inputs. The historical
+v1 arm applies released policy filtering only to current-state queries. The corrected
+v2 governance arm applies policy independently of lifecycle intent and is reported
+separately; the two arms are not interchangeable. Historical queries may require
+records that are stale for current-state queries.
 
 ## Controlled Prompt Intervention
 
@@ -229,14 +235,18 @@ cell, but their exposed disclosure rates are not zero and a zero paired effect i
 a zero-risk statement. Irrelevant-admissible effects are 0.046875, 0.03125, and 0.0;
 irrelevant-inadmissible effects are 0.0 for all three readers.
 
-**Allowed:** In this controlled prompt-level intervention, exposure increased target
-disclosure substantially more for relevant admissible than relevant inadmissible
-evidence for each reader. DeepSeek retained a positive relevant-inadmissible exposure
-effect, supporting pre-prompt verification rather than reliance on reader restraint.
+**Allowed:** Assigned exposure had different disclosure effects under
+construction-defined admissible and inadmissible query conditions while focal
+relevance was held fixed. In this controlled prompt-level intervention, exposure
+increased target disclosure substantially more in the relevant-admissible cell than
+in the relevant-inadmissible cell for each separately reported reader. DeepSeek
+retained a positive relevant-inadmissible exposure effect, supporting pre-prompt
+verification rather than reliance on reader restraint.
 
 **Forbidden:** Do not call disclosure internal causal use, pool readers, infer
 natural-history prevalence, claim production safety, describe OpenAI or Gemini as
-having zero inadmissible-disclosure risk, or present this as an official benchmark.
+having zero inadmissible-disclosure risk, claim admissibility itself was isolated as
+the only causal moderator, or present this as an official benchmark.
 
 **Boundary:** The population contains sixteen constructed scenarios with literal
 markers and a fixed rule-based disclosure scorer. Axis-specific estimates have four

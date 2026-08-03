@@ -30,6 +30,7 @@ class RetrievalArm(StrEnum):
     NAMESPACE_POLICY_ONLY = "namespace_policy_only"
     NAMESPACE_LIFECYCLE_ONLY = "namespace_lifecycle_only"
     RELEASED_INTENT_LIFECYCLE_UPPER_BOUND = "released_intent_lifecycle_upper_bound"
+    RELEASED_GOVERNANCE_ORACLE_V2 = "released_governance_oracle_v2"
     THRESHOLD_ROUTER = "threshold_router"
     CLUSTER_ROUTER = "cluster_router"
 
@@ -52,6 +53,7 @@ ATTRIBUTION_DIAGNOSTIC_ARMS = frozenset(
     {
         RetrievalArm.NAMESPACE_POLICY_ONLY,
         RetrievalArm.NAMESPACE_LIFECYCLE_ONLY,
+        RetrievalArm.RELEASED_GOVERNANCE_ORACLE_V2,
     }
 )
 
@@ -513,6 +515,17 @@ def _combined_admissibility_support(
     )
 
 
+def _historical_released_support(
+    memories: Sequence[MemoryRecord],
+    query: QueryRecord,
+    policy_decisions: Sequence[PolicyDecision],
+) -> tuple[MemoryRecord, ...]:
+    """Reproduce the frozen v1 arm: history bypasses both released filters."""
+    if query.intent is not QueryIntent.CURRENT_STATE:
+        return tuple(memories)
+    return _combined_admissibility_support(memories, query, policy_decisions)
+
+
 def _direct_result(
     candidates: Sequence[MemoryRecord],
     query: QueryRecord,
@@ -636,6 +649,14 @@ def route(
             _dense_rank(candidates, query, top_k=config.top_k),
         )
     if config.arm is RetrievalArm.RELEASED_INTENT_LIFECYCLE_UPPER_BOUND:
+        candidates = _historical_released_support(namespace, query, policy_decisions)
+        return _direct_result(
+            candidates,
+            query,
+            config,
+            _dense_rank(candidates, query, top_k=config.top_k),
+        )
+    if config.arm is RetrievalArm.RELEASED_GOVERNANCE_ORACLE_V2:
         candidates = _combined_admissibility_support(namespace, query, policy_decisions)
         return _direct_result(
             candidates,
