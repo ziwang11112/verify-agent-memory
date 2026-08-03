@@ -15,13 +15,16 @@ this repository.
 | Experiment runner | `src/verify_agent_memory/experiment.py` | Setting-by-query execution, source-macro summaries, and dev-only selection |
 | Robustness | `src/verify_agent_memory/robustness.py` | Deterministic metadata corruption and observed break-even brackets |
 | Pareto analysis | `src/verify_agent_memory/pareto.py` | Fixed-ranking top-k recall, risk, and route-cost frontiers |
+| Exposure intervention | `src/verify_agent_memory/exposure_intervention.py` | Paired candidate exposure, literal disclosure scoring, and scenario-stratified bootstrap |
 | JSON contract | `src/verify_agent_memory/serialization.py` | Strict normalized input and output schemas |
 | CLI | `scripts/run_retrieval_experiment.py` | Validation, execution, and setting selection |
 | Robustness CLI | `scripts/run_metadata_robustness.py` | Released-to-corrupted metadata curves with fixed retrieval settings |
 | Pareto CLI | `scripts/run_top_k_pareto.py` | Exact nested-prefix analysis without reranking or retuning |
+| Exposure CLI | `scripts/run_counterfactual_exposure_intervention.py` | Zero-call validation, provider-neutral request materialization, and local scoring |
 | Frozen settings | `experiments/frozen_natural_protocol.json` | Embedding, split, selection, and selected-arm configuration |
 | Robustness grid | `experiments/metadata_robustness_protocol.json` | Corruption channels, rates, seeds, invariants, and break-even definition |
 | Pareto grid | `experiments/top_k_pareto_protocol.json` | Frozen arms and `top_k` depths for recall-risk-cost analysis |
+| Exposure protocol | `experiments/counterfactual_exposure_protocol.json` | Hash-bound 2x2 intervention design with paid execution disabled |
 | Supplemental results | `results/supplemental_natural/` | Content-free top-k, attribution, and metadata break-even diagnostics |
 | Supplemental verifier | `scripts/publish_supplemental_results.py` | Hash, schema, row-count, and content-boundary checks for the result package |
 
@@ -206,6 +209,29 @@ and route width under identical ranking parameters. Candidate counts and returne
 memories are algorithmic work measures. Local wall-clock observations are not eligible
 for a deployment-latency claim.
 
+## Paired Exposure Intervention
+
+The zero-call exposure protocol reuses the 16 controlled governing scenarios and 32
+paired queries, but supplies a purpose-built candidate overlay with explicit
+relevance and admissibility labels. It does not infer relevance from the earlier
+verifier's `stable_*` roles. For each query condition and candidate, one request
+includes the candidate and the paired request omits only that candidate. The other
+two candidates and query remain byte-identical.
+
+The resulting 192 paired units form four construction-defined cells: 32
+relevant-admissible, 32 relevant-inadmissible, 64 irrelevant-admissible, and 64
+irrelevant-inadmissible. A frozen literal marker detects disclosure after Unicode,
+case, punctuation, and whitespace normalization. Complete response bundles are
+required; prefix scoring and output repair are forbidden. The primary contrast is
+the exposure effect for relevant-admissible evidence minus the exposure effect for
+relevant-inadmissible evidence, with whole-scenario bootstrap resampling stratified
+by governing axis.
+
+The checked-in CLI deliberately has no `execute` command and imports no provider
+client. It can validate the protocol, materialize 384 provider-neutral requests per
+reader, and score a separately supplied complete response bundle. No empirical
+reader result or paid-call authorization is implied by this code path.
+
 ## Local Smoke
 
 ```powershell
@@ -233,6 +259,10 @@ uv run --extra dev python -m scripts.run_top_k_pareto `
   --pareto-protocol experiments/top_k_pareto_protocol.json `
   --output tmp/top_k_pareto.jsonl
 uv run --extra dev python -m scripts.publish_supplemental_results verify
+uv run --extra dev python -m scripts.run_counterfactual_exposure_intervention validate
+uv run --extra dev python -m scripts.run_counterfactual_exposure_intervention requests `
+  --model local-contract-smoke `
+  --output tmp/counterfactual_exposure/requests.jsonl
 ```
 
 The fixture is only a code-path smoke. It is not a benchmark result. Reproducing the

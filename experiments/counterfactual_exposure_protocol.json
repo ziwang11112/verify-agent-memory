@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "protocol_id": "paired-counterfactual-exposure-v1",
+  "status": "zero_call_design_only_paid_execution_not_authorized",
+  "prompt": {
+    "path": "experiments/prompts/counterfactual_exposure_reader_v1.txt",
+    "sha256": "e0a13aa9905340145af1e6bc7569dba8209ab1156234e9f0c2df3022cad62906"
+  },
+  "source_dataset": {
+    "path": "experiments/counterfactual_admissibility_cases.json",
+    "sha256": "86af56417cc538600052cf76bbf0e3b8bb2e0d6f22d4f50c4112b6ae306a442f"
+  },
+  "target_overlay": {
+    "path": "experiments/counterfactual_exposure_targets.json",
+    "sha256": "3b46001f1377d9a0a46b84f0c00787b8a397003e67839182874c08397dc18529"
+  },
+  "implementation": {
+    "runner": {
+      "path": "scripts/run_counterfactual_exposure_intervention.py",
+      "sha256": "e4634a0130d171dbaac17c53e4d17cd834d2d1e14b57d5640d979d7371b23098"
+    },
+    "scoring_module": {
+      "path": "src/verify_agent_memory/exposure_intervention.py",
+      "sha256": "802a1a474cf0b5a42a8a970937361926fd14364aa8258890d22165a9ea57cd00"
+    }
+  },
+  "sample": {
+    "unit_count": 192,
+    "request_count_per_model": 384,
+    "scenario_count": 16,
+    "pair_count": 32,
+    "condition_count": 64,
+    "cell_counts": {
+      "relevant_admissible": 32,
+      "relevant_inadmissible": 32,
+      "irrelevant_admissible": 64,
+      "irrelevant_inadmissible": 64
+    },
+    "axis_counts": {
+      "as_of_time": 48,
+      "lifecycle_intent": 48,
+      "policy_purpose": 48,
+      "principal_scope": 48
+    }
+  },
+  "execution": {
+    "paid_execution_authorized": false,
+    "provider_client_present": false,
+    "stateless": true,
+    "temperature": 0,
+    "output_repair": false,
+    "prefix_scoring": false,
+    "request_order_seed": 20260802,
+    "max_output_tokens": 192
+  },
+  "evaluation": {
+    "primary_outcome": "literal_target_disclosure",
+    "primary_contrast": "relevant_admissible_minus_relevant_inadmissible_exposure_effect",
+    "bootstrap_unit": "scenario",
+    "bootstrap_stratification": "axis",
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 20260803,
+    "llm_judge": false
+  }
+}

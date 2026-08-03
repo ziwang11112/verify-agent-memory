@@ -30,10 +30,11 @@ usable(m, q, p, t)
     AND admissible(m, q, p, t)
 ```
 
-This repository contains the claim contract, a small pure evaluation library, and
-hash-bound normalized aggregate evidence. It contains no benchmark payloads, raw
-prompts, model responses, embeddings, checkpoints, or provider
-runtime.
+This repository contains the claim contract, a small pure evaluation library,
+hash-bound controlled prompts, and normalized aggregate evidence. It contains no
+private benchmark payloads, raw provider responses, credentials, embeddings, or
+checkpoints. Provider-backed historical diagnostics remain isolated from the public
+retrieval evaluator.
 
 For the code-level experiment contract, all nine non-Bayesian retrieval arms, the
 dev-only setting-selection objective, and local smoke commands, see
@@ -45,6 +46,13 @@ changing only principal, intent, purpose, or as-of time. Its frozen protocol, pu
 scorer, and content-free results are documented in
 [docs/COUNTERFACTUAL_ADMISSIBILITY_EXPERIMENT.md](docs/COUNTERFACTUAL_ADMISSIBILITY_EXPERIMENT.md)
 and [results/counterfactual_admissibility/](results/counterfactual_admissibility/).
+
+The paired exposure intervention holds the query and two background candidates fixed
+while including or withholding one candidate. Its purpose-built 2x2 candidate
+contract, literal disclosure scorer, and zero-call commands are documented in
+[docs/PAIRED_EXPOSURE_INTERVENTION.md](docs/PAIRED_EXPOSURE_INTERVENTION.md) and
+[experiments/counterfactual_exposure_protocol.json](experiments/counterfactual_exposure_protocol.json).
+That CLI has no provider client or execution command, and no reader result is claimed.
 
 ## Current Scope
 
