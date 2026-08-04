@@ -20,6 +20,11 @@ retrieval utility-risk frontier, but error direction matters, text-only verifier
 not reconstruct governance state selectively, and reader restraint cannot repair
 every mistake after prompt exposure.
 
+For manuscript collaboration, start with
+[PAPER_REVIEW_GUIDE.md](PAPER_REVIEW_GUIDE.md). It gives the complete experiment map,
+model roles, defensible and forbidden claims, current review risks, editing
+boundaries, and a requested review format for human or model-assisted paper review.
+
 The evaluation surface separates four states:
 
 ```text

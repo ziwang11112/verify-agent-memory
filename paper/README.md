@@ -4,6 +4,14 @@ This package targets the NeurIPS 2026 workshop **Who Verifies the Agents? Toward
 Reliable Agent Development**. The submission uses the official double-blind workshop
 mode and a 4-9 content-page limit.
 
+## Collaborative Review
+
+Start with [`../PAPER_REVIEW_GUIDE.md`](../PAPER_REVIEW_GUIDE.md). It identifies the
+paper's defensible contribution, experiment populations, exact model roles, frozen
+claim boundaries, current rejection risks, and the requested format for a rigorous
+review. Prose edits belong in `main.tex`; empirical values under `generated/` are
+derived artifacts and must not be edited by hand.
+
 ## Build Evidence Artifacts
 
 ```powershell
