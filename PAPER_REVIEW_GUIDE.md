@@ -10,8 +10,8 @@ The paper is a verification and evaluation paper, not a new memory-index proposa
   Development*.
 - Working title: *The Wrong Memory at the Right Time: Metadata Reliability and
   Enforcement Boundaries in Long-Term Agent Memory*.
-- Current build: the conclusion ends and references begin on page 9; the complete
-  package has 23 pages including references, appendices, and the checklist.
+- Current build: the conclusion ends on page 9 and references begin on page 10; the
+  complete package has 23 pages including references, appendices, and the checklist.
 - Evidence contract: C1-C12, all backed by normalized content-free artifacts.
 - Main empirical chain:
 
@@ -122,8 +122,8 @@ human-agreement experiment. Neither belongs to this paper's evidence story.
    study closes a different part of the chain on a different population.
 4. Released metadata is an oracle-like evidence source. No latent-field inference or
    noisy production identity system is demonstrated.
-5. The fresh build has page-limit margin because references begin on page 9, but
-   further prose additions must preserve that margin.
+5. The main text uses the full nine-page allowance; further prose additions must be
+   offset by cuts elsewhere so references continue to begin on page 10.
 6. Reader configurations differ by provider and reasoning control; comparisons are
    robustness checks, not a leaderboard.
 7. Released derived scores rebuild all public tables and figures, but separately

@@ -8,19 +8,18 @@
 - Output: `paper/build/main.pdf` (ignored by Git).
 - Total pages: 23.
 - Main text ends: page 9.
-- References begin: page 9, after the conclusion.
-- Appendices begin: page 10.
-- NeurIPS checklist begins: page 16.
+- References begin: page 10.
+- Appendices begin: page 11, after the references.
+- NeurIPS checklist begins: page 17.
 - Content length: within the workshop's 4-9 page limit, excluding references and
   appendices.
 
 ## Validation
 
-- All 23 pages were rendered at inspection resolution and visually inspected,
-  including methodology pages 3--4, experimental setup and the central risk equation
-  on pages 4--6, results through page 9, the main-text/reference transition on page 9,
-  relocated diagnostic equations from page 10 onward, appendix figures and tables,
-  and the checklist from page 16.
+- All 23 pages were rendered at inspection resolution during the artifact audit.  The
+  current editorial build additionally rechecked page 1 and the page 9--11 transition:
+  the conclusion ends on page 9, references begin on page 10, and Appendix A begins
+  on page 11.  The checklist begins on page 17.
 - No clipped text, overlapping elements, broken tables, or unreadable figures were
   observed.
 - Section 4 now exposes the datasets and splits, retrieval and reader model

@@ -568,7 +568,7 @@ claims:
       - "The result applies to the exact frozen prompts and model snapshots."
       - "Observed disclosure can occur even when the manipulated candidate is withheld; a zero paired effect is not a zero-risk claim."
     paper_locations:
-      - "Retrieval Admissibility Methodology"
+      - "Evaluating Retrieval Admissibility"
       - "Experimental Design"
       - "Controlled Exposure Results"
       - "Figure 2"
