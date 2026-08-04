@@ -40,16 +40,17 @@ top-20 recall from \TopTwentyGlobalRecall{} to \TopTwentyNamespaceRecall{} while
 reducing penalized admissibility upper risk from \TopTwentyGlobalAdmRisk{} to
 \TopTwentyNamespaceAdmRisk{}.  Across the tested corruption mechanisms, released
 policy metadata drives the incremental gain, the evaluated coarse lifecycle-only
-rule over-filters, and false-deny errors break joint utility--risk dominance earlier
-than fail-open errors.  On 72 fixed public-development cases, released fields expose
+rule over-filters, and false-deny errors cross their channel-specific utility--risk
+boundary earlier than fail-open errors.  On 72 fixed public-development cases,
+released fields expose
 risk headroom (\ReleasedOracleAdmRiskDelta{}, 95\% CI
 \ReleasedOracleAdmRiskDeltaCI{}) that text-only verifiers do not recover without
 rejecting stable evidence.  In separate constructed exposure executions, each reader
 is reported separately: all have positive selectivity-gap intervals, while only
 DeepSeek has a strictly positive relevant-inadmissible exposure-effect interval; the
 independent Claude estimate is positive but includes zero.  Across these stagewise
-evaluations, reliable eligibility metadata and pre-prompt enforcement emerge as
-recurring requirements.  We contribute an auditable evaluation protocol and
+tests, gains appear only when reliable eligibility information constrains candidates
+before prompt assembly.  We contribute an auditable evaluation protocol and
 failure-mechanism diagnosis, not a new memory index or a production-safety claim.
 \end{abstract}
 
@@ -93,16 +94,15 @@ decomposition of where eligibility enforcement succeeds and fails.
 \begin{figure}[!t]
   \centering
   \includegraphics[width=\textwidth]{generated/verification_pipeline.pdf}
-  \caption{From topical match to eligible evidence.  (a) Three abridged audited
-  RHELM/MemOps cases show a wrong-principal market memory, a superseded Lisbon date,
-  and an explicitly forgotten phone detail.  Each is topically matched but fails one
-  query-conditioned check before prompt assembly; green strips show an eligible
-  alternative.  The superseded date can still pass under a history intent.  These
-  examples establish failure types, not prevalence.  (b) The observable enforcement
-  path and stage-specific estimates from the natural-support,
-  controlled-verification, and controlled-exposure analyses.  Arrows organize audit
-  stages rather than one pooled or end-to-end empirical trajectory.  Additional
-  audited cases appear in Appendix~\ref{app:verification-examples}.}
+  \caption{A concrete eligibility audit and the evidence used in this paper.  (a)
+  Four abridged RHELM/MemOps rows pair a query intent with a retrieved topical
+  candidate, the governing check, and the pre-prompt decision.  The history row
+  shows why an old record is not intrinsically inadmissible.  These examples
+  establish failure types, not prevalence.  (b) Three distinct empirical tests
+  measure candidate support, selective verification, and prompt-level disclosure on
+  different populations and estimands; their estimates are not pooled into an
+  end-to-end effect.  Full audited examples appear in
+  Appendix~\ref{app:verification-examples}.}
   \label{fig:pipeline}
 \end{figure}
 
@@ -148,6 +148,18 @@ to prompt disclosure.  These systems optimize answer- or service-level objective
 whereas our primary outcomes are record-level eligibility, matched-recall risk,
 prompt exposure, and disclosure; nominal score comparisons would not share an
 estimand.
+
+\paragraph{Access control around retrieval and generation.}
+Attribute-based access control (ABAC) supplies a general vocabulary for evaluating
+requests against subject, object, action, and environment attributes
+\citep{hu2019abac}.  Recent agent systems instantiate related controls at different
+boundaries.  Securing the Agent applies vendor-neutral ABAC gates to multitenant
+retrieval and tool use, explicitly separating relevance from authorization
+\citep{arceo2026securing}; SD-RAG applies sanitization and disclosure controls during
+retrieval, before the model input is augmented \citep{almasoud2026sdrag}.  Our novelty is not
+the placement of another enforcement point.  It is the joint evaluation of candidate
+support, metadata reliability, selective verification, prompt exposure, and answer
+disclosure with unresolved-label bounds and stage-specific estimands.
 
 \paragraph{Analytical agent evaluation.}
 AgentBench and AgentBoard broaden agent evaluation beyond static language tasks
@@ -286,8 +298,8 @@ constructed populations are never pooled.
     \addlinespace[2pt]
     \textbf{Metadata reliability.} Same evaluation groups; 10 seeds per channel and
       eight corruption rates & Frozen namespace, policy, lifecycle, and combined
-      filters under false allow, false deny, missing, and swap errors & Joint
-      dominance, typed violations, route work \\
+      filters under false allow, false deny, missing, and swap errors &
+      Channel-specific weak-dominance brackets, typed violations, route work \\
     \addlinespace[2pt]
     \textbf{Natural verification.} 96 public-development queries; 24 calibration and
       72 analysis cases; fixed top-20 pools & Namespace dense, released-field oracle,
@@ -346,7 +358,19 @@ revision, scoring equations, and selected settings.
 Natural text verification compares the fixed namespace-dense top-20 pool with a
 released-field oracle, a thresholded text filter, and an abstaining variant using
 complete outputs from \texttt{gpt-5.6-sol} and \texttt{gemini-3.6-flash}.  The
-controlled verifier and paired-exposure panels also include
+models receive only query text and visible time plus candidate key, rank, text, and
+visible order.  Source and namespace IDs, required-evidence labels, released intent,
+policy, lifecycle, distractor labels, embeddings, and scorer metadata remain hidden.
+On the 24 calibration cases, model-specific violation thresholds---and the unknown
+cutoff for the abstaining arm---are selected from frozen grids to maximize known-
+violation recall subject to at most 1\% required-anchor false denial, followed by
+precision, false-denial, threshold, and unknown-cutoff tie-breaks.  The selected
+operating points are then frozen for the 72 analysis cases.  GPT-5.6 uses low effort
+and Gemini uses low thinking for this diagnostic.  The direct and abstaining routes
+select the same candidates at the resulting cutoffs; we retain both names to expose
+the preregistered comparison rather than count them as independent evidence.
+
+The controlled verifier and paired-exposure panels also include
 \texttt{deepseek-v4-pro}.  Each model sees the same semantic task contract; provider
 adapters do not change its meaning, and only complete bundles enter a comparison.
 The paired-exposure configurations use reasoning \texttt{none} for GPT-5.6 Sol,
@@ -398,9 +422,19 @@ uses nested rates $\{0,.02,.05,.10,.20,.30,.40,.50\}$ over ten seeds; support-ex
 errors rerank the resulting candidate set.  A dominance break is an adjacent observed
 grid bracket, not an interpolated population threshold.
 
-Natural retrieval is macro-averaged within source and then equally across RHELM and
-MemOps.  Fixed-budget, verifier, and exposure intervals use 10,000 source- or
-scenario-clustered bootstrap replicates; corruption means are descriptive.  The
+At each corruption rate, an arm \emph{weakly dominates} its reference when feasible
+rate is no lower and penalized admissibility upper risk is no higher; equality is
+allowed.  Namespace-corruption arms use global dense as their reference.  Policy,
+lifecycle, and intent corruptions use clean namespace dense.  Recall, typed
+violations, and candidates scored are diagnostics, not dominance criteria.
+
+All reported intervals are pointwise 95\% percentile bootstrap intervals from
+10,000 replicates; no simultaneous-coverage claim is made.  Fixed-budget natural
+contrasts and released-field attribution resample namespace groups while preserving
+equal-source macro-averaging.  Text verification resamples namespace groups
+stratified by source and query intent.  Controlled verification and exposure
+resample the 16 scenarios within governing-axis strata.  Corruption means are
+descriptive over ten seeds.  The
 natural run has no downstream reader, models and experimental populations are never
 pooled, and none of these results is an official RHELM, MemOps, or GateMem benchmark
 score.  Appendices~\ref{app:gatemem} and \ref{app:smoke} retain the secondary
@@ -413,9 +447,11 @@ observational GateMem audit \citep{ren2026gatemem} and implementation smoke.
   \includegraphics[width=\textwidth]{generated/constraint_reliability.pdf}
   \caption{Utility--risk effects of trusted metadata.  (a) Global-to-namespace
   movement at four fixed budgets.  (b) Corrected v2 policy/lifecycle attribution;
-  whiskers are 95\% source-clustered bootstrap intervals.  (c) Observed
-  joint-dominance breakpoints across nested corruption rates; arrows mean no failure
-  through .50, and summaries are descriptive means over ten seeds.}
+  whiskers are pointwise 95\% namespace-group bootstrap intervals.  (c)
+  Channel-specific weak-dominance brackets across nested corruption rates.  Namespace
+  channels are compared with global dense; governance channels are compared with
+  clean namespace dense.  Arrows mean no failure through .50, and summaries are
+  descriptive means over ten seeds.}
   \label{fig:constraint-reliability}
 \end{figure}
 
@@ -458,26 +494,27 @@ instead changes recall by \LifecycleOnlyRecallDelta{} and risk by
 The corrected combined v2 arm remains beneficial, but less so than policy alone.
 Thus the incremental gain is policy-driven, not lifecycle-only headroom.
 
-Corruption confirms that error direction matters.  Policy false denial and
-lifecycle false-stale lose joint dominance at the first nonzero .02 grid point.
-Namespace false deny, missing labels, and source-level swaps dominate through .10 and
-first fail at .20.  Policy false allow and fail-open missing dominate through .30 and
-first fail at .40.  Query-memory namespace false allow remains jointly dominant
-through the tested .50 point, but that aggregate verdict is not safety: at .50 its
-matched-prefix wrong-scope exposure is \FalseAllowHalfWrongScope{} and it scores
+Corruption confirms that error direction matters, but only relative to each channel's
+declared reference.  Against global dense, namespace false denial, missing labels,
+and source-level label swaps remain weakly dominant through .10 and first fail at
+.20.  At the swap failure point, recall is \NamespaceSwapTwentyRecall{} and feasible
+rate is \NamespaceSwapTwentyFeasible{}.  Namespace false allow remains weakly
+dominant through .50, but this aggregate verdict is not safety: at .50 its matched-
+prefix wrong-scope exposure is \FalseAllowHalfWrongScope{} and it scores
 \FalseAllowHalfCandidates{} candidates per query, versus roughly 1,551 when clean.
-Source-level label swap first fails at .20, where recall is
-\NamespaceSwapTwentyRecall{} and feasible rate \NamespaceSwapTwentyFeasible{}.
-These are observed grid brackets under specific corruption mechanisms, not universal
-accuracy thresholds.
+Against clean namespace dense, policy false denial and lifecycle false-stale fail at
+the first nonzero .02 point, whereas policy false allow and fail-open missing pass
+through .30 and first fail at .40.  These channel-specific observed brackets are not
+universal metadata-accuracy thresholds.
 
 \begin{figure}[!t]
   \centering
   \includegraphics[width=\textwidth]{generated/inference_gap.pdf}
   \caption{Semantic verifiers recognize eligibility changes but do not apply them
   selectively.  (a) Feasibility and sign-reversed admissibility-risk differences
-  versus namespace dense; labels give recall differences.  Whiskers are 95\%
-  stratified group-bootstrap intervals over 72 analysis cases.  (b) Controlled focal
+  versus namespace dense; labels give recall differences.  Whiskers are pointwise
+  95\% intervals from 10,000 namespace-group bootstrap replicates stratified by
+  source and query intent over 72 analysis cases.  (b) Controlled focal
   consistency versus stable-control overflip; the shaded quadrant is the frozen
   supportive criterion and labels report stable-admissible false-denial rate (FD).
   The natural and controlled populations are separate and never pooled.}
@@ -512,13 +549,16 @@ selective verification.
 \begin{figure}[!t]
   \centering
   \includegraphics[width=\textwidth]{../results/counterfactual_exposure/figures/counterfactual_exposure.pdf}
-  \caption{Exposure can convert residual verification errors into disclosure.  (a)
+  \caption{Controlled candidate exposure can enable literal-marker disclosure.  (a)
   Paired exposed-minus-withheld disclosure effects in all four relevance-by-
-  admissibility cells.  (b) Selectivity gaps (circles) and residual relevant-
-  inadmissible effects (open red squares).  Whiskers are 95\% scenario-bootstrap
-  intervals over 16 scenarios.  The first three readers belong to the original
+  admissibility cells.  (b) Selectivity gaps (circles) and relevant-
+  inadmissible effects (open red squares).  Whiskers are pointwise 95\% intervals
+  from 10,000 scenario bootstrap replicates within governing-axis strata.  The first
+  three readers belong to the original
   execution; Claude Opus 5 is a separate, independently executed replication.  Each
-  reader contributes 192 paired units, and estimates are never pooled.}
+  reader contributes 192 paired units, and estimates are never pooled.  The DeepSeek
+  result is a constructed prompt-level disclosure effect, not a production-safety
+  guarantee.}
   \label{fig:paired-exposure}
 \end{figure}
 
@@ -528,11 +568,13 @@ Each of the three original readers has a positive selectivity-gap interval
 (Figure~\ref{fig:paired-exposure}).  DeepSeek alone has a strictly positive
 relevant-inadmissible exposure effect, \DeepSeekExposureInadmissible{}
 (\DeepSeekExposureInadmissibleCI{}), showing that reader selectivity does not
-guarantee containment after exposure.  The independently executed Claude Opus 5
+eliminate constructed prompt-level disclosure after exposure.  The independently
+executed Claude Opus 5
 replication also yields a positive selectivity gap, \OpusExposureGap{}
 (\OpusExposureGapCI{}), but its relevant-inadmissible interval
 \OpusExposureInadmissibleCI{} includes zero and therefore does not establish a
-nonzero residual effect.  All estimates remain reader-specific; the intervention
+nonzero relevant-inadmissible effect.  All estimates remain reader-specific; the
+intervention
 identifies prompt-level disclosure effects under constructed query conditions, not
 internal model use or an isolated causal moderator effect of admissibility.
 
@@ -559,9 +601,10 @@ stable admissible candidates.  Unknown state should therefore remain explicit an
 auditable rather than silently becoming either permission or denial.
 
 \paragraph{Enforce before prompt assembly.}
-Once a relevant inadmissible record crosses the prompt boundary, reader selectivity
-does not guarantee containment.  The supported pattern is staged: authenticated
-metadata constrains support; a three-valued verifier records exclusions and unknowns;
+In the constructed exposure test, reader selectivity did not eliminate disclosure
+for every reader once a relevant inadmissible record crossed the prompt boundary.
+The supported engineering pattern is staged: authenticated metadata constrains
+support; a three-valued verifier records exclusions and unknowns;
 semantic ranking and prompt assembly operate on the resulting candidates; and the
 reader remains auditable but does not carry policy enforcement.
 
@@ -591,10 +634,10 @@ responses, or private data.
 
 Across separate stagewise populations, trusted support improves retrieval when
 eligibility metadata is reliable, while text-only verification over-denies stable
-evidence and reader restraint does not guarantee containment after exposure.  The
-contribution is a stagewise, uncertainty-aware, matched-utility evaluation of these
-enforcement boundaries, supporting authenticated verification before prompt
-assembly rather than another semantic-ranking layer.
+evidence and constructed exposure produces literal-marker disclosure in some reader
+conditions.  The contribution is a stagewise, uncertainty-aware, matched-utility
+evaluation of these enforcement boundaries, supporting authenticated verification
+before prompt assembly rather than another semantic-ranking layer.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
@@ -960,8 +1003,11 @@ frozen source paths and hashes,
 source-snapshot identity, and transformation-script hash.  The natural execution
 manifest proves complete coverage of nine settings over 3,767 queries in 33,903
 route rows and 33,903 score rows.  Tests bind every estimate and confidence interval
-back to the machine-readable claim contract.  No provider call is required to
-verify or rebuild paper tables and figures from the normalized evidence.
+back to the machine-readable claim contract.  The public package regenerates every
+reported table and figure from released derived scores without a provider call.  It
+does not expose the separately retained hash-bound prompt, response, or normalized
+provider-output bundles, so it cannot independently audit the provider-output-to-
+score boundary or reproduce the original provider executions.
 
 \input{checklist.tex}
 

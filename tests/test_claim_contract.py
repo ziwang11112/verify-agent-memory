@@ -180,7 +180,7 @@ def test_metadata_reliability_claim_requires_zero_leakage_boundary() -> None:
     metadata["known_limitations"] = [
         item
         for item in metadata["known_limitations"]
-        if "aggregate joint dominance does not imply zero" not in item.lower()
+        if "aggregate weak dominance does not imply zero" not in item.lower()
     ]
     assert "C10 must distinguish aggregate dominance from zero leakage" in validate(data)
 

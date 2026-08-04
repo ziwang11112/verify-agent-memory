@@ -1605,7 +1605,7 @@ def _write_verification_examples_figure(path: Path, cases: Sequence[FigureCase])
     plt.close(figure)
 
 
-def _write_pipeline_figure(
+def _write_pipeline_figure_legacy(
     path: Path,
     cases: Sequence[FigureCase],
     selected: Mapping[str, Row],
@@ -2142,6 +2142,343 @@ def _write_pipeline_figure(
     )
 
     figure.tight_layout(pad=0.12)
+    _save_figure(figure, path)
+    plt.close(figure)
+
+
+def _write_pipeline_figure(
+    path: Path,
+    cases: Sequence[FigureCase],
+    selected: Mapping[str, Row],
+) -> None:
+    """Render the compact example matrix and the three-population evidence map."""
+    _configure_matplotlib()
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch
+
+    figure, axis = plt.subplots(figsize=(7.2, 3.65))
+    axis.set_xlim(0, 1)
+    axis.set_ylim(0, 1)
+    axis.axis("off")
+
+    colors = {
+        "ink": "#20262D",
+        "muted": "#5E6872",
+        "line": "#C9D0D7",
+        "scope": "#2166A5",
+        "lifecycle": "#B86A16",
+        "policy": "#7A5195",
+        "allow": "#248553",
+        "deny": "#C43D3D",
+        "pale_blue": "#EEF5FA",
+        "pale_gold": "#FFF6E7",
+        "pale_purple": "#F4EFF8",
+        "pale_green": "#EAF5EE",
+        "pale_red": "#FBEDEE",
+        "pale_gray": "#F4F6F8",
+    }
+
+    def box(
+        x: float,
+        y: float,
+        width: float,
+        height: float,
+        *,
+        facecolor: str,
+        edgecolor: str = "#C9D0D7",
+        linewidth: float = 0.7,
+        radius: float = 0.006,
+    ) -> None:
+        axis.add_patch(
+            FancyBboxPatch(
+                (x, y),
+                width,
+                height,
+                boxstyle=f"round,pad=0.004,rounding_size={radius}",
+                facecolor=facecolor,
+                edgecolor=edgecolor,
+                linewidth=linewidth,
+            )
+        )
+
+    case_by_id = {str(case["case_id"]): case for case in cases}
+    scope_case = case_by_id["wrong_namespace_market"]
+    lifecycle_case = case_by_id["superseded_lisbon_date"]
+    policy_case = case_by_id["forgotten_phone_detail"]
+    history_case = case_by_id["historical_metformin_timeline"]
+    scope_memory = next(
+        memory for memory in scope_case["memories"] if memory["scope"] == "disallowed"
+    )
+    lifecycle_memory = next(
+        memory for memory in lifecycle_case["memories"] if memory["state"] == "superseded"
+    )
+    policy_memory = next(
+        memory
+        for memory in policy_case["memories"]
+        if memory["prohibited"] and not memory["usable"]
+    )
+    history_memory = next(
+        memory for memory in history_case["memories"] if memory["state"] == "superseded"
+    )
+
+    axis.text(0.015, 0.985, "a", fontsize=9.5, weight="bold", va="top")
+    axis.text(
+        0.043,
+        0.985,
+        "A topical candidate still needs a query-conditioned eligibility check",
+        fontsize=9.0,
+        weight="bold",
+        va="top",
+        color=colors["ink"],
+    )
+    axis.text(
+        0.043,
+        0.935,
+        "Abridged audited examples; verdicts are established by released fields",
+        fontsize=7.0,
+        color=colors["muted"],
+        va="top",
+    )
+
+    columns = (
+        (0.020, 0.205, "QUERY + INTENT"),
+        (0.230, 0.255, "RETRIEVED CANDIDATE"),
+        (0.490, 0.125, "FAILED AXIS"),
+        (0.620, 0.075, "VERDICT"),
+    )
+    for x, width, label in columns:
+        box(x, 0.850, width, 0.052, facecolor="#E9EDF1", edgecolor="#E9EDF1")
+        axis.text(
+            x + width / 2,
+            0.876,
+            label,
+            ha="center",
+            va="center",
+            fontsize=6.8,
+            weight="bold",
+            color=colors["muted"],
+        )
+
+    example_rows = (
+        (
+            0.650,
+            "RHELM | current answer",
+            str(scope_case["query"]),
+            str(scope_memory["text"]),
+            "SCOPE",
+            "wrong principal",
+            "DROP",
+            colors["scope"],
+            colors["pale_blue"],
+            colors["deny"],
+        ),
+        (
+            0.455,
+            "MemOps | current state",
+            str(lifecycle_case["query"]),
+            str(lifecycle_memory["text"]),
+            "LIFECYCLE",
+            "superseded now",
+            "DROP",
+            colors["lifecycle"],
+            colors["pale_gold"],
+            colors["deny"],
+        ),
+        (
+            0.260,
+            "MemOps | active policy",
+            str(policy_case["query"]),
+            str(policy_memory["text"]),
+            "POLICY",
+            "explicitly forgotten",
+            "DROP",
+            colors["policy"],
+            colors["pale_purple"],
+            colors["deny"],
+        ),
+        (
+            0.065,
+            "MemOps | history",
+            str(history_case["query"]),
+            str(history_memory["text"]),
+            "LIFECYCLE",
+            "old state required",
+            "ADMIT",
+            colors["lifecycle"],
+            colors["pale_green"],
+            colors["allow"],
+        ),
+    )
+    for (
+        y,
+        intent,
+        query,
+        candidate,
+        check,
+        reason,
+        decision,
+        check_color,
+        row_color,
+        decision_color,
+    ) in example_rows:
+        box(0.020, y, 0.675, 0.175, facecolor=row_color)
+        axis.plot([0.022, 0.022], [y + 0.010, y + 0.165], color=check_color, linewidth=3.0)
+        axis.text(
+            0.036,
+            y + 0.143,
+            intent,
+            fontsize=7.0,
+            weight="bold",
+            color=check_color,
+            va="center",
+        )
+        axis.text(
+            0.036,
+            y + 0.087,
+            textwrap.fill(textwrap.shorten(query, width=72, placeholder="..."), width=27),
+            fontsize=7.0,
+            color=colors["ink"],
+            va="center",
+            linespacing=1.08,
+        )
+        axis.plot([0.225, 0.225], [y + 0.010, y + 0.165], color=colors["line"], linewidth=0.6)
+        axis.text(
+            0.240,
+            y + 0.088,
+            textwrap.fill(
+                f'"{textwrap.shorten(candidate, width=72, placeholder="...")}"',
+                width=28,
+            ),
+            fontsize=7.0,
+            color=colors["ink"],
+            va="center",
+            linespacing=1.08,
+        )
+        axis.plot([0.485, 0.485], [y + 0.010, y + 0.165], color=colors["line"], linewidth=0.6)
+        axis.text(
+            0.552,
+            y + 0.112,
+            check,
+            fontsize=7.2,
+            weight="bold",
+            color=check_color,
+            ha="center",
+        )
+        axis.text(
+            0.552,
+            y + 0.057,
+            textwrap.fill(reason, width=19),
+            fontsize=6.8,
+            color=colors["muted"],
+            ha="center",
+            va="center",
+        )
+        axis.plot([0.615, 0.615], [y + 0.010, y + 0.165], color=colors["line"], linewidth=0.6)
+        axis.text(
+            0.657,
+            y + 0.088,
+            decision,
+            fontsize=8.0,
+            weight="bold",
+            color=decision_color,
+            ha="center",
+            va="center",
+        )
+
+    axis.plot([0.715, 0.715], [0.055, 0.965], color="#D7DCE1", linewidth=0.8)
+    axis.text(0.735, 0.985, "b", fontsize=9.5, weight="bold", va="top")
+    axis.text(
+        0.763,
+        0.985,
+        "Three tests, three populations",
+        fontsize=8.8,
+        weight="bold",
+        va="top",
+        color=colors["ink"],
+    )
+    axis.text(
+        0.735,
+        0.935,
+        "Related questions; no pooled path estimate",
+        fontsize=7.0,
+        color=colors["muted"],
+        va="top",
+    )
+
+    recall_delta = 100 * _number(selected["c9_k20_evidence_recall_delta"])
+    risk_delta = 100 * _number(selected["c9_k20_penalized_admissibility_upper_risk_delta"])
+    oracle_risk_delta = 100 * _number(
+        selected["c11_released_oracle_penalized_admissibility_upper_risk_delta"]
+    )
+    exposure_delta = 100 * _number(selected["deepseek_exposure_inadmissible"])
+    evidence_rows = (
+        (
+            0.635,
+            "NATURAL SUPPORT",
+            "87 groups | 3,767 queries",
+            "Namespace vs global dense, k=20",
+            f"Recall {recall_delta:+.1f} pp | risk {risk_delta:+.1f} pp",
+            colors["scope"],
+            colors["pale_blue"],
+        ),
+        (
+            0.360,
+            "NATURAL TEXT VERIFICATION",
+            "72 frozen analysis cases",
+            "Released fields expose route headroom",
+            f"Oracle risk delta {oracle_risk_delta:+.1f} pp",
+            colors["policy"],
+            colors["pale_purple"],
+        ),
+        (
+            0.085,
+            "PAIRED EXPOSURE",
+            "16 constructed scenarios per reader",
+            "Relevant-inadmissible literal marker",
+            f"DeepSeek exposure effect {exposure_delta:+.1f} pp",
+            colors["deny"],
+            colors["pale_red"],
+        ),
+    )
+    for y, heading, population, context, result, color, facecolor in evidence_rows:
+        box(0.735, y, 0.250, 0.215, facecolor=facecolor, edgecolor="#FFFFFF")
+        axis.text(
+            0.750,
+            y + 0.180,
+            heading,
+            fontsize=7.3,
+            weight="bold",
+            color=color,
+            va="center",
+        )
+        axis.text(
+            0.750,
+            y + 0.137,
+            population,
+            fontsize=6.8,
+            weight="bold",
+            color=colors["ink"],
+            va="center",
+        )
+        axis.text(
+            0.750,
+            y + 0.092,
+            textwrap.fill(context, width=35),
+            fontsize=6.8,
+            color=colors["muted"],
+            va="center",
+        )
+        axis.text(
+            0.750,
+            y + 0.035,
+            result,
+            fontsize=7.1,
+            weight="bold",
+            color=color,
+            va="center",
+        )
+
+    figure.tight_layout(pad=0.15)
     _save_figure(figure, path)
     plt.close(figure)
 
@@ -2758,17 +3095,18 @@ def _write_constraint_reliability_figure(path: Path, selected: Mapping[str, Row]
     attribution_axis.grid(color="#E7E9EC", linewidth=0.55)
 
     channels = (
+        ("namespace_false_deny", "False deny"),
+        ("namespace_missing", "Missing label"),
+        ("namespace_swap", "Source-label swap"),
+        ("namespace_false_allow", "False allow"),
         ("policy_false_deny", "Policy false deny"),
         ("lifecycle_false_stale", "Lifecycle false stale"),
-        ("namespace_false_deny", "Namespace false deny"),
-        ("namespace_swap", "Namespace label swap"),
         ("policy_false_allow", "Policy false allow"),
         ("policy_missing", "Policy missing / fail open"),
-        ("namespace_false_allow", "Namespace false allow"),
     )
-    y_positions = np.array((0.0, 1.0, 2.0, 3.0, 4.7, 5.7, 6.7))
-    bracket_axis.axhspan(-0.45, 3.45, color="#FBEFEF", zorder=-4)
-    bracket_axis.axhspan(4.25, 7.15, color="#EEF4FA", zorder=-4)
+    y_positions = np.array((0.0, 1.0, 2.0, 3.0, 5.0, 6.0, 7.0, 8.0))
+    bracket_axis.axhspan(-0.45, 3.45, color="#EEF4FA", zorder=-4)
+    bracket_axis.axhspan(4.55, 8.45, color="#FFF6E7", zorder=-4)
     for y_position, (channel, _label) in zip(y_positions, channels, strict=True):
         last = _number(selected[f"c10_{channel}_last"])
         bracket_axis.plot(
@@ -2792,41 +3130,30 @@ def _write_constraint_reliability_figure(path: Path, selected: Mapping[str, Row]
                 arrowprops={"arrowstyle": "->", "color": colors["dominant"], "lw": 1.2},
             )
     bracket_axis.set_yticks(y_positions, [label for _channel, label in channels])
-    bracket_axis.invert_yaxis()
+    bracket_axis.set_ylim(8.65, -1.05)
     bracket_axis.set_xlim(0, 0.55)
     bracket_axis.set_xticks(np.arange(0, 0.6, 0.1))
     bracket_axis.set_xlabel("Metadata corruption rate")
     bracket_axis.set_title(
-        "c  False-deny errors fail first", loc="left", weight="bold", fontsize=9.2
+        "c  Reliability is channel-specific", loc="left", weight="bold", fontsize=9.2
     )
     bracket_axis.grid(axis="x", color="#E7E9EC", linewidth=0.6)
     bracket_axis.text(
         0.0,
-        -0.78,
-        "FAIL-CLOSED / FALSE DENY",
-        fontsize=6.8,
-        weight="bold",
-        color=colors["bad"],
-    )
-    bracket_axis.text(
-        0.0,
-        4.28,
-        "FAIL-OPEN / FALSE ALLOW",
-        fontsize=6.8,
+        -0.70,
+        "NAMESPACE  |  reference: global dense",
+        fontsize=7.0,
         weight="bold",
         color=colors["combined"],
     )
-    bracket_axis.annotate(
-        "benefit persists to .50\nbut wrong-scope exposure = .167",
-        xy=(0.50, 6.7),
-        xytext=(0.29, 6.05),
-        fontsize=6.0,
+    bracket_axis.text(
+        0.0,
+        4.30,
+        "GOVERNANCE  |  reference: clean namespace dense",
+        fontsize=7.0,
         weight="bold",
-        color=colors["bad"],
-        va="center",
-        arrowprops={"arrowstyle": "-", "color": colors["bad"], "lw": 0.6},
+        color=colors["interval"],
     )
-
     figure.text(0.20, 0.965, "VALUE", ha="center", fontsize=8.0, weight="bold", color="#6B7279")
     figure.text(0.50, 0.965, "SOURCE", ha="center", fontsize=8.0, weight="bold", color="#6B7279")
     figure.text(0.82, 0.965, "FRAGILITY", ha="center", fontsize=8.0, weight="bold", color="#6B7279")

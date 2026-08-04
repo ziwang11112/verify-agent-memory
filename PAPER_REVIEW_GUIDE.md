@@ -20,12 +20,16 @@ Candidate support -> Metadata reliability -> Selective verification
                   -> Prompt exposure -> Answer disclosure
 ```
 
+This is a conceptual audit sequence. Its component estimates use distinct populations
+and are never pooled into an end-to-end effect.
+
 ## Central Claim
 
 A semantically relevant memory can still be inadmissible for the current principal,
 purpose, intent, or time. Reliable eligibility information should constrain support
-before prompt assembly. Semantic ranking and reader restraint do not reliably repair
-an incorrectly specified candidate set after the fact.
+before prompt assembly. In the tested diagnostics, semantic ranking, text-only
+verification, and reader restraint do not consistently repair an incorrectly
+specified candidate set after the fact.
 
 ## Contributions We Can Defend
 
@@ -59,8 +63,10 @@ These populations and estimands are never pooled.
 
 - `Qwen/Qwen3-Embedding-8B`: frozen retrieval encoder only; 4,096-dimensional
   normalized vectors. It is not a reader or judge.
-- `gpt-5.6-sol`: OpenAI Sol tier, reasoning `none`; not Luna.
-- `gemini-3.6-flash`: Google Flash tier, thinking `minimal`; not Pro.
+- `gpt-5.6-sol`: OpenAI Sol tier; low effort in natural text verification and
+  reasoning `none` in paired exposure; not Luna.
+- `gemini-3.6-flash`: Google Flash tier; low thinking in natural text verification
+  and thinking `minimal` in paired exposure; not Pro.
 - `deepseek-v4-pro`: DeepSeek Pro tier, thinking disabled; not Flash.
 - `claude-opus-5`: independently executed Anthropic reader replication, thinking
   disabled and medium effort. It is not pooled with the original panel.
@@ -120,6 +126,9 @@ human-agreement experiment. Neither belongs to this paper's evidence story.
    further prose additions must preserve that margin.
 6. Reader configurations differ by provider and reasoning control; comparisons are
    robustness checks, not a leaderboard.
+7. Released derived scores rebuild all public tables and figures, but separately
+   retained hash-bound prompt/response bundles are required to audit the provider-
+   output-to-score boundary or reproduce provider executions.
 
 ## Editing Boundaries
 

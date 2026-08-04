@@ -12,14 +12,14 @@ excluded for a current-state query and retained for a history query.
 
 | Panel | Role | Intended read |
 | --- | --- | --- |
-| a | Three audited candidate-level RHELM/MemOps cases | Wrong-principal, superseded-current, and explicitly forgotten candidates can all be topically matched yet fail a different pre-prompt check; the Lisbon row also shows the history-intent reversal |
-| b | Observable path and quantitative evidence roadmap | Retrieval, verification, exposure, and disclosure are logged separately; distinct support, verification, and exposure analyses diagnose successive failure points without pooling populations or estimands |
+| a | Compact query--candidate audit matrix over four RHELM/MemOps rows | Wrong-principal, superseded-current, and explicitly forgotten candidates can be topically matched yet fail different pre-prompt checks; a history row shows that old state is not intrinsically inadmissible |
+| b | Three population-specific evidence blocks | Natural support, selective verification, and paired exposure answer related questions on distinct populations and estimands; they do not form a pooled end-to-end trace |
 
 **Evidence:** Panel a uses C1 and the abridged wrong-namespace market,
 superseded-Lisbon, and user-forgotten-phone cases listed in
 `evidence/examples/retrieval_admissibility_cases.json`; the Lisbon history note is an
-example-derived counterfactual. Panel b indexes C9 top-20 support, C11 controlled
-stable overflip, and the C8/C12 controlled exposure executions. The three roadmap
+audited public-source example. Panel b indexes C9 top-20 support, C11 natural
+released-field headroom, and the C8/C12 controlled exposure executions. The three roadmap
 estimates come from distinct populations and are not combined. All four audited cases
 appear in Appendix Figure A1.
 
@@ -39,11 +39,12 @@ denies and source-label swaps erase utility earlier than fail-open errors.
 | --- | --- | --- | --- |
 | a | 87 groups and 3,767 public-source queries | Global-to-namespace movement in the absolute recall--penalized-admissibility-risk plane at top-$k\in\{10,20,50,100\}$; selected annotations give feasibility deltas | Trusted support moves every budget toward higher recall and lower risk |
 | b | Same frozen settings and population | Policy-only, lifecycle-only, and corrected governance-v2 points in the risk-reduction--recall-gain plane | Released policy metadata drives the incremental gain; the coarse lifecycle-only approximation over-filters |
-| c | Same population; 10 nested seeds per corruption channel | Joint utility--risk dominance over observed corruption rates, plus wrong-scope exposure and candidate work | Error direction matters: false denial and source-label swap damage utility sooner; fail-open support still leaks and expands work before aggregate dominance disappears |
+| c | Same population; 10 nested seeds per corruption channel | Channel-specific weak-dominance brackets over observed corruption rates; namespace channels use global dense and governance channels use clean namespace dense | Error direction matters: false denial and source-label swap damage utility sooner; fail-open support still leaks and expands work before aggregate dominance disappears |
 
-**Boundaries:** Top-$k$ and attribution intervals use 10,000 source-clustered
-bootstrap replicates. Corruption points are ten-seed means; observed break-even
-brackets are grid diagnostics, not interpolated thresholds. The historical v1
+**Boundaries:** Top-$k$ and attribution intervals use 10,000 namespace-group
+bootstrap replicates under equal-source macro-averaging. Corruption points are
+ten-seed means; observed break-even brackets are grid diagnostics, not interpolated
+thresholds. The historical v1
 non-usable selection score is not used as an admissibility-only outcome. This is not
 an official RHELM or MemOps submission.
 
@@ -61,12 +62,12 @@ metadata is an oracle reference, not a deployable method. The result does not co
 latent production state or untested models. Candidate-level ROC-AUC and operating-
 point diagnostics are reported in the appendix rather than mixed into the main plot.
 
-## Figure 4: Exposure Converts Residual Verification Errors into Disclosure
+## Figure 4: Controlled Exposure Can Enable Literal-Marker Disclosure
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
 | a | 16 controlled scenarios; 192 paired units per reader in each complete execution | Exposed-minus-withheld disclosure effects in all four relevance-by-admissibility cells | The empirical matrix closes the loop with Figure 1: the largest effects occur for relevant admissible evidence |
-| b | Same construction; original three-reader execution plus a separate Claude replication | Relevant-admissible minus relevant-inadmissible effect, with the residual inadmissible effect shown separately | All four readers have a positive selectivity-gap interval; only DeepSeek has a strictly positive relevant-inadmissible interval |
+| b | Same construction; original three-reader execution plus a separate Claude replication | Relevant-admissible minus relevant-inadmissible effect, with the relevant-inadmissible effect shown separately | All four readers have a positive selectivity-gap interval; only DeepSeek has a strictly positive relevant-inadmissible interval |
 
 **Boundaries:** GPT-5.6 Sol, Gemini 3.6 Flash, and DeepSeek V4 Pro come from the
 original execution. Claude Opus 5 is an independently executed C12 replication and

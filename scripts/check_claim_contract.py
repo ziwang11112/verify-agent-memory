@@ -220,7 +220,7 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
             errors.append("C9 must remain a post-hoc frozen-ranking decomposition")
         if "post-hoc" not in limitations or "no settings were retuned" not in limitations:
             errors.append("C9 must include post-hoc and no-retuning boundaries")
-        if "source-clustered" not in limitations:
+        if "namespace-group" not in limitations or "equal-source" not in limitations:
             errors.append("C9 must identify the bootstrap unit")
 
     metadata = claim_by_id.get("C10")
@@ -231,7 +231,7 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
             errors.append("C10 must remain a post-hoc metadata-robustness diagnostic")
         if "observed brackets" not in limitations or "not population thresholds" not in limitations:
             errors.append("C10 must preserve the observed-grid boundary")
-        if "aggregate joint dominance does not imply zero" not in limitations:
+        if "aggregate weak dominance does not imply zero" not in limitations:
             errors.append("C10 must distinguish aggregate dominance from zero leakage")
         if "corrected v2 attribution" not in wording or "policy metadata" not in wording:
             errors.append("C10 must preserve corrected-v2 policy attribution")

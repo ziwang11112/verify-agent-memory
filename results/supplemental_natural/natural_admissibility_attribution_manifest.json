@@ -1,5 +1,9 @@
 {
   "analysis": "natural-admissibility-attribution-v2",
+  "bootstrap_aggregation": "equal_source_macro",
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 20260802,
+  "bootstrap_unit": "namespace_group",
   "combined_current_ranking_checks": 2985,
   "contains_query_or_memory_ids": false,
   "contains_raw_text_embeddings_or_responses": false,

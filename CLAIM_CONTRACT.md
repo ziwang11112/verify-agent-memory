@@ -269,8 +269,8 @@ setting was retuned.
 | 50 | 0.603221 | 0.739892 | 0.136671 | 0.152614 | -0.179821 |
 | 100 | 0.716835 | 0.865663 | 0.148828 | 0.222996 | -0.273935 |
 
-At each depth, source-clustered bootstrap intervals exclude zero for recall,
-feasibility, total v2 risk, its infeasibility component, and its feasible-prefix
+At each depth, namespace-group bootstrap intervals under equal-source
+macro-averaging exclude zero for recall, feasibility, total v2 risk, its infeasibility component, and its feasible-prefix
 admissibility component.
 
 **Allowed:** On frozen rankings, trusted namespace support improved recall,
@@ -295,7 +295,9 @@ Corrected v2 attribution against namespace dense is:
 | Lifecycle only | -0.015783 | -0.037916 | 0.017592 |
 | Policy + lifecycle (`released_governance_oracle_v2`) | 0.010489 | 0.016954 | -0.123554 |
 
-The observed ten-seed dominance brackets are mechanism-specific:
+The observed ten-seed weak-dominance brackets are mechanism-specific. Namespace
+channels use global dense as reference; policy, lifecycle, and intent channels use
+clean namespace dense:
 
 | Corruption channel | Last dominant | First non-dominant |
 | --- | ---: | ---: |
@@ -309,10 +311,11 @@ The observed ten-seed dominance brackets are mechanism-specific:
 No loss of dominance was observed through 0.50 for query-memory namespace false
 allow, lifecycle false current, lifecycle missing, or query-intent flip. At 0.50
 namespace false allow, matched-prefix wrong-scope exposure was 0.167211 even though
-aggregate dominance remained. This is not a zero-leakage result.
+aggregate weak dominance remained. This is not a zero-leakage result.
 
 **Allowed:** Error direction matters. In this frozen grid, false-deny mechanisms
-lost joint utility-risk dominance earlier than tested fail-open mechanisms. Released
+crossed their channel-specific weak-dominance boundary earlier than tested fail-open
+mechanisms. Released
 policy metadata drove the corrected incremental gain, while the coarse lifecycle-only
 rule hurt retrieval.
 

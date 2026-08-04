@@ -1,5 +1,5 @@
 schema_version: 1
-title: "The Wrong Memory at the Right Time: Verifying Retrieval Admissibility in Long-Term Agents"
+title: "The Wrong Memory at the Right Time: Metadata Reliability and Enforcement Boundaries in Long-Term Agent Memory"
 claims:
   - id: C1
     status: definition
@@ -670,7 +670,7 @@ claims:
     known_limitations:
       - "This is a post-hoc v2 rescore of frozen rankings, not a new held-out run."
       - "No settings were retuned, and original development selection used the v1 penalized non-usable upper risk."
-      - "Confidence intervals use source-clustered bootstrap resampling."
+      - "Confidence intervals use namespace-group bootstrap resampling under equal-source macro-averaging."
       - "The result applies to released trusted namespaces in the evaluated public sources."
     paper_locations:
       - "Constraint Value and Metadata Reliability"
@@ -682,8 +682,8 @@ claims:
 
   - id: C10
     status: post_hoc_metadata_robustness_diagnostic
-    claim: "The value of retrieval constraints is asymmetric in metadata error type: false-deny errors lose joint utility-risk dominance earlier than the tested fail-open errors, and the corrected attribution gain is policy-driven while the coarse lifecycle-only rule hurts retrieval."
-    estimand: "Post-hoc v2 axis attribution relative to namespace dense, plus ten-seed mean dominance brackets and selected full-natural reranking points under frozen corruption mechanisms."
+    claim: "The value of retrieval constraints is asymmetric in metadata error type: false-deny errors cross their channel-specific weak-dominance boundary earlier than the tested fail-open errors, and the corrected attribution gain is policy-driven while the coarse lifecycle-only rule hurts retrieval."
+    estimand: "Post-hoc v2 axis attribution relative to namespace dense, plus ten-seed mean weak-dominance brackets and selected full-natural reranking points under frozen corruption mechanisms. Namespace channels use global dense as reference; policy, lifecycle, and intent channels use clean namespace dense."
     population: "The same full public-source evaluation as C5 and C9, evaluated under the explicitly tested metadata-corruption mechanisms and grid only."
     source_repository: "ziwang11112/verify-agent-memory"
     source_snapshot_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
@@ -742,9 +742,9 @@ claims:
       - {metric: "governance_v2_feasible_rate_delta", estimate: 0.016954377311960544, lower: 0.0030246360193830865, upper: 0.030466116995666825}
       - {metric: "governance_v2_penalized_admissibility_upper_risk_delta", estimate: -0.12355443791299539, lower: -0.13476684700631683, upper: -0.11194958955718494}
     allowed_wording:
-      - "Within the frozen corruption grid, false-deny errors lost joint utility-risk dominance earlier than the tested fail-open errors."
+      - "Within the frozen corruption grid, false-deny errors crossed their channel-specific weak-dominance boundary earlier than the tested fail-open errors."
       - "Corrected v2 attribution identifies released policy metadata as the source of incremental gain; the coarse two-intent lifecycle-only rule reduced recall and feasibility and increased risk."
-      - "Full-natural reranking remained jointly dominant through 50 percent query-memory namespace false allow, while source-label swap was last dominant at 10 percent and first non-dominant at 20 percent."
+      - "Full-natural reranking remained weakly dominant over global dense through 50 percent query-memory namespace false allow, while source-label swap was last dominant at 10 percent and first non-dominant at 20 percent."
     forbidden_wording:
       - "The observed break-even points are universal deployment thresholds."
       - "Metadata accuracy is summarized by one interchangeable scalar."
@@ -756,7 +756,7 @@ claims:
       - "Attribution and corruption analyses are post-hoc diagnostics on released fields and frozen settings."
       - "Full-natural support expansion uses fixed embeddings and exact reranking with no retuning."
       - "No failure was observed through 50 percent for some channels; behavior beyond the tested grid is unknown."
-      - "Aggregate joint dominance does not imply zero wrong-scope exposure."
+      - "Aggregate weak dominance does not imply zero wrong-scope exposure."
     paper_locations:
       - "Constraint Value and Metadata Reliability"
       - "Figure 2"

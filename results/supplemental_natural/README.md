@@ -55,10 +55,10 @@ risk remains lower (0.5622 versus 0.6276); the utility condition fails first.
 
 Governance errors are asymmetric. Relative to namespace dense:
 
-- policy false-allow and fail-open missing remain jointly dominating through 30%,
+- policy false-allow and fail-open missing remain weakly dominant through 30%,
   with 40% the first non-dominating point;
-- policy false-deny loses joint dominance at 2%;
-- lifecycle false-stale also loses joint dominance at 2%;
+- policy false-deny crosses the weak-dominance boundary at 2%;
+- lifecycle false-stale also crosses the weak-dominance boundary at 2%;
 - lifecycle false-current and fail-open lifecycle missing do not lose dominance by
   50%, because they undo over-filtering by the coarse released two-intent rule; and
 - intent flips do not erase the policy-driven combined-arm advantage by 50%.

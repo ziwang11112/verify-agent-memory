@@ -2,7 +2,7 @@
 
 ## Receipt
 
-- Built: August 3, 2026.
+- Built: August 4, 2026.
 - Command: `.venv\Scripts\python.exe -m scripts.compile_paper`.
 - Engine: MiKTeX pdfTeX 1.40.28 with BibTeX 0.99e.
 - Output: `paper/build/main.pdf` (ignored by Git).
@@ -23,28 +23,33 @@
   and the checklist from page 16.
 - No clipped text, overlapping elements, broken tables, or unreadable figures were
   observed.
-- Section 4 now exposes the datasets and splits, retrieval and reader model snapshots,
-  complete comparison families, formula-level definitions of retrieval, calibration,
-  filter, controlled-verification, and exposure metrics, dev-only selection,
-  uncertainty procedure, and interpretation boundaries in the main text. Table 1 is
+- Section 4 now exposes the datasets and splits, retrieval and reader model
+  identifiers and execution controls, visible and hidden verifier fields, calibration
+  grids and tie-breaks, complete comparison families, formula-level definitions,
+  dev-only selection, exact bootstrap units, and interpretation boundaries in the
+  main text. Table 1 is
   a three-column experiment/data--systems--outcomes map; full hashes, derivations,
   edge-case conventions, and selected hyperparameters remain in the appendix for
   auditability.
-- Figure 1 links three audited candidate-level failures (wrong scope, superseded
-  current state, and an explicit forget target) to the query-conditioned prompt
-  boundary and the three-stage evidence roadmap. Figure 2 presents the value, source,
-  and fragility of metadata constraints in a single mechanism sequence. Figure 3 shows
-  the released-oracle/text-inference gap and controlled overflip; Figure 4 shows the
-  original three-reader paired-exposure effects, residual leakage, and the separately
+- Figure 1 is a compact four-row query--candidate audit matrix with explicit scope,
+  lifecycle, and policy decisions plus three visibly separate empirical populations.
+  Figure 2 presents the value, source, and channel-specific fragility of metadata
+  constraints, including the distinct global-dense and clean-namespace references.
+  Figure 3 shows the released-oracle/text-inference gap and controlled overflip;
+  Figure 4 shows reader-specific literal-marker exposure effects and the separately
   executed Claude Opus 5 replication without pooling. The four additional audited
   examples, observational GateMem evidence, and frozen nine-arm retrieval diagnostics
   remain in the appendix. All figures preserve readable labels and uncertainty marks,
   and all generated tables remain within their text blocks.
 - The main results report the 58.1-fold reduction in mean candidates scored for clean
   namespace support and explicitly bound it as exact-search retrieval work, not
-  wall-clock or production latency. Related work now includes Collaborative Memory's
-  governance architecture and CIMemories' prompt-level all-or-nothing precedent,
-  while distinguishing the paper's record-level estimands.
+  wall-clock or production latency. Related work now includes ABAC, Securing the
+  Agent, SD-RAG, Collaborative Memory, and CIMemories while distinguishing prior
+  enforcement mechanisms from the paper's stage-specific evaluation contribution.
+- The reproducibility section and checklist now state the public-artifact boundary
+  precisely: released derived scores rebuild every table and figure, but separately
+  retained prompt/response bundles are required to audit provider-output-to-score
+  transformations or rerun provider executions.
 - The official double-blind workshop style injects `Anonymous Author(s)`,
   `Affiliation`, `Address`, and `email` on page 1. These strings are template output,
   not stale manuscript metadata; the official style file is unchanged.

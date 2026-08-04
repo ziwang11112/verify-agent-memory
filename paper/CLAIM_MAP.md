@@ -12,7 +12,7 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 | C6 | Section 5.4 and Appendix | Appendix Figure A2 | Negative result for two frozen diagnostic routers only |
 | C7 | Sections 4 and 5.2, plus Appendix | Figure 2b and Appendix Figure A2 | Frozen historical v1 semantics remain distinct from corrected v2 attribution |
 | C8 | Sections 3.4, 4, and 5.4 | Figure 1b roadmap and Figure 4 | Assigned exposure under constructed query conditions; no isolated causal moderator; readers never pooled |
-| C9 | Sections 4 and 5.1 | Figure 1b roadmap and Figure 2a | Post-hoc v2 scoring on frozen rankings; no retuning; source-clustered intervals |
+| C9 | Sections 4 and 5.1 | Figure 1b roadmap and Figure 2a | Post-hoc v2 scoring on frozen rankings; no retuning; namespace-group intervals under equal-source macro-averaging |
 | C10 | Sections 4 and 5.2 | Figure 2b--c | Tested corruption mechanisms only; observed grid brackets are not population thresholds |
 | C11 | Sections 4 and 5.3 | Figure 1b roadmap and Figure 3 | Natural and controlled public-development diagnostics are separate and never pooled |
 | C12 | Sections 4 and 5.4 | Figure 4 | Independently executed Claude Opus 5 replication under the C8 construction; separate estimates, no pooling, and no model-leaderboard claim |
@@ -28,7 +28,8 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 4. Trusted namespace support improves frozen semantic rankings at every tested
    practical budget, with both feasibility and feasible-prefix risk contributions.
 5. Metadata error is directionally asymmetric: false denial and source-label swap
-   erase joint utility--risk dominance earlier than tested fail-open errors.
+   cross their channel-specific weak-dominance boundaries earlier than tested
+   fail-open errors.
 6. Released policy metadata drives the corrected v2 gain; the evaluated coarse
    lifecycle-only approximation hurts retrieval.
 7. Released governance fields expose headroom that text-only verifiers do not recover;

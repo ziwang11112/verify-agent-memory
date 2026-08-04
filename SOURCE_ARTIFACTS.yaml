@@ -480,7 +480,7 @@ artifacts:
     source_path: "results/supplemental_natural/natural_top_k_paired_deltas.csv"
     source_sha256: "3055e0350b6c8dc99f7c8a8ec98374561e073e7f7c6ee72d953a2562aebc5e3f"
     intended_normalized_destination: "evidence/normalized/fixed_budget_support.csv"
-    transformation_required: "Preserve source-clustered bootstrap intervals and risk-component decomposition; do not relabel as confirmatory."
+    transformation_required: "Preserve namespace-group bootstrap intervals under equal-source macro-averaging and the risk-component decomposition; do not relabel as confirmatory."
     public_paper_label: "fixed-budget paired deltas"
     contains_raw_text_or_private_content: false
 
@@ -502,7 +502,7 @@ artifacts:
     source_path: "results/supplemental_natural/natural_admissibility_attribution_deltas.csv"
     source_sha256: "233db8acf7c7381c26fe9b3b458800bfed9882390857e18a31df13ad45af62ec"
     intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
-    transformation_required: "Preserve corrected v2 policy, lifecycle, and combined-governance attribution with source-clustered intervals."
+    transformation_required: "Preserve corrected v2 policy, lifecycle, and combined-governance attribution with namespace-group intervals under equal-source macro-averaging."
     public_paper_label: "metadata-axis attribution"
     contains_raw_text_or_private_content: false
 
@@ -555,7 +555,7 @@ artifacts:
     old_repository: "ziwang11112/verify-agent-memory"
     frozen_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
     source_path: "results/supplemental_natural/manifest.json"
-    source_sha256: "c6b776bbe693327d180ebb9b470539e3397021126e5b62ad5597a61addbee7dd"
+    source_sha256: "3b166daeccd91848a90cfe5bb601f6fe2ee90a42dabfc1c91a5e2bc81e20a30e"
     intended_normalized_destination: "evidence/manifests/metadata_reliability.json"
     transformation_required: "Preserve the published supplemental package inventory and hashes."
     public_paper_label: "natural post-hoc provenance"

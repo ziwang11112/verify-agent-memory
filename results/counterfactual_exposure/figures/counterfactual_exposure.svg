@@ -1123,11 +1123,11 @@ z
 " style="stroke: #555555"/>
      </defs>
      <g>
-      <use xlink:href="#mc52ea50a7a" x="407.71911" y="207.050947" style="fill: #555555; stroke: #555555"/>
+      <use xlink:href="#mc52ea50a7a" x="371.733079" y="207.050947" style="fill: #555555; stroke: #555555"/>
      </g>
     </g>
     <g id="text_34">
-     <text style="font-size: 7.8px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start" x="418.24911" y="209.780947" transform="rotate(-0 418.24911 209.780947)">Selectivity gap</text>
+     <text style="font-size: 7.8px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start" x="382.263079" y="209.780947" transform="rotate(-0 382.263079 209.780947)">Selectivity gap</text>
     </g>
     <g id="line2d_109">
      <defs>
@@ -1139,11 +1139,11 @@ z
 " style="stroke: #c44e52; stroke-linejoin: miter"/>
      </defs>
      <g>
-      <use xlink:href="#m206907fd43" x="407.71911" y="218.271216" style="fill: #ffffff; stroke: #c44e52; stroke-linejoin: miter"/>
+      <use xlink:href="#m206907fd43" x="371.733079" y="218.271216" style="fill: #ffffff; stroke: #c44e52; stroke-linejoin: miter"/>
      </g>
     </g>
     <g id="text_35">
-     <text style="font-size: 7.8px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start" x="418.24911" y="221.001216" transform="rotate(-0 418.24911 221.001216)">Inadmissible ATE</text>
+     <text style="font-size: 7.8px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start" x="382.263079" y="221.001216" transform="rotate(-0 382.263079 221.001216)">Relevant-inadmissible exposure effect</text>
     </g>
    </g>
   </g>
