@@ -326,7 +326,11 @@ def _panel_a(axis: plt.Axes, models: Sequence[ModelData]) -> None:
             marker="o",
             linestyle="none",
             color=MODEL_COLORS[model.provider],
-            label=MODEL_LABELS[model.provider],
+            label=(
+                f"{MODEL_LABELS[model.provider]} (replication)"
+                if model.provider == "Anthropic"
+                else MODEL_LABELS[model.provider]
+            ),
         )
         for model in models
     )
@@ -344,6 +348,7 @@ def _panel_a(axis: plt.Axes, models: Sequence[ModelData]) -> None:
 def _panel_b(axis: plt.Axes, models: Sequence[ModelData]) -> None:
     y = np.arange(len(models))[::-1]
     axis.axvline(0, color="#6D7379", linewidth=0.8, linestyle="--", zorder=0)
+    axis.axhline(0.5, color="#AEB4B9", linewidth=0.7, linestyle=":", zorder=0)
     for position, model in zip(y, models, strict=True):
         gap = model.selectivity_gap
         risk = model.cells["relevant_inadmissible"].effect
@@ -397,12 +402,21 @@ def _panel_b(axis: plt.Axes, models: Sequence[ModelData]) -> None:
                 },
             )
     axis.set_yticks(y)
-    axis.set_yticklabels([MODEL_LABELS[model.provider] for model in models])
+    axis.set_yticklabels(
+        [
+            (
+                f"{MODEL_LABELS[model.provider]}\n(separate replication)"
+                if model.provider == "Anthropic"
+                else MODEL_LABELS[model.provider]
+            )
+            for model in models
+        ]
+    )
     axis.set_xlim(-0.18, 1.10)
     axis.set_ylim(-0.45, len(models) - 0.55)
     axis.set_xticks((0, 0.25, 0.5, 0.75, 1.0))
     axis.set_xlabel("Paired effect")
-    axis.set_title("Residual leakage remains", loc="left", fontweight="bold")
+    axis.set_title("Reader-specific exposure effects", loc="left", fontweight="bold")
     axis.grid(axis="x", color="#E6E8EA", linewidth=0.6)
     handles = (
         Line2D([], [], marker="o", linestyle="none", color="#555555", label="Selectivity gap"),
@@ -456,20 +470,21 @@ def render_figure(models: Sequence[ModelData], output_dir: Path) -> tuple[Path, 
 def caption_text() -> str:
     return """# Figure Caption
 
-**Exposure converts residual verification errors into disclosure.** **a,** Paired
+**Exposure can convert residual verification errors into disclosure.** **a,** Paired
 exposed-minus-withheld disclosure effects in the four relevance-by-admissibility
 cells. Points are reader-specific estimates; whiskers are 95% scenario-bootstrap
 intervals (10,000 replicates; 16 scenarios). **b,** Selectivity gap between the
 relevant-admissible and relevant-inadmissible exposure effects (circles), alongside
-the residual relevant-inadmissible effect (open red squares). Readers are reported
-separately and never pooled. The residual interval is strictly positive for DeepSeek
-V4 Pro (+0.156 [0.031, 0.312]), showing that reader restraint cannot guarantee safety
-after an inadmissible memory reaches the prompt. Claude Opus 5 separately replicated
-the positive selectivity gap (+0.844 [0.688, 0.969]); it was not pooled with the
-original three-reader execution. Each reader completed 384 stateless requests (192
-paired units), with no judge, retry, output repair, or selective rerun. The construction
-is a controlled prompt-level diagnostic, not an official benchmark or natural-corpus
-prevalence estimate.
+the relevant-inadmissible effect (open red squares). The first three readers belong
+to the original execution; the visually separated Claude Opus 5 row is an independent
+replication. Readers are reported separately and never pooled. The inadmissible
+interval is strictly positive for DeepSeek V4 Pro (+0.156 [0.031, 0.312]), showing
+that reader restraint cannot guarantee safety after an inadmissible memory reaches
+the prompt. Claude Opus 5 separately replicated the positive selectivity gap (+0.844
+[0.688, 0.969]); its inadmissible-effect interval includes zero. Each reader completed
+384 stateless requests (192 paired units), with no judge, retry, output repair, or
+selective rerun. The construction is a controlled prompt-level diagnostic, not an
+official benchmark or natural-corpus prevalence estimate.
 """
 
 

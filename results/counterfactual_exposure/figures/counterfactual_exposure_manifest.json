@@ -41,24 +41,24 @@
       "sha256": "0a394ca0835d5386e8a6f9faa39687144d9f3ace17db6aae5a3c9e841cdaf47d"
     },
     {
-      "bytes": 1124,
+      "bytes": 1240,
       "path": "counterfactual_exposure_caption.md",
-      "sha256": "6c8a660aae4a7fe0e921754ce99498a2b9e5a2e5e6dd028186edc34951b03124"
+      "sha256": "5cf6f499e0ae8d50858dbd20b4648928d595c1c48bc3d3ffc3cd676297570b57"
     },
     {
-      "bytes": 45041,
+      "bytes": 45416,
       "path": "counterfactual_exposure.svg",
-      "sha256": "c5b4591aff4d7660225f9e1d778dbbda9dc36b38bcb085fa7150d7224581c8e3"
+      "sha256": "58c7bb57b42d2e7290bb2013d6934afb1123b29498609bfe2f8b5618744771ac"
     },
     {
-      "bytes": 68059,
+      "bytes": 67301,
       "path": "counterfactual_exposure.pdf",
-      "sha256": "0d833f7454e8c5c2f09c621ee764ea2f0b5531b69a75b53aca3bc7099126f7f9"
+      "sha256": "5ad1096b2694205ee87fd887cd82d49a357d7a57cd86fcd60d942ca1293ac99d"
     },
     {
-      "bytes": 145218,
+      "bytes": 154857,
       "path": "counterfactual_exposure.png",
-      "sha256": "d3916894a70b63c80ed9883c56c4b191ec720b4476a038758d659763c9403073"
+      "sha256": "005055c8c4ea7a3166fd2a38c46fee4919b13fe40571bc2963e5fa0e2cfadf15"
     }
   ],
   "png_dpi": 300,
@@ -66,12 +66,12 @@
     "channel_max": 255,
     "channel_min": 0,
     "height_px": 960,
-    "nonwhite_fraction": 0.1674223572530864,
+    "nonwhite_fraction": 0.17081211419753087,
     "width_px": 2160
   },
   "provider_call_count": 0,
   "schema_version": 1,
-  "script_sha256": "87c1d3da1c30161d18c7f324888a4811ae9fcedb115fba9cf27bb513039322c8",
+  "script_sha256": "86a5220243f71b0f057ff6f959f25d367098cd272a9438956fd3888ad1a38995",
   "status": "publication_figure_from_controlled_content_free_results",
   "svg_text_editable": true
 }
