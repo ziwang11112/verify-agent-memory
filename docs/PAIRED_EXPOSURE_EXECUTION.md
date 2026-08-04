@@ -17,6 +17,27 @@ The DeepSeek accounting prices are twice the published regular prices to cover t
 announced peak-price guard conservatively. The total hard cap is $8.50. Models are
 reported separately and are never pooled.
 
+### Model roles and tiers
+
+These names are provider product tiers, not interchangeable parameter-size labels:
+
+- `gpt-5.6-sol` is OpenAI's flagship GPT-5.6 tier. It is **Sol**, not the
+  cost-oriented `gpt-5.6-luna`; this experiment sets reasoning effort to `none`.
+- `gemini-3.6-flash` is Google's stable production **Flash** tier, selected for its
+  speed/intelligence balance. It is not a Gemini Pro model; thinking is `minimal`.
+- `deepseek-v4-pro` is DeepSeek's **Pro** tier rather than V4 Flash; thinking is
+  disabled.
+- `Qwen/Qwen3-Embedding-8B` is a local retrieval encoder, not a reader or judge. It
+  produces the frozen candidate vectors before any paired-reader request.
+- GPT-4o and GPT-4o mini appear only in an earlier observational GateMem audit. They
+  are not members of this controlled paired-exposure panel.
+
+The panel is therefore a cross-provider robustness panel, not a same-tier model
+leaderboard. Exact controls are part of each model identity, estimates are reported
+per model, and there is no cross-model pooling. A separately gated
+`claude-opus-5` replication adds a high-capability Anthropic reader without changing
+these frozen three-reader results; see `docs/CLAUDE_OPUS5_REPLICATION.md`.
+
 Pricing and model availability were checked on 2026-08-02 against the official
 [OpenAI GPT-5.6 Sol model page](https://developers.openai.com/api/docs/models/gpt-5.6-sol),
 [Gemini 3.6 Flash documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash),

@@ -22,6 +22,7 @@ this repository.
 | Pareto CLI | `scripts/run_top_k_pareto.py` | Exact nested-prefix analysis without reranking or retuning |
 | Exposure CLI | `scripts/run_counterfactual_exposure_intervention.py` | Zero-call validation, provider-neutral request materialization, and local scoring |
 | Exposure provider CLI | `scripts/run_counterfactual_exposure_execution.py` | Unlock-gated fixtures, resumable execution, hard caps, and complete-bundle scoring |
+| Claude replication CLI | `scripts/run_claude_opus5_exposure_replication.py` | Separate Opus 5 reader replication; zero-call validation unless an exact paid unlock exists |
 | Frozen settings | `experiments/frozen_natural_protocol.json` | Embedding, split, selection, and selected-arm configuration |
 | Robustness settings | `experiments/metadata_robustness_retrieval_protocol.json` | One immutable setting for each arm used by the public corruption smoke |
 | Robustness grid | `experiments/metadata_robustness_protocol.json` | Corruption channels, rates, seeds, invariants, and break-even definition |
@@ -83,6 +84,27 @@ are resolved by ascending memory ID.
 The public runner consumes frozen vectors rather than downloading or executing the
 embedding model. This keeps retrieval deterministic and keeps model/provider access
 outside the evaluator.
+
+## Model Roles
+
+The embedding encoder and downstream readers serve different experimental roles.
+`Qwen/Qwen3-Embedding-8B` is the 8B retrieval encoder that produced the frozen
+4,096-dimensional vectors. It is not asked to answer questions and is not compared
+with the reader models as though they performed the same task.
+
+The frozen controlled reader panel contains `gpt-5.6-sol` (OpenAI's Sol flagship,
+reasoning `none`), `gemini-3.6-flash` (Google's production Flash speed/cost tier,
+thinking `minimal`), and `deepseek-v4-pro` (DeepSeek's Pro tier, thinking disabled).
+They are a deliberately heterogeneous cross-provider robustness panel, not a
+same-tier capability leaderboard. Every estimate remains model-specific and models
+are never pooled. Earlier GPT-4o and GPT-4o mini GateMem readers belong to a separate
+observational audit and are not evidence from this controlled panel.
+
+The optional `claude-opus-5` package is a separate fourth-reader replication. It uses
+thinking disabled and medium effort for closer control alignment, cannot alter the
+frozen three-reader outputs, and has no empirical result until a complete separately
+authorized bundle is scored. It is not represented as Anthropic's current maximum
+capability tier.
 
 ## Retrieval Arms
 

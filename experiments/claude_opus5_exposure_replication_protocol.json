@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "protocol_id": "claude-opus5-paired-exposure-replication-v1",
+  "status": "implementation_only_paid_execution_not_authorized",
+  "base_protocol": {
+    "path": "experiments/counterfactual_exposure_protocol.json",
+    "sha256": "b0190521ff8886201732702ec4324f4b5f68feb0a22f20d5d48e37ed84d913ff"
+  },
+  "implementation": {
+    "replication_runner": {
+      "path": "scripts/run_claude_opus5_exposure_replication.py",
+      "sha256": "ab43b8eb4d9f91918778f0480574faf78edc8b65ce726526ac14d5cc2c7171b3"
+    },
+    "inherited_execution_runtime": {
+      "path": "scripts/run_counterfactual_exposure_execution.py",
+      "sha256": "479cd898be70d3399c9f5de3c77ced00797d34e043567baefdf3e376f336e1dd"
+    },
+    "provider_adapter_runtime": {
+      "path": "scripts/run_inferred_admissibility_experiment.py",
+      "sha256": "ff0b2f1e589f2cce1684ec5df6326bf65c923f15d82f7d3f3ddc7db34785d49d"
+    }
+  },
+  "provider": {
+    "provider": "Anthropic",
+    "model": "claude-opus-5",
+    "api_surface": "messages",
+    "thinking": "disabled",
+    "effort": "medium",
+    "input_usd_per_million": 5.0,
+    "output_usd_per_million": 25.0,
+    "hard_cap_usd": 5.0
+  },
+  "execution": {
+    "request_count_per_provider": 384,
+    "fixture_calls_per_provider": 1,
+    "max_calls_per_provider": 385,
+    "max_output_tokens_per_request": 192,
+    "timeout_seconds": 120,
+    "max_transport_retries": 0,
+    "checkpoint_after_each_request": true,
+    "complete_bundle_required": true,
+    "semantic_or_output_repair": false,
+    "selective_rerun": false,
+    "input_token_bound": "one_utf8_byte_per_token_conservative_upper_bound",
+    "input_byte_bound_total": 514818,
+    "max_input_byte_bound_per_request": 1528,
+    "total_hard_cap_usd": 5.0
+  },
+  "authorization": {
+    "unlock_required": true,
+    "exact_commit_required": true,
+    "exact_protocol_hash_required": true,
+    "explicit_owner_required": true,
+    "credential_read_before_unlock": false,
+    "provider_call_before_unlock": false
+  },
+  "interpretation": {
+    "role": "cross_provider_reader_replication",
+    "changes_existing_results": false,
+    "model_pooling": false,
+    "official_result": false
+  }
+}
