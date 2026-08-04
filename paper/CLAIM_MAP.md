@@ -15,6 +15,7 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 | C9 | Sections 4 and 5.1 | Figure 1b roadmap and Figure 2a | Post-hoc v2 scoring on frozen rankings; no retuning; source-clustered intervals |
 | C10 | Sections 4 and 5.2 | Figure 2b--c | Tested corruption mechanisms only; observed grid brackets are not population thresholds |
 | C11 | Sections 4 and 5.3 | Figure 1b roadmap and Figure 3 | Natural and controlled public-development diagnostics are separate and never pooled |
+| C12 | Sections 4 and 5.4 | Figure 4 | Independently executed Claude Opus 5 replication under the C8 construction; separate estimates, no pooling, and no model-leaderboard claim |
 
 ## Paper-Level Claims
 
@@ -34,7 +35,9 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
    controlled verifiers also overflip stable evidence.
 8. Natural-route exposure remains associational, while a separate paired intervention
    identifies a controlled prompt-level disclosure effect in a constructed population.
-9. Reader selectivity does not replace pre-prompt admissibility verification.
+9. The selectivity-gap pattern reproduces for an independently executed fourth
+   provider, without pooling the replication with the original three-reader panel.
+10. Reader selectivity does not replace pre-prompt admissibility verification.
 
 ## Claims Not Made
 
@@ -46,4 +49,6 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
   effect of admissibility itself; C8 is an assigned-exposure intervention under
   construction-defined query conditions.
 - Cross-provider replication of the GateMem reader analysis.
+- A pooled reader effect or a capability leaderboard from the heterogeneous reader
+  configurations.
 - A deployable method for inferring intent, scope, or lifecycle state.

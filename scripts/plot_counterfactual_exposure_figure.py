@@ -22,6 +22,7 @@ from PIL import Image  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RESULTS = ROOT / "results" / "counterfactual_exposure"
+DEFAULT_REPLICATION_RESULTS = ROOT / "results" / "claude_opus5_exposure_replication"
 DEFAULT_OUTPUT = DEFAULT_RESULTS / "figures"
 FIGURE_BASENAME = "counterfactual_exposure"
 
@@ -29,16 +30,19 @@ MODEL_ORDER = (
     ("OpenAI", "gpt-5.6-sol"),
     ("Gemini", "gemini-3.6-flash"),
     ("DeepSeek", "deepseek-v4-pro"),
+    ("Anthropic", "claude-opus-5"),
 )
 MODEL_LABELS = {
     "OpenAI": "GPT-5.6 Sol",
     "Gemini": "Gemini 3.6 Flash",
     "DeepSeek": "DeepSeek V4 Pro",
+    "Anthropic": "Claude Opus 5",
 }
 MODEL_COLORS = {
     "OpenAI": "#195B9A",
     "Gemini": "#D9822B",
     "DeepSeek": "#7B5AA6",
+    "Anthropic": "#2A8C70",
 }
 CELL_ORDER = (
     "relevant_admissible",
@@ -125,15 +129,31 @@ class ModelData:
     selectivity_gap: Interval
 
 
-def load_figure_data(results_dir: Path) -> tuple[ModelData, ...]:
+def load_figure_data(
+    results_dir: Path,
+    replication_results_dir: Path = DEFAULT_REPLICATION_RESULTS,
+) -> tuple[ModelData, ...]:
     """Load only the published, content-free aggregate result tables."""
     manifest = json.loads((results_dir / "manifest.json").read_text(encoding="utf-8"))
     if manifest.get("official_result") is not False:
         raise ValueError("result boundary drifted")
     if manifest.get("model_pooling") is not False:
         raise ValueError("provider results must not be pooled")
-    cells = _read_csv(results_dir / "cell_metrics.csv")
-    intervals = _read_csv(results_dir / "bootstrap_ci.csv")
+    replication_manifest = json.loads(
+        (replication_results_dir / "manifest.json").read_text(encoding="utf-8")
+    )
+    if replication_manifest.get("relation_to_frozen_panel") != (
+        "separate_fourth_reader_replication_no_pooling"
+    ):
+        raise ValueError("reader replication boundary drifted")
+    if replication_manifest.get("model_pooling") is not False:
+        raise ValueError("replication results must not be pooled")
+    cells = _read_csv(results_dir / "cell_metrics.csv") + _read_csv(
+        replication_results_dir / "cell_metrics.csv"
+    )
+    intervals = _read_csv(results_dir / "bootstrap_ci.csv") + _read_csv(
+        replication_results_dir / "bootstrap_ci.csv"
+    )
     models = []
     for provider, model in MODEL_ORDER:
         cell_data = {}
@@ -268,7 +288,7 @@ def _panel_label(axis: plt.Axes, label: str) -> None:
 
 def _panel_a(axis: plt.Axes, models: Sequence[ModelData]) -> None:
     y_base = np.arange(len(CELL_ORDER))[::-1]
-    offsets = (0.18, 0.0, -0.18)
+    offsets = np.linspace(0.24, -0.24, len(models))
     axis.axhspan(2.55, 3.45, color="#EAF5EE", zorder=-3)
     axis.axhspan(1.55, 2.45, color="#FCEEEF", zorder=-3)
     axis.axvline(0, color="#6D7379", linewidth=0.8, linestyle="--", zorder=0)
@@ -314,7 +334,7 @@ def _panel_a(axis: plt.Axes, models: Sequence[ModelData]) -> None:
         handles=handles,
         loc="lower center",
         bbox_to_anchor=(0.5, -0.37),
-        ncol=3,
+        ncol=2,
         columnspacing=0.7,
         handletextpad=0.3,
     )
@@ -379,7 +399,7 @@ def _panel_b(axis: plt.Axes, models: Sequence[ModelData]) -> None:
     axis.set_yticks(y)
     axis.set_yticklabels([MODEL_LABELS[model.provider] for model in models])
     axis.set_xlim(-0.18, 1.10)
-    axis.set_ylim(-0.45, 2.45)
+    axis.set_ylim(-0.45, len(models) - 0.55)
     axis.set_xticks((0, 0.25, 0.5, 0.75, 1.0))
     axis.set_xlabel("Paired effect")
     axis.set_title("Residual leakage remains", loc="left", fontweight="bold")
@@ -444,10 +464,12 @@ relevant-admissible and relevant-inadmissible exposure effects (circles), alongs
 the residual relevant-inadmissible effect (open red squares). Readers are reported
 separately and never pooled. The residual interval is strictly positive for DeepSeek
 V4 Pro (+0.156 [0.031, 0.312]), showing that reader restraint cannot guarantee safety
-after an inadmissible memory reaches the prompt. Each reader completed 384 stateless
-requests (192 paired units), with no judge, retry, output repair, or selective rerun.
-The construction is a controlled prompt-level diagnostic, not an official benchmark
-or natural-corpus prevalence estimate.
+after an inadmissible memory reaches the prompt. Claude Opus 5 separately replicated
+the positive selectivity gap (+0.844 [0.688, 0.969]); it was not pooled with the
+original three-reader execution. Each reader completed 384 stateless requests (192
+paired units), with no judge, retry, output repair, or selective rerun. The construction
+is a controlled prompt-level diagnostic, not an official benchmark or natural-corpus
+prevalence estimate.
 """
 
 
@@ -464,9 +486,13 @@ def _pixel_audit(path: Path) -> dict[str, object]:
     }
 
 
-def generate(results_dir: Path, output_dir: Path) -> Mapping[str, object]:
+def generate(
+    results_dir: Path,
+    output_dir: Path,
+    replication_results_dir: Path = DEFAULT_REPLICATION_RESULTS,
+) -> Mapping[str, object]:
     """Render exports and bind them to the published content-free result bundle."""
-    models = load_figure_data(results_dir)
+    models = load_figure_data(results_dir, replication_results_dir)
     source_path = output_dir / f"{FIGURE_BASENAME}_source_data.csv"
     _write_csv(source_path, source_data_rows(models))
     caption_path = output_dir / f"{FIGURE_BASENAME}_caption.md"
@@ -487,7 +513,8 @@ def generate(results_dir: Path, output_dir: Path) -> Mapping[str, object]:
         "core_conclusion": (
             "exposure increases admissible disclosure selectively, but a strictly positive "
             "residual inadmissible effect for DeepSeek shows that reader restraint cannot "
-            "guarantee safety after prompt exposure"
+            "guarantee safety after prompt exposure; Claude Opus 5 separately replicates "
+            "the positive selectivity gap"
         ),
         "archetype": "quantitative_grid",
         "backend": "python_matplotlib",
@@ -498,7 +525,16 @@ def generate(results_dir: Path, output_dir: Path) -> Mapping[str, object]:
         "bootstrap_replicates": 10000,
         "provider_call_count": 0,
         "model_pooling": False,
-        "inputs": [{"path": name, "sha256": _sha256(results_dir / name)} for name in inputs],
+        "inputs": [
+            {
+                "path": path.relative_to(ROOT).as_posix(),
+                "sha256": _sha256(path),
+            }
+            for path in (
+                *(results_dir / name for name in inputs),
+                *(replication_results_dir / name for name in inputs),
+            )
+        ],
         "script_sha256": _sha256(Path(__file__)),
         "outputs": [
             {"path": path.name, "sha256": _sha256(path), "bytes": path.stat().st_size}
@@ -515,9 +551,18 @@ def generate(results_dir: Path, output_dir: Path) -> Mapping[str, object]:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--results-dir", type=Path, default=DEFAULT_RESULTS)
+    parser.add_argument(
+        "--replication-results-dir",
+        type=Path,
+        default=DEFAULT_REPLICATION_RESULTS,
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args(argv)
-    manifest = generate(args.results_dir.resolve(), args.output_dir.resolve())
+    manifest = generate(
+        args.results_dir.resolve(),
+        args.output_dir.resolve(),
+        args.replication_results_dir.resolve(),
+    )
     print(json.dumps(manifest, allow_nan=False, indent=2, sort_keys=True))
     return 0
 

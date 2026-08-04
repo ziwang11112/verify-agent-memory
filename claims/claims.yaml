@@ -864,3 +864,77 @@ claims:
       - "test_inference_gap_claim_requires_population_separation"
       - "test_inference_gap_claim_requires_no_pooling_boundary"
       - "test_confidence_intervals_contain_estimates"
+
+  - id: C12
+    status: controlled_prompt_reader_replication
+    claim: "On the same fixed constructed scenarios, Claude Opus 5 separately replicated a positive relevant-admissible versus relevant-inadmissible exposure-effect gap."
+    estimand: "Within-unit exposed-minus-withheld target-disclosure effects in four construction-defined relevance-by-admissibility cells, plus their relevant-admissible minus relevant-inadmissible contrast for one separately reported Anthropic reader."
+    population: "The same sixteen controlled scenarios used by C8; 192 paired units and 384 stateless Claude Opus 5 requests."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+    execution_commit: "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+    source_artifacts:
+      - "results/claude_opus5_exposure_replication/manifest.json"
+      - "results/claude_opus5_exposure_replication/cell_metrics.csv"
+      - "results/claude_opus5_exposure_replication/bootstrap_ci.csv"
+      - "results/claude_opus5_exposure_replication/provider_usage.csv"
+    exact_values:
+      claude:
+        model: "claude-opus-5"
+        relevant_admissible_effect: 0.96875
+        relevant_inadmissible_effect: 0.125
+        irrelevant_admissible_effect: 0.265625
+        irrelevant_inadmissible_effect: 0.0
+        selectivity_gap: 0.84375
+      scenarios: 16
+      paired_units: 192
+      requests: 384
+      total_provider_calls_including_fixture: 385
+      cap_accounted_cost_usd: 1.8580599999999987
+      model_pooling: false
+    confidence_intervals:
+      - metric: "claude_relevant_admissible_effect"
+        estimate: 0.96875
+        lower: 0.90625
+        upper: 1.0
+      - metric: "claude_relevant_inadmissible_effect"
+        estimate: 0.125
+        lower: 0.0
+        upper: 0.28125
+      - metric: "claude_irrelevant_admissible_effect"
+        estimate: 0.265625
+        lower: 0.140625
+        upper: 0.421875
+      - metric: "claude_irrelevant_inadmissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "claude_selectivity_gap"
+        estimate: 0.84375
+        lower: 0.6875
+        upper: 0.96875
+    allowed_wording:
+      - "Claude Opus 5 separately replicated a positive selectivity gap on the same controlled prompt-level construction."
+      - "The Opus 5 selectivity-gap interval excluded zero, while its relevant-inadmissible point estimate remained nonzero."
+      - "The fourth-reader replication is reported alongside, but never pooled with, the original three-reader panel."
+    forbidden_wording:
+      - "The four readers were executed as one jointly preregistered panel."
+      - "The reader estimates were pooled."
+      - "Claude Opus 5 had zero inadmissible-disclosure risk."
+      - "The replication estimates natural-corpus prevalence or production safety."
+      - "This is an official benchmark result."
+    known_limitations:
+      - "This is a separate reader replication rather than part of the original three-reader execution."
+      - "The intervention uses sixteen constructed scenarios with literal target markers rather than a natural retrieval population."
+      - "Disclosure is detected by a fixed literal scorer and does not identify the reader's internal reasoning."
+      - "The Opus 5 estimate is model-specific and is never pooled with another reader."
+      - "The result applies to the exact frozen prompt, model ID, and disabled-thinking configuration."
+    paper_locations:
+      - "Models and Comparison Systems"
+      - "Controlled Exposure Results"
+      - "Figure 4"
+      - "Limitations"
+    verification_tests:
+      - "test_opus_replication_claim_requires_separate_execution_boundary"
+      - "test_opus_replication_claim_requires_no_pooling_boundary"
+      - "test_confidence_intervals_contain_estimates"

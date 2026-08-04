@@ -29,7 +29,7 @@ REQUIRED_COLUMNS = {
     "n",
     "notes",
 }
-REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 12)}
+REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 13)}
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 PROHIBITED_OUTPUT_LABELS = {"ncr_threshold", "ncr_a5"}
 EXPECTED_METRIC_COUNTS = {
@@ -43,6 +43,7 @@ EXPECTED_METRIC_COUNTS = {
     "C9": 44,
     "C10": 37,
     "C11": 29,
+    "C12": 5,
 }
 
 
@@ -200,6 +201,19 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
             "selectivity_gap",
         }:
             return (reader, metric)
+    if (
+        claim_id == "C12"
+        and row["source"] == "claude-opus-5"
+        and metric
+        in {
+            "relevant_admissible_effect",
+            "relevant_inadmissible_effect",
+            "irrelevant_admissible_effect",
+            "irrelevant_inadmissible_effect",
+            "selectivity_gap",
+        }
+    ):
+        return ("claude", metric)
     if claim_id in {"C9", "C10", "C11"}:
         return (contrast, metric)
     return None
@@ -231,6 +245,8 @@ def _contract_interval_metric(row: Mapping[str, str]) -> str | None:
             "deepseek-v4-pro": "deepseek",
         }.get(row["source"])
         return f"{reader}_{metric}" if reader else None
+    if claim_id == "C12" and row["source"] == "claude-opus-5":
+        return f"claude_{metric}"
     if claim_id in {"C9", "C10", "C11"}:
         return f"{row['contrast']}_{metric}"
     return None
@@ -453,6 +469,14 @@ def validate_evidence(repository_root: Path) -> list[str]:
                 notes = row["notes"]
                 if "public_development" not in notes or "no_model_pooling" not in notes:
                     errors.append(f"{prefix} lacks public-development no-pooling boundaries")
+            if row["claim_id"] == "C12":
+                notes = row["notes"]
+                if (
+                    "controlled_prompt_intervention" not in notes
+                    or "separate_fourth_reader_replication" not in notes
+                    or "providers_not_pooled" not in notes
+                ):
+                    errors.append(f"{prefix} lacks separate reader-replication boundaries")
 
             claim = claims.get(claim_id)
             contract_path = _contract_value_path(row)

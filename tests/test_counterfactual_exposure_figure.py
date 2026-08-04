@@ -28,14 +28,22 @@ def test_figure_data_matches_frozen_exposure_results() -> None:
     assert deepseek_risk.value == pytest.approx(0.15625)
     assert deepseek_risk.lower == pytest.approx(0.03125)
     assert deepseek_risk.upper == pytest.approx(0.3125)
+    assert models["Anthropic"].selectivity_gap.value == pytest.approx(0.84375)
+    assert models["Anthropic"].selectivity_gap.lower == pytest.approx(0.6875)
+    assert models["Anthropic"].selectivity_gap.upper == pytest.approx(0.96875)
 
 
 def test_source_data_contains_every_plotted_quantity() -> None:
     rows = figure.source_data_rows(figure.load_figure_data(RESULTS))
 
-    assert len(rows) == 18
+    assert len(rows) == 24
     assert {row["panel"] for row in rows} == {"a", "b"}
-    assert {row["provider"] for row in rows} == {"OpenAI", "Gemini", "DeepSeek"}
+    assert {row["provider"] for row in rows} == {
+        "OpenAI",
+        "Gemini",
+        "DeepSeek",
+        "Anthropic",
+    }
 
 
 def test_rendered_figure_has_fixed_canvas_and_editable_svg(tmp_path: Path) -> None:

@@ -2,51 +2,63 @@
   "archetype": "quantitative_grid",
   "backend": "python_matplotlib",
   "bootstrap_replicates": 10000,
-  "core_conclusion": "exposure increases admissible disclosure selectively, but a strictly positive residual inadmissible effect for DeepSeek shows that reader restraint cannot guarantee safety after prompt exposure",
+  "core_conclusion": "exposure increases admissible disclosure selectively, but a strictly positive residual inadmissible effect for DeepSeek shows that reader restraint cannot guarantee safety after prompt exposure; Claude Opus 5 separately replicates the positive selectivity gap",
   "final_height_in": 3.2,
   "final_width_in": 7.2,
   "image_integrity": "direct_vector_plot_from_published_csv_no_image_adjustment",
   "inputs": [
     {
-      "path": "cell_metrics.csv",
+      "path": "results/counterfactual_exposure/cell_metrics.csv",
       "sha256": "98c9bd7fb04f5c945aa90b08ff05d4d265c461f736be85a5c46e87ef70072140"
     },
     {
-      "path": "bootstrap_ci.csv",
+      "path": "results/counterfactual_exposure/bootstrap_ci.csv",
       "sha256": "3e745921ba8e66304e656bcaca96bc63a4db0303c5c01c93fad5a1200a391dd9"
     },
     {
-      "path": "manifest.json",
+      "path": "results/counterfactual_exposure/manifest.json",
       "sha256": "a8574e39b2fa23a65491ead0329954251bd9cde51344330ee94e39e3c4afeda1"
+    },
+    {
+      "path": "results/claude_opus5_exposure_replication/cell_metrics.csv",
+      "sha256": "b90a9a28d9879e4e57c488bc8f897422cdcae9653275b0287a3b397e380ad738"
+    },
+    {
+      "path": "results/claude_opus5_exposure_replication/bootstrap_ci.csv",
+      "sha256": "0bbf273cb8e17f0f2235dadffee51eb76b7d60f8d3edef8f4c35fbfa6801f93e"
+    },
+    {
+      "path": "results/claude_opus5_exposure_replication/manifest.json",
+      "sha256": "b738a330efbf4072dbba30a1a5ff879072414523053e261ec58a52500eaa0963"
     }
   ],
   "model_pooling": false,
   "official_result": false,
   "outputs": [
     {
-      "bytes": 2256,
+      "bytes": 2996,
       "path": "counterfactual_exposure_source_data.csv",
-      "sha256": "9eaea41c075db5f1c718aef9f05cc17e02219af31e47a54cb07e4d846238705c"
+      "sha256": "0a394ca0835d5386e8a6f9faa39687144d9f3ace17db6aae5a3c9e841cdaf47d"
     },
     {
-      "bytes": 974,
+      "bytes": 1124,
       "path": "counterfactual_exposure_caption.md",
-      "sha256": "fdde34739052b9bfc2d5d7f28876dbf083c62acdd9060a3b47d985d76143c096"
+      "sha256": "6c8a660aae4a7fe0e921754ce99498a2b9e5a2e5e6dd028186edc34951b03124"
     },
     {
-      "bytes": 37608,
+      "bytes": 45041,
       "path": "counterfactual_exposure.svg",
-      "sha256": "7d0f4a1517b86568c5efda4fb6158f43ffd0bfb5405c6b600348bce58819bcf6"
+      "sha256": "c5b4591aff4d7660225f9e1d778dbbda9dc36b38bcb085fa7150d7224581c8e3"
     },
     {
-      "bytes": 65591,
+      "bytes": 68059,
       "path": "counterfactual_exposure.pdf",
-      "sha256": "933887228818ba0f6d8cea32dcca76c7334d594262e0f3e8ca9edb81a48edcba"
+      "sha256": "0d833f7454e8c5c2f09c621ee764ea2f0b5531b69a75b53aca3bc7099126f7f9"
     },
     {
-      "bytes": 130642,
+      "bytes": 145218,
       "path": "counterfactual_exposure.png",
-      "sha256": "8ba947ccea62c877baf248d310bc452edb4cb7c5f3b0ed23406357bcf73b11bc"
+      "sha256": "d3916894a70b63c80ed9883c56c4b191ec720b4476a038758d659763c9403073"
     }
   ],
   "png_dpi": 300,
@@ -54,12 +66,12 @@
     "channel_max": 255,
     "channel_min": 0,
     "height_px": 960,
-    "nonwhite_fraction": 0.1648900462962963,
+    "nonwhite_fraction": 0.1674223572530864,
     "width_px": 2160
   },
   "provider_call_count": 0,
   "schema_version": 1,
-  "script_sha256": "1d7ab9ec0c813392dc0dc3cfc9e632a3b86fe8de9c361c4e6964084402c516ca",
+  "script_sha256": "87c1d3da1c30161d18c7f324888a4811ae9fcedb115fba9cf27bb513039322c8",
   "status": "publication_figure_from_controlled_content_free_results",
   "svg_text_editable": true
 }

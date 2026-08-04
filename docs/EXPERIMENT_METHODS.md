@@ -100,11 +100,13 @@ same-tier capability leaderboard. Every estimate remains model-specific and mode
 are never pooled. Earlier GPT-4o and GPT-4o mini GateMem readers belong to a separate
 observational audit and are not evidence from this controlled panel.
 
-The optional `claude-opus-5` package is a separate fourth-reader replication. It uses
-thinking disabled and medium effort for closer control alignment, cannot alter the
-frozen three-reader outputs, and has no empirical result until a complete separately
-authorized bundle is scored. It is not represented as Anthropic's current maximum
-capability tier.
+The completed `claude-opus-5` package is a separate fourth-reader replication. It
+uses thinking disabled and medium effort for closer control alignment and cannot
+alter the frozen three-reader outputs. Its 192 paired estimates and content-free
+execution receipt are published under
+`results/claude_opus5_exposure_replication/`; the replication is never pooled with
+the original panel. It is not represented as Anthropic's current maximum capability
+tier.
 
 ## Retrieval Arms
 
@@ -267,10 +269,11 @@ client. It can validate the protocol, materialize 384 provider-neutral requests 
 reader, and score a separately supplied complete response bundle. No empirical
 reader result or paid-call authorization is implied by this code path. A separate
 provider runner is hash-bound to an execution amendment and remains unusable for paid
-commands without an external exact-commit unlock. One separately authorized frozen
-execution has completed; its content-free result package is
-`results/counterfactual_exposure/`. That result does not add provider access to the
-construction CLI or authorize a rerun.
+commands without an external exact-commit unlock. The separately authorized original
+execution and Claude Opus 5 replication have completed; their content-free result
+packages are `results/counterfactual_exposure/` and
+`results/claude_opus5_exposure_replication/`. Neither result adds provider access to
+the construction CLI or authorizes a rerun.
 
 ## Local Smoke
 

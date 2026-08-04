@@ -19,9 +19,9 @@ excluded for a current-state query and retained for a history query.
 superseded-Lisbon, and user-forgotten-phone cases listed in
 `evidence/examples/retrieval_admissibility_cases.json`; the Lisbon history note is an
 example-derived counterfactual. Panel b indexes C9 top-20 support, C11 controlled
-stable overflip, and C8 controlled exposure. The three estimates come from distinct
-populations and are not combined. All four audited cases appear in Appendix Figure
-A1.
+stable overflip, and the C8/C12 controlled exposure executions. The three roadmap
+estimates come from distinct populations and are not combined. All four audited cases
+appear in Appendix Figure A1.
 
 **Boundary:** Text is abridged for figure legibility; packet IDs, memory IDs, source
 labels, and verdicts are preserved in the example manifest. The examples do not infer
@@ -65,14 +65,16 @@ point diagnostics are reported in the appendix rather than mixed into the main p
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
-| a | 16 controlled scenarios; 192 paired units per reader | Exposed-minus-withheld disclosure effects in all four relevance-by-admissibility cells | The empirical matrix closes the loop with Figure 1: the largest effects occur for relevant admissible evidence |
-| b | Same paired population | Relevant-admissible minus relevant-inadmissible effect, with the residual inadmissible effect shown separately | All readers have a positive selectivity gap, while DeepSeek retains a positive inadmissible exposure effect |
+| a | 16 controlled scenarios; 192 paired units per reader in each complete execution | Exposed-minus-withheld disclosure effects in all four relevance-by-admissibility cells | The empirical matrix closes the loop with Figure 1: the largest effects occur for relevant admissible evidence |
+| b | Same construction; original three-reader execution plus a separate Claude replication | Relevant-admissible minus relevant-inadmissible effect, with the residual inadmissible effect shown separately | All four readers have a positive selectivity-gap interval; only DeepSeek has a strictly positive relevant-inadmissible interval |
 
-**Boundaries:** The three readers are reported separately and never pooled. Whiskers
-are 95% scenario-bootstrap intervals. The estimand is assigned exposure under
-construction-defined admissible and inadmissible query conditions, not an isolated
-causal effect of admissibility, internal model use, natural prevalence, production
-safety, or an official benchmark result.
+**Boundaries:** GPT-5.6 Sol, Gemini 3.6 Flash, and DeepSeek V4 Pro come from the
+original execution. Claude Opus 5 is an independently executed C12 replication and
+is not retroactively inserted into or pooled with C8. Every reader is reported
+separately. Whiskers are 95% scenario-bootstrap intervals. The estimand is assigned
+exposure under construction-defined admissible and inadmissible query conditions,
+not an isolated causal effect of admissibility, internal model use, natural
+prevalence, production safety, or an official benchmark result.
 
 ## Appendix Figure A1: Additional Audited Admissibility Cases
 
@@ -115,5 +117,5 @@ estimand with Figure 2.
 - Zero reference: shown whenever a panel reports a delta.
 - Status colors: green for admissible/benefit, red for inadmissible/risk, gray for
   unresolved or global support, and teal for trusted namespace support.
-- Model colors: blue for GPT-5.6, orange for Gemini, and purple for DeepSeek in every
-  model-comparison figure.
+- Model colors: blue for GPT-5.6, orange for Gemini, purple for DeepSeek, and dark
+  teal for Claude in every model-comparison figure that includes those readers.

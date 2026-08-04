@@ -212,6 +212,26 @@ def test_inference_gap_claim_requires_no_pooling_boundary() -> None:
     assert "C11 must keep model estimates separate" in validate(data)
 
 
+def test_opus_replication_claim_requires_separate_execution_boundary() -> None:
+    data = load_valid_contract()
+    replication = claim(data, "C12")
+    replication["known_limitations"] = [
+        item
+        for item in replication["known_limitations"]
+        if "separate reader replication" not in item.lower()
+    ]
+    assert "C12 must preserve its separate-execution boundary" in validate(data)
+
+
+def test_opus_replication_claim_requires_no_pooling_boundary() -> None:
+    data = load_valid_contract()
+    replication = claim(data, "C12")
+    replication["known_limitations"] = [
+        item for item in replication["known_limitations"] if "never pooled" not in item.lower()
+    ]
+    assert "C12 must include a no-pooling limitation" in validate(data)
+
+
 def test_readable_contract_must_render_every_claim() -> None:
     data = load_valid_contract()
     assert "CLAIM_CONTRACT.md does not render C7" in validate_contract(data, "### C1: only")

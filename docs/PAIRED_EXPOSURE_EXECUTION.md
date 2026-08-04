@@ -34,9 +34,10 @@ These names are provider product tiers, not interchangeable parameter-size label
 
 The panel is therefore a cross-provider robustness panel, not a same-tier model
 leaderboard. Exact controls are part of each model identity, estimates are reported
-per model, and there is no cross-model pooling. A separately gated
+per model, and there is no cross-model pooling. A separately gated and completed
 `claude-opus-5` replication adds a high-capability Anthropic reader without changing
-these frozen three-reader results; see `docs/CLAUDE_OPUS5_REPLICATION.md`.
+these frozen three-reader results; see `docs/CLAUDE_OPUS5_REPLICATION.md` and
+`results/claude_opus5_exposure_replication/`.
 
 Pricing and model availability were checked on 2026-08-02 against the official
 [OpenAI GPT-5.6 Sol model page](https://developers.openai.com/api/docs/models/gpt-5.6-sol),

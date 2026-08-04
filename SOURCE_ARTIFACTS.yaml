@@ -418,6 +418,50 @@ artifacts:
     public_paper_label: "paired exposure execution usage"
     contains_raw_text_or_private_content: false
 
+  - id: claude_opus5_exposure_replication_manifest
+    category: GENERATED_FROM_HASH_BOUND_EXECUTION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+    source_path: "results/claude_opus5_exposure_replication/manifest.json"
+    source_sha256: "b738a330efbf4072dbba30a1a5ff879072414523053e261ec58a52500eaa0963"
+    intended_normalized_destination: "evidence/manifests/claude_opus5_exposure_replication.json"
+    transformation_required: "Preserve the separate reader-replication boundary, execution receipts, and content-free publication guarantees."
+    public_paper_label: "Claude Opus 5 paired-exposure replication manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: claude_opus5_exposure_replication_cells
+    category: GENERATED_FROM_HASH_BOUND_EXECUTION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+    source_path: "results/claude_opus5_exposure_replication/cell_metrics.csv"
+    source_sha256: "b90a9a28d9879e4e57c488bc8f897422cdcae9653275b0287a3b397e380ad738"
+    intended_normalized_destination: "evidence/normalized/claude_opus5_exposure_replication.csv"
+    transformation_required: "Select overall construction-defined cells and keep the Anthropic estimate separate from the frozen three-reader panel."
+    public_paper_label: "Claude Opus 5 exposure cell metrics"
+    contains_raw_text_or_private_content: false
+
+  - id: claude_opus5_exposure_replication_bootstrap
+    category: GENERATED_FROM_HASH_BOUND_EXECUTION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+    source_path: "results/claude_opus5_exposure_replication/bootstrap_ci.csv"
+    source_sha256: "0bbf273cb8e17f0f2235dadffee51eb76b7d60f8d3edef8f4c35fbfa6801f93e"
+    intended_normalized_destination: "evidence/normalized/claude_opus5_exposure_replication.csv"
+    transformation_required: "Preserve all four cell effects and the selectivity-gap interval without cross-model pooling."
+    public_paper_label: "Claude Opus 5 exposure uncertainty"
+    contains_raw_text_or_private_content: false
+
+  - id: claude_opus5_exposure_replication_usage
+    category: GENERATED_FROM_HASH_BOUND_EXECUTION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+    source_path: "results/claude_opus5_exposure_replication/provider_usage.csv"
+    source_sha256: "9cf5df44c8fc369f736271e0225e59d7e2de4c641483dd99abbfed3c57b818c4"
+    intended_normalized_destination: "evidence/manifests/claude_opus5_exposure_replication.json"
+    transformation_required: "Retain content-free call, token, latency, cost, checkpoint, and score receipts; do not publish responses."
+    public_paper_label: "Claude Opus 5 exposure execution usage"
+    contains_raw_text_or_private_content: false
+
   - id: posthoc_natural_top_k_pareto
     category: GENERATED_FROM_FROZEN_POSTHOC
     old_repository: "ziwang11112/verify-agent-memory"

@@ -134,6 +134,9 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
     def exposure(source: str, metric: str) -> Row:
         return _one(rows, claim_id="C8", source=source, metric=metric)
 
+    def opus_exposure(metric: str) -> Row:
+        return _one(rows, claim_id="C12", source="claude-opus-5", metric=metric)
+
     selected = {
         "reader_a": _one(
             rows,
@@ -403,6 +406,9 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             "deepseek-v4-pro", "relevant_inadmissible_effect"
         ),
         "deepseek_exposure_gap": exposure("deepseek-v4-pro", "selectivity_gap"),
+        "opus_exposure_admissible": opus_exposure("relevant_admissible_effect"),
+        "opus_exposure_inadmissible": opus_exposure("relevant_inadmissible_effect"),
+        "opus_exposure_gap": opus_exposure("selectivity_gap"),
     }
     for top_k in (10, 20, 50, 100):
         for metric in (
@@ -602,6 +608,30 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
         _macro(
             "DeepSeekExposureGapCI",
             _ci(selected["deepseek_exposure_gap"], signed=False),
+        ),
+        _macro(
+            "OpusExposureAdmissible",
+            _plain(_number(selected["opus_exposure_admissible"])),
+        ),
+        _macro(
+            "OpusExposureAdmissibleCI",
+            _ci(selected["opus_exposure_admissible"], signed=False),
+        ),
+        _macro(
+            "OpusExposureInadmissible",
+            _plain(_number(selected["opus_exposure_inadmissible"])),
+        ),
+        _macro(
+            "OpusExposureInadmissibleCI",
+            _ci(selected["opus_exposure_inadmissible"], signed=False),
+        ),
+        _macro(
+            "OpusExposureGap",
+            _plain(_number(selected["opus_exposure_gap"])),
+        ),
+        _macro(
+            "OpusExposureGapCI",
+            _ci(selected["opus_exposure_gap"], signed=False),
         ),
         _macro(
             "LifecycleExposureCount",
@@ -1007,6 +1037,13 @@ def _write_main_table(path: Path, selected: Mapping[str, Row]) -> None:
             _plain(_number(selected["deepseek_exposure_gap"])),
             _ci(selected["deepseek_exposure_gap"], signed=False),
             "C8",
+        ),
+        (
+            "Reader replication",
+            "Claude Opus 5 selectivity gap",
+            _plain(_number(selected["opus_exposure_gap"])),
+            _ci(selected["opus_exposure_gap"], signed=False),
+            "C12",
         ),
         (
             "Paired exposure",

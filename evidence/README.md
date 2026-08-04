@@ -1,7 +1,7 @@
 # Evidence Package
 
 The `normalized/` directory contains content-free aggregate measurements for claims
-C2-C11. It does not contain benchmark conversations, query text, memory text, model
+C2-C12. It does not contain benchmark conversations, query text, memory text, model
 responses, embeddings, or per-query identifiers.
 
 The `examples/` directory contains four deliberately selected, abridged
@@ -17,6 +17,7 @@ identifiers are retained solely to make the qualitative examples auditable.
 | `normalized/mechanism_smoke.csv` | Sixteen curated candidate-pool evaluation packets only |
 | `normalized/natural_evaluation.csv` | Source-macro evaluation over 87 groups, 182,908 memories, and 3,767 queries |
 | `normalized/counterfactual_exposure.csv` | Reader-separated paired prompt interventions over 16 controlled scenarios |
+| `normalized/claude_opus5_exposure_replication.csv` | Separately executed fourth-provider replication of the same paired prompt construction; never pooled with the original three-reader execution |
 | `normalized/fixed_budget_support.csv` | Frozen top-k support, recall, risk, and algorithmic-cost contrasts |
 | `normalized/metadata_reliability.csv` | Corrected axis attribution and observed metadata-corruption brackets |
 | `normalized/text_inferred_admissibility.csv` | Released-field oracle versus text-inferred filtering on fixed natural-development cases |
@@ -61,8 +62,8 @@ uv run --extra dev python scripts/verify_evidence.py
 The verifier rejects changed CSVs, changed transformation code, unindexed or changed
 source hashes, path traversal, non-finite values, malformed intervals, retired method
 labels, values or intervals that drift from `claims/claims.yaml`, and missing
-claim-specific interpretation boundaries. Paired-exposure evidence is additionally
-bound to the exact execution commit and a content-free publication manifest.
-Figure-example JSON is separately
-validated by the paper artifact builder and hash-bound in
+claim-specific interpretation boundaries. The original paired-exposure evidence and
+the Claude Opus 5 replication are each bound to their own exact execution commit and
+content-free publication manifest. Figure-example JSON is separately validated by
+the paper artifact builder and hash-bound in
 `paper/generated/artifact_manifest.json`.

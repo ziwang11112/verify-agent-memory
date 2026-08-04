@@ -45,9 +45,9 @@ utility--risk dominance before fail-open errors do, even as fail-open errors exp
 wrong-scope exposure.  Released fields expose risk headroom
 (\ReleasedOracleAdmRiskDelta{}, 95\% CI \ReleasedOracleAdmRiskDeltaCI{}), yet
 text-only LLM verifiers do not recover it selectively and frequently reject unchanged
-admissible evidence.  In a paired intervention across three readers, exposure is
-selective on average, but one reader retains a positive relevant-inadmissible
-disclosure effect.  These results identify reliable eligibility metadata and
+admissible evidence.  In a three-reader paired intervention and a separate
+fourth-provider replication, exposure is selective on average, but residual relevant-
+inadmissible disclosure remains.  These results identify reliable eligibility metadata and
 pre-prompt enforcement---not semantic ranking or reader restraint alone---as the
 central bottleneck.  We contribute an auditable evaluation protocol and failure-
 mechanism diagnosis, not a new memory index or a production-safety claim.
@@ -111,7 +111,7 @@ Our contributions are:
   lifecycle attribution, and asymmetric failure under metadata corruption; and
   \item \textbf{Enforcement diagnosis:} oracle--inference and stable-overflip tests,
   followed by a paired prompt-exposure intervention across three separately reported
-  readers.
+  readers and an independently executed Anthropic replication.
 \end{itemize}
 
 \section{Related Work}
@@ -299,7 +299,8 @@ natural, public-development, and constructed populations are never pooled.
     \addlinespace[2pt]
     \textbf{Paired exposure.} Same scenarios; \ExposurePairsPerReader{} pairs and
       384 requests per reader & One candidate withheld versus exposed for each of the
-      three readers & Cell-specific disclosure effect and selectivity gap \\
+      three original readers; separate Claude Opus 5 replication & Cell-specific
+      disclosure effect and selectivity gap \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -346,8 +347,13 @@ complete outputs from \texttt{gpt-5.6-sol} and \texttt{gemini-3.6-flash}.  The
 controlled verifier and paired-exposure panels also include
 \texttt{deepseek-v4-pro}.  Each model sees the same semantic task contract; provider
 adapters do not change its meaning, and only complete bundles enter a comparison.
-The paired readers are run at temperature zero, with one accepted response per
-request and no judge, semantic repair, selective rerun, or cross-model pooling.
+The paired-exposure configurations use reasoning \texttt{none} for GPT-5.6 Sol,
+thinking \texttt{minimal} for Gemini 3.6 Flash, and disabled thinking for DeepSeek V4
+Pro.  A separately hash-bound fourth-reader replication uses
+\texttt{claude-opus-5} with disabled thinking and medium effort.  It reuses the same
+construction but is not pooled with or retroactively inserted into the original
+three-reader execution.  Every reader contributes one accepted response per request,
+with no judge, semantic repair, selective rerun, or cross-model pooling.
 
 \subsection{Metrics}
 
@@ -535,20 +541,26 @@ selective verification.
   admissibility cells.  (b) Selectivity gaps (circles) and residual relevant-
   inadmissible effects (open red squares).  Whiskers are 95\% scenario-bootstrap
   intervals over 16 scenarios.  Each reader contributes 192 paired units and is
-  reported separately.}
+  reported separately; Claude Opus 5 is an independently executed replication, not a
+  pooled addition to the original three-reader panel.}
   \label{fig:paired-exposure}
 \end{figure}
 
 \subsection{Once exposed, inadmissible evidence can reach the answer}
 
-Relevant-admissible exposure effects are \OpenAIExposureAdmissible{},
-\GeminiExposureAdmissible{}, and \DeepSeekExposureAdmissible{} for GPT-5.6, Gemini,
-and DeepSeek (Figure~\ref{fig:paired-exposure}).  Their selectivity gaps are
-\OpenAIExposureGap{}, \GeminiExposureGap{}, and \DeepSeekExposureGap{}; every
-interval excludes zero.  DeepSeek nevertheless retains a relevant-inadmissible effect
-of \DeepSeekExposureInadmissible{} (\DeepSeekExposureInadmissibleCI{}).  Thus assigned
-exposure has different effects under the constructed query conditions, but neither
-admissibility as an isolated moderator nor internal model use is identified.
+Relevant-admissible exposure effects in the original execution are
+\OpenAIExposureAdmissible{}, \GeminiExposureAdmissible{}, and
+\DeepSeekExposureAdmissible{} for GPT-5.6, Gemini, and DeepSeek
+(Figure~\ref{fig:paired-exposure}).  Their selectivity gaps are \OpenAIExposureGap{},
+\GeminiExposureGap{}, and \DeepSeekExposureGap{}; every interval excludes zero.
+DeepSeek nevertheless retains a relevant-inadmissible effect of
+\DeepSeekExposureInadmissible{} (\DeepSeekExposureInadmissibleCI{}).  In the separate
+Claude Opus 5 replication, the relevant-admissible and relevant-inadmissible effects
+are \OpusExposureAdmissible{} and \OpusExposureInadmissible{}, yielding a selectivity
+gap of \OpusExposureGap{} (\OpusExposureGapCI{}).  Thus the qualitative gap replicates
+for a fourth provider, while the nonzero inadmissible point estimate preserves the
+same warning: neither admissibility as an isolated moderator nor internal model use is
+identified.
 
 \paragraph{Secondary diagnostics.}
 The frozen threshold arm loses recall and the cluster arm is practically
@@ -591,9 +603,12 @@ inference populations contain only 72 cases and 16 scenarios, respectively.
 GateMem is observational, same-provider, and uses distinct utility and leakage
 populations.  Paired exposure uses constructed queries, literal markers, and a
 rule-based scorer; it does not isolate admissibility from all query changes or measure
-internal use or natural prevalence.  Filters can suppress legitimate evidence, so
-deployments should log exclusions and evaluate matched-recall utility.  We release
-only content-free aggregates and hashes, not conversations, responses, or private data.
+internal use or natural prevalence.  The Claude estimate is a separately executed
+replication and is not pooled with the original three-reader panel; the heterogeneous
+reader controls do not define a capability leaderboard.  Filters can suppress
+legitimate evidence, so deployments should log exclusions and evaluate matched-recall
+utility.  We release only content-free aggregates and hashes, not conversations,
+responses, or private data.
 
 \section{Conclusion}
 
@@ -879,11 +894,12 @@ is exposed.  This yields 192 paired units and 384 requests for each reader.
 
 Every candidate carries a unique literal marker absent from the query and all other
 candidates.  The normalized-substring scorer counts the marker even inside a refusal;
-appearance after withholding is hallucinated disclosure.  Requests are stateless,
-temperature-zero, and deterministically interleaved.  All three readers complete the
-panel with one attempt per request.  There is no transport retry, judge, output
-repair, selective rerun, or model pooling.  The released result package contains only
-content-free pair scores, aggregates, hashes, costs, and bootstrap intervals.
+appearance after withholding is hallucinated disclosure.  Requests are stateless and
+deterministically interleaved.  The original GPT, Gemini, and DeepSeek readers and the
+separately executed Claude Opus 5 replication each complete all 384 requests with one
+attempt per request.  There is no transport retry, judge, output repair, selective
+rerun, or model pooling.  The released result packages contain only content-free pair
+scores, aggregates, hashes, costs, and bootstrap intervals.
 
 \section{Mechanism Smoke}
 \label{app:smoke}

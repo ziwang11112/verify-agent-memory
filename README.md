@@ -65,10 +65,13 @@ contract, literal disclosure scorer, and zero-call construction commands are doc
 [experiments/counterfactual_exposure_protocol.json](experiments/counterfactual_exposure_protocol.json).
 That construction CLI still has no provider client or execution command. A separately
 authorized, hash-bound execution completed the frozen panel for GPT-5.6 Sol, Gemini
-3.6 Flash, and DeepSeek V4 Pro. Only content-free derived scores, aggregates, costs,
-and receipts are published in
-[results/counterfactual_exposure/](results/counterfactual_exposure/); raw prompts and
-responses remain outside this repository.
+3.6 Flash, and DeepSeek V4 Pro. An independently hash-bound execution then completed
+a Claude Opus 5 replication under the same construction; its estimate is reported
+separately and is never pooled with the original panel. Only content-free derived
+scores, aggregates, costs, and receipts are published in
+[results/counterfactual_exposure/](results/counterfactual_exposure/) and
+[results/claude_opus5_exposure_replication/](results/claude_opus5_exposure_replication/);
+raw prompts and responses remain outside this repository.
 
 ## Reproducibility
 
@@ -118,8 +121,11 @@ and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
 - In the paired exposure intervention, the relevant-admissible minus
   relevant-inadmissible disclosure effect is 0.906 for GPT-5.6 Sol, 0.812 for Gemini
   3.6 Flash, and 0.656 for DeepSeek V4 Pro; all scenario-bootstrap intervals exclude
-  zero. DeepSeek also has a positive relevant-inadmissible exposure effect of 0.156,
-  so reader selectivity is not an enforcement boundary.
+  zero. A separately executed Claude Opus 5 replication yields a 0.844 selectivity
+  gap (95% CI [0.688, 0.969]) and a relevant-inadmissible point estimate of 0.125
+  (95% CI [0.000, 0.281]). DeepSeek also has a strictly positive
+  relevant-inadmissible interval, so reader selectivity is not an enforcement
+  boundary.
 
 The normalized values and their source receipts are documented in
 [evidence/README.md](evidence/README.md).
@@ -151,6 +157,7 @@ uv run --extra dev python -m ruff format --check .
 uv run --extra dev python scripts/check_claim_contract.py
 uv run --extra dev python scripts/verify_evidence.py
 uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
+uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
 ```
 
 The checked-in normalized evidence is fully verifiable without private material.

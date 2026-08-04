@@ -57,6 +57,7 @@ COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 MIGRATION_SNAPSHOT = "a28093110325968c26906223e9eb0f1e078f6aad"
 NATURAL_EXECUTION_COMMIT = "8e34e3d41c56e1699696bc27be95cdac7c9528e5"
 COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT = "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+CLAUDE_OPUS5_EXPOSURE_EXECUTION_COMMIT = "938320909b4c2d13e286987dc4297a7cb6ef73a7"
 NATURAL_POSTHOC_IMPLEMENTATION_COMMIT = "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
 
 
@@ -245,6 +246,21 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
         if "model estimates are reported separately" not in limitations:
             errors.append("C11 must keep model estimates separate")
 
+    opus_replication = claim_by_id.get("C12")
+    if opus_replication:
+        limitations = _combined_text(opus_replication.get("known_limitations"))
+        if opus_replication.get("status") != "controlled_prompt_reader_replication":
+            errors.append("C12 must remain a controlled prompt reader replication")
+        exact_values = opus_replication.get("exact_values")
+        if not isinstance(exact_values, Mapping) or exact_values.get("model_pooling") is not False:
+            errors.append("C12.model_pooling must be false")
+        if "separate reader replication" not in limitations:
+            errors.append("C12 must preserve its separate-execution boundary")
+        if "constructed" not in limitations:
+            errors.append("C12 must include a constructed-scenario limitation")
+        if "never pooled" not in limitations:
+            errors.append("C12 must include a no-pooling limitation")
+
     if readable_contract is not None:
         for claim_id in claim_by_id:
             if f"### {claim_id}:" not in readable_contract:
@@ -291,10 +307,11 @@ def validate_source_index(source_data: Any, contract_data: Any) -> list[str]:
             errors.append(f"{artifact_id}.source_sha256 must be a lowercase SHA-256")
         category = artifact.get("category")
         if category == "GENERATED_FROM_HASH_BOUND_EXECUTION":
-            if artifact.get("frozen_commit") != COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT:
-                errors.append(
-                    f"{artifact_id}.frozen_commit must match the paired-exposure execution"
-                )
+            if artifact.get("frozen_commit") not in {
+                COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT,
+                CLAUDE_OPUS5_EXPOSURE_EXECUTION_COMMIT,
+            }:
+                errors.append(f"{artifact_id}.frozen_commit must match a paired-exposure execution")
         elif category == "GENERATED_FROM_FROZEN_POSTHOC":
             if artifact.get("frozen_commit") != NATURAL_POSTHOC_IMPLEMENTATION_COMMIT:
                 errors.append(

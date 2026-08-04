@@ -28,7 +28,8 @@ and generator code. Figure assets are emitted as vector PDF/SVG and inspection P
 - `inference_gap.*`: the released-oracle utility--risk gap and controlled selective-
   verification diagnostic used as main-text Figure 3;
 - `results/counterfactual_exposure/figures/counterfactual_exposure.*`: the controlled
-  three-reader paired-exposure effects used as main-text Figure 4;
+  paired-exposure effects from the original three-reader execution and the separately
+  executed Claude Opus 5 replication used as main-text Figure 4;
 - `evidence_summary.*`: observational GateMem exposure/disclosure, prediction, and
   filtering trade-off, retained in the appendix;
 - `retrieval_results.*`: all retrieval arms in recall--cost space, the trusted
@@ -53,7 +54,7 @@ page-count and visual-inspection receipt is in `paper/BUILD_REPORT.md`.
 
 - `paper/main.tex` must use `dblblindworkshop`.
 - `paper/checklist.tex` must contain no TODO answers.
-- C1-C11 must each appear in `paper/CLAIM_MAP.md`.
+- C1-C12 must each appear in `paper/CLAIM_MAP.md`.
 - Generated artifact hashes must match the manifest.
 - No empirical number should be hand-entered in prose when a generated macro exists.
 - The main text must not use retired internal method labels.

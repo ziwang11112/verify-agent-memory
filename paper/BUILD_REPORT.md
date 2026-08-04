@@ -34,11 +34,11 @@
   boundary and the three-stage evidence roadmap. Figure 2 presents the value, source,
   and fragility of metadata constraints in a single mechanism sequence. Figure 3 shows
   the released-oracle/text-inference gap and controlled overflip; Figure 4 shows the
-  controlled three-reader paired-exposure effects and residual leakage. The four
-  additional audited examples, observational GateMem evidence, and frozen nine-arm
-  retrieval diagnostics remain in the appendix. All figures preserve readable
-  labels and uncertainty marks, and all generated tables remain within their text
-  blocks.
+  original three-reader paired-exposure effects, residual leakage, and the separately
+  executed Claude Opus 5 replication without pooling. The four additional audited
+  examples, observational GateMem evidence, and frozen nine-arm retrieval diagnostics
+  remain in the appendix. All figures preserve readable labels and uncertainty marks,
+  and all generated tables remain within their text blocks.
 - The main results now report the 58.1-fold reduction in mean candidates scored for
   clean namespace support and explicitly bound it as exact-search retrieval work, not
   wall-clock or production latency. Related work positions Hy-MultiTurn as a

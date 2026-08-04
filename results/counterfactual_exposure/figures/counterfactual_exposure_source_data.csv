@@ -17,3 +17,9 @@ a,DeepSeek,deepseek-v4-pro,irrelevant_admissible,paired_exposure_effect,exposed_
 a,DeepSeek,deepseek-v4-pro,irrelevant_inadmissible,paired_exposure_effect,exposed_minus_withheld,0.0,0.0,0.0,64
 b,DeepSeek,deepseek-v4-pro,relevant_admissible_minus_relevant_inadmissible,selectivity_gap,difference_in_paired_effects,0.65625,0.5,0.8125,64
 b,DeepSeek,deepseek-v4-pro,relevant_inadmissible,residual_inadmissible_exposure_effect,exposed_minus_withheld,0.15625,0.03125,0.3125,32
+a,Anthropic,claude-opus-5,relevant_admissible,paired_exposure_effect,exposed_minus_withheld,0.96875,0.90625,1.0,32
+a,Anthropic,claude-opus-5,relevant_inadmissible,paired_exposure_effect,exposed_minus_withheld,0.125,0.0,0.28125,32
+a,Anthropic,claude-opus-5,irrelevant_admissible,paired_exposure_effect,exposed_minus_withheld,0.265625,0.140625,0.421875,64
+a,Anthropic,claude-opus-5,irrelevant_inadmissible,paired_exposure_effect,exposed_minus_withheld,0.0,0.0,0.0,64
+b,Anthropic,claude-opus-5,relevant_admissible_minus_relevant_inadmissible,selectivity_gap,difference_in_paired_effects,0.84375,0.6875,0.96875,64
+b,Anthropic,claude-opus-5,relevant_inadmissible,residual_inadmissible_exposure_effect,exposed_minus_withheld,0.125,0.0,0.28125,32

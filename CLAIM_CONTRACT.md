@@ -357,6 +357,31 @@ benchmark result.
 pools and thresholds are fixed. The controlled set is constructed. Populations and
 models are always reported separately.
 
+## Reader Replication
+
+### C12: Claude Opus 5 paired-exposure replication
+
+**Status:** Controlled prompt reader replication
+
+Claude Opus 5 was executed separately on the same 16 constructed scenarios and 192
+paired units as C8. Its relevant-admissible exposure effect was 0.968750 [0.906250,
+1.000000], its relevant-inadmissible effect was 0.125000 [0.000000, 0.281250], and
+the resulting selectivity gap was 0.843750 [0.687500, 0.968750]. The model completed
+384 scored requests plus one fixture with no retry, output repair, selective rerun,
+or judge.
+
+**Allowed:** Claude Opus 5 separately replicated a positive prompt-level selectivity
+gap. Its estimate may be displayed alongside the original readers when the separate
+execution and no-pooling boundary is explicit.
+
+**Forbidden:** Do not describe all four readers as one jointly executed panel, pool
+their estimates, claim zero inadmissible-disclosure risk, infer natural prevalence or
+deployment safety, or call this an official benchmark result.
+
+**Boundary:** This is a separate fourth-reader replication using the exact frozen
+construction, `claude-opus-5`, disabled thinking, and medium effort. The scenarios are
+constructed and literal disclosure does not identify internal model reasoning.
+
 ## Writing Rule
 
 Every manuscript sentence that asserts an empirical result must map to one claim ID.
