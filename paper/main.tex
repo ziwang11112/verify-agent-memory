@@ -62,10 +62,11 @@ market note answers a market question, and a superseded date answers a date ques
 Semantic ranking alone cannot establish whether any of those records may influence
 the current answer.
 
-Figure~\ref{fig:pipeline} isolates the eligibility gap.  The same stored Lisbon date
-is useful evidence when the query asks for the earlier record and inadmissible when
-the query asks what is current.  Admissibility therefore belongs to the memory--query
-context, not to the memory alone.  We represent that context using authenticated
+Figure~\ref{fig:pipeline} isolates the eligibility gap with three audited failures.
+A market memory can belong to the wrong principal, an earlier Lisbon date can be
+superseded for a current-state query, and a phone detail can remain topically similar
+after an explicit forget request.  Admissibility therefore belongs to the memory--
+query context, not to the record alone.  We represent that context using authenticated
 scope, governing policy, query intent, and time, while retaining an unresolved state
 when released evidence does not establish a verdict.  We then preserve each memory
 ID through a stored--retrieved--verified--exposed--disclosed trace.  The intended
@@ -90,15 +91,15 @@ decomposition of where eligibility enforcement succeeds and fails.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{generated/verification_pipeline.pdf}
-  \caption{From related retrieval to eligible evidence.  (a) An abridged audited
-  MemOps case places a superseded March 7 record and the latest March 14 confirmation
-  in the candidate set.  For a current-state query, the old record is dropped before
-  the prompt boundary; under an example-derived history intent, the same record is
-  kept.  The dashed red route depicts absent pre-prompt enforcement, not an observed
-  natural answer.  (b) Headline estimates from the natural-support, controlled-
-  verification, and controlled-exposure analyses; their populations and estimands are
-  distinct and are not pooled.  Additional audited cases appear in
-  Appendix~\ref{app:verification-examples}.}
+  \caption{From topical match to eligible evidence.  (a) Three abridged audited
+  RHELM/MemOps cases show a wrong-principal market memory, a superseded Lisbon date,
+  and an explicitly forgotten phone detail.  Each is topically matched but fails one
+  query-conditioned check before prompt assembly; green strips show an eligible
+  alternative.  The superseded date can still pass under a history intent.  These
+  examples establish failure types, not prevalence.  (b) The observable path and
+  headline estimates from the natural-support, controlled-verification, and
+  controlled-exposure analyses; populations and estimands are distinct and are not
+  pooled.  Additional audited cases appear in Appendix~\ref{app:verification-examples}.}
   \label{fig:pipeline}
 \end{figure}
 
@@ -122,9 +123,13 @@ abstention \citep{wu2025longmemeval}.  LongMemEval-V2 extends evaluation to
 environment experience and explicitly measures context gathering and latency
 \citep{wu2026longmemevalv2}.  RHELM introduces heterogeneous, temporally evolving
 sources \citep{zhang2026rhelm}, while MemOps evaluates explicit remember, forget,
-update, and reflection operations \citep{hao2026memops}.  These resources motivate
-our focus on evidence state and provenance rather than treating memory as a static
-bag of facts.
+update, and reflection operations \citep{hao2026memops}.  Hy-MultiTurn isolates six
+deep-dialogue mechanisms, including evolving constraint synthesis and action
+suppression, across 209 controlled Chinese tasks \citep{ye2026hymultiturn}.  It
+scores final responses rather than candidate IDs or prompt-boundary exposure, making
+it complementary to our retrieval-level audit rather than a direct baseline.  These
+resources motivate our focus on evidence state and provenance rather than treating
+memory as a static bag of facts.
 
 \paragraph{Governance and contextual validity.}
 GateMem evaluates utility, access control, and active forgetting in multi-principal
@@ -445,6 +450,11 @@ admissibility upper risk falls from \TopTwentyGlobalAdmRisk{} to
 \TopTwentyAdmRiskDeltaCI{}).  At top-100 the respective deltas are
 \TopHundredRecallDelta{}, \TopHundredFeasibleDelta{}, and
 \TopHundredAdmRiskDelta{}.  Every interval at all four tested budgets excludes zero.
+
+Namespace support also reduces mean candidate scoring from
+\GlobalDenseCandidates{} to \NamespaceDenseCandidates{} records per query, a
+\CandidateWorkRatio{}$\times$ reduction.  This is a deterministic retrieval-work
+diagnostic under exact search, not a wall-clock or production-latency claim.
 
 The risk decomposition prevents a feasibility gain from masquerading as cleaner
 feasible prefixes.  At top-100, the total \TopHundredAdmRiskDelta{} difference is the

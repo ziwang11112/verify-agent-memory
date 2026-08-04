@@ -17,8 +17,9 @@ The generator reads only `evidence/normalized/*.csv` after
 and figures under `paper/generated/`, plus a hash manifest binding inputs, outputs,
 and generator code. Figure assets are emitted as vector PDF/SVG and inspection PNG:
 
-- `verification_pipeline.*`: the audited Lisbon candidate flow, query-conditioned
-  pre-prompt decision, and three-stage evidence roadmap used as Figure 1;
+- `verification_pipeline.*`: three audited scope, lifecycle, and forget-policy
+  failures, the observable prompt-boundary path, and the three-stage evidence roadmap
+  used as Figure 1;
 - `verification_examples.*`: four abridged audited examples covering wrong namespace,
   supersession, explicit forgetting, and history-compatible old states, retained in
   the appendix;

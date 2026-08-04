@@ -226,6 +226,18 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
             contrast="namespace_dense",
             metric="evidence_recall",
         ),
+        "global_candidates": _one(
+            rows,
+            claim_id="C5",
+            contrast="global_dense",
+            metric="mean_candidates_scored",
+        ),
+        "namespace_candidates": _one(
+            rows,
+            claim_id="C5",
+            contrast="namespace_dense",
+            metric="mean_candidates_scored",
+        ),
         "namespace_recall_delta": _one(
             rows,
             claim_id="C5",
@@ -654,6 +666,21 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
         ),
         _macro("GlobalDenseRecall", _plain(_number(selected["global_recall"]))),
         _macro("NamespaceDenseRecall", _plain(_number(selected["namespace_recall"]))),
+        _macro(
+            "GlobalDenseCandidates",
+            f"{_number(selected['global_candidates']):,.0f}".replace(",", "{,}"),
+        ),
+        _macro(
+            "NamespaceDenseCandidates",
+            f"{_number(selected['namespace_candidates']):,.0f}".replace(",", "{,}"),
+        ),
+        _macro(
+            "CandidateWorkRatio",
+            _plain(
+                _number(selected["global_candidates"]) / _number(selected["namespace_candidates"]),
+                digits=1,
+            ),
+        ),
         _macro("GlobalDenseFeasible", _plain(_number(selected["global_feasible"]))),
         _macro(
             "NamespaceDenseFeasible",
@@ -1548,9 +1575,9 @@ def _write_pipeline_figure(
 ) -> None:
     _configure_matplotlib()
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Rectangle
+    from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch
 
-    figure, axis = plt.subplots(figsize=(7.2, 3.4))
+    figure, axis = plt.subplots(figsize=(7.2, 3.55))
     axis.set_xlim(0, 1)
     axis.set_ylim(0, 1)
     axis.axis("off")
@@ -1566,6 +1593,8 @@ def _write_pipeline_figure(
         "pale_green": "#EAF5EE",
         "pale_red": "#FBEDEE",
         "pale_gray": "#F4F6F8",
+        "pale_gold": "#FFF6E7",
+        "gold": "#B86A16",
     }
 
     def rounded_box(
@@ -1646,9 +1675,29 @@ def _write_pipeline_figure(
             )
         )
 
-    lisbon = next(case for case in cases if case["case_id"] == "superseded_lisbon_date")
-    old_memory = next(memory for memory in lisbon["memories"] if memory["state"] == "superseded")
-    current_memory = next(memory for memory in lisbon["memories"] if memory["state"] == "current")
+    case_by_id = {str(case["case_id"]): case for case in cases}
+
+    scope_case = case_by_id["wrong_namespace_market"]
+    scope_blocked = next(
+        memory for memory in scope_case["memories"] if memory["scope"] == "disallowed"
+    )
+    scope_allowed = next(memory for memory in scope_case["memories"] if memory["usable"])
+
+    lifecycle_case = case_by_id["superseded_lisbon_date"]
+    lifecycle_blocked = next(
+        memory for memory in lifecycle_case["memories"] if memory["state"] == "superseded"
+    )
+    lifecycle_allowed = next(
+        memory for memory in lifecycle_case["memories"] if memory["state"] == "current"
+    )
+
+    policy_case = case_by_id["forgotten_phone_detail"]
+    policy_blocked = next(
+        memory
+        for memory in policy_case["memories"]
+        if memory["prohibited"] and not memory["usable"]
+    )
+    policy_allowed = next(memory for memory in policy_case["memories"] if memory["usable"])
 
     recall_delta = 100 * _number(selected["c9_k20_evidence_recall_delta"])
     risk_delta = 100 * _number(selected["c9_k20_penalized_admissibility_upper_risk_delta"])
@@ -1658,301 +1707,298 @@ def _write_pipeline_figure(
     ]
     exposure_delta = 100 * _number(selected["deepseek_exposure_inadmissible"])
 
-    # Panel a: one audited retrieval case, with the pre-prompt decision made visible.
+    # Panel a: three audited failure types using one fixed visual grammar.
     axis.text(0.014, 0.965, "a", fontsize=8, weight="bold", va="top")
     axis.text(
         0.040,
         0.965,
-        "Retrieval finds related records; intent determines which may cross",
-        fontsize=8.0,
-        weight="bold",
-        va="top",
-        color=colors["dark"],
-    )
-
-    stage_labels = (
-        (0.100, "CURRENT QUERY"),
-        (0.350, "RETRIEVED CANDIDATES"),
-        (0.535, "ELIGIBILITY"),
-        (0.660, "READER PROMPT"),
-    )
-    for x, label in stage_labels:
-        axis.text(
-            x,
-            0.835,
-            label,
-            ha="center",
-            fontsize=5.3,
-            weight="bold",
-            color=colors["neutral"],
-        )
-
-    rounded_box(
-        0.018,
-        0.575,
-        0.165,
-        0.205,
-        facecolor=colors["pale_blue"],
-        edgecolor=colors["trusted"],
-        linewidth=0.9,
-    )
-    axis.text(
-        0.032,
-        0.745,
-        "CURRENT STATE",
-        fontsize=5.4,
-        weight="bold",
-        color=colors["trusted"],
-    )
-    axis.text(
-        0.032,
-        0.666,
-        textwrap.fill(str(lisbon["query"]), width=25),
-        fontsize=6.2,
-        color=colors["dark"],
-        va="center",
-        linespacing=1.14,
-    )
-    axis.text(
-        0.032,
-        0.600,
-        "intent = current",
-        fontsize=5.0,
-        color=colors["neutral"],
-    )
-
-    candidate_specs = (
-        (
-            0.595,
-            "m_old  EARLIER RECORD",
-            str(old_memory["text"]),
-            "SUPERSEDED",
-            colors["pale_red"],
-            colors["blocked"],
-        ),
-        (
-            0.385,
-            "m_now  LATEST RECORD",
-            str(current_memory["text"]),
-            "CURRENT",
-            colors["pale_green"],
-            colors["allowed"],
-        ),
-    )
-    for y, heading, memory_text, state, facecolor, state_color in candidate_specs:
-        rounded_box(0.220, y, 0.245, 0.145, facecolor="#FFFFFF", edgecolor=colors["line"])
-        axis.add_patch(Rectangle((0.220, y), 0.006, 0.145, facecolor=state_color, edgecolor="none"))
-        axis.text(
-            0.237,
-            y + 0.118,
-            heading,
-            fontsize=5.2,
-            weight="bold",
-            color=colors["neutral"],
-        )
-        axis.text(
-            0.237,
-            y + 0.078,
-            textwrap.fill(memory_text, width=43),
-            fontsize=5.8,
-            color=colors["dark"],
-            va="center",
-            linespacing=1.08,
-        )
-        pill(
-            0.237,
-            y + 0.013,
-            0.090,
-            "RELATED",
-            facecolor=colors["pale_blue"],
-            edgecolor=colors["trusted"],
-            text_color=colors["trusted"],
-        )
-        pill(
-            0.338,
-            y + 0.013,
-            0.090,
-            state,
-            facecolor=facecolor,
-            edgecolor=state_color,
-            text_color=state_color,
-        )
-
-    arrow((0.184, 0.675), (0.215, 0.665), color=colors["trusted"])
-    arrow((0.184, 0.650), (0.215, 0.455), color=colors["trusted"])
-
-    gate_specs = (
-        (0.600, "DROP", "state mismatch", colors["blocked"], colors["pale_red"]),
-        (0.390, "KEEP", "all checks pass", colors["allowed"], colors["pale_green"]),
-    )
-    for y, verdict, reason, color, facecolor in gate_specs:
-        rounded_box(0.490, y, 0.088, 0.125, facecolor=facecolor, edgecolor=color, linewidth=0.9)
-        axis.text(
-            0.534,
-            y + 0.084,
-            verdict,
-            ha="center",
-            fontsize=6.3,
-            weight="bold",
-            color=color,
-        )
-        axis.text(
-            0.534,
-            y + 0.042,
-            reason,
-            ha="center",
-            fontsize=4.7,
-            color=colors["neutral"],
-        )
-    arrow((0.466, 0.665), (0.486, 0.665), color=colors["blocked"])
-    arrow((0.466, 0.455), (0.486, 0.455), color=colors["allowed"])
-
-    axis.plot([0.600, 0.600], [0.275, 0.785], color="#9AA2AA", lw=0.8, ls=(0, (3, 2)))
-    axis.plot([0.592, 0.608], [0.655, 0.675], color=colors["blocked"], lw=1.3)
-    axis.plot([0.592, 0.608], [0.675, 0.655], color=colors["blocked"], lw=1.3)
-
-    rounded_box(
-        0.625,
-        0.410,
-        0.088,
-        0.190,
-        facecolor=colors["pale_green"],
-        edgecolor=colors["allowed"],
-        linewidth=0.9,
-    )
-    axis.text(
-        0.669,
-        0.565,
-        "EXPOSED",
-        ha="center",
-        fontsize=5.2,
-        weight="bold",
-        color=colors["allowed"],
-    )
-    axis.text(
-        0.669,
-        0.505,
-        "m_now\nMarch 14",
-        ha="center",
-        va="center",
-        fontsize=5.7,
-        color=colors["dark"],
-        linespacing=1.15,
-    )
-    axis.text(
-        0.669,
-        0.435,
-        "m_old excluded",
-        ha="center",
-        fontsize=4.5,
-        color=colors["neutral"],
-    )
-    arrow((0.579, 0.455), (0.620, 0.495), color=colors["allowed"])
-    rounded_box(
-        0.625,
-        0.295,
-        0.088,
-        0.070,
-        facecolor="#FFFFFF",
-        edgecolor=colors["allowed"],
-        linewidth=0.75,
-    )
-    axis.text(
-        0.669,
-        0.330,
-        "ANSWER: March 14",
-        ha="center",
-        va="center",
-        fontsize=4.7,
-        weight="bold",
-        color=colors["allowed"],
-    )
-    arrow((0.669, 0.405), (0.669, 0.370), color=colors["allowed"])
-
-    arrow(
-        (0.454, 0.700),
-        (0.630, 0.575),
-        color=colors["blocked"],
-        width=0.85,
-        linestyle=(0, (3, 2)),
-        connectionstyle="arc3,rad=-0.34",
-    )
-    axis.text(
-        0.520,
-        0.758,
-        "without enforcement",
-        ha="center",
-        fontsize=4.7,
-        weight="bold",
-        color=colors["blocked"],
-    )
-
-    rounded_box(
-        0.018,
-        0.105,
-        0.560,
-        0.125,
-        facecolor=colors["pale_gray"],
-        edgecolor=colors["line"],
-        linewidth=0.65,
-    )
-    axis.text(
-        0.032,
-        0.198,
-        "SAME m_old, HISTORY INTENT",
-        fontsize=5.0,
-        weight="bold",
-        color=colors["trusted"],
-    )
-    axis.text(
-        0.032,
-        0.150,
-        "Which date was recorded before the latest confirmation?",
-        fontsize=5.4,
-        color=colors["dark"],
-    )
-    pill(
-        0.472,
-        0.142,
-        0.085,
-        "KEEP",
-        facecolor=colors["pale_green"],
-        edgecolor=colors["allowed"],
-        text_color=colors["allowed"],
-    )
-    axis.text(
-        0.298,
-        0.052,
-        "Eligibility belongs to the memory-query pair, not the record alone.",
-        ha="center",
-        fontsize=5.8,
-        weight="bold",
-        color=colors["neutral"],
-    )
-
-    # Panel b: compact evidence roadmap; rows are distinct populations and estimands.
-    axis.plot([0.735, 0.735], [0.04, 0.94], color="#D7DCE1", lw=0.8)
-    axis.text(0.755, 0.965, "b", fontsize=8, weight="bold", va="top")
-    axis.text(
-        0.781,
-        0.965,
-        "The failure compounds downstream",
+        "Semantic overlap is not enough to admit a memory",
         fontsize=7.8,
         weight="bold",
         va="top",
         color=colors["dark"],
     )
     axis.text(
-        0.755,
-        0.895,
-        "Separate evaluations; no pooled estimate",
-        fontsize=4.8,
+        0.040,
+        0.915,
+        "Three audited examples; the row grammar is query -> retrieved memory -> check -> decision",
+        fontsize=4.7,
+        color=colors["neutral"],
+    )
+
+    for x, label in (
+        (0.095, "QUERY"),
+        (0.343, "RETRIEVED MEMORY"),
+        (0.555, "FAILED CHECK"),
+        (0.657, "BEFORE PROMPT"),
+    ):
+        axis.text(
+            x,
+            0.865,
+            label,
+            ha="center",
+            fontsize=4.8,
+            weight="bold",
+            color=colors["neutral"],
+        )
+    example_rows = (
+        (
+            0.605,
+            "SCOPE",
+            "RHELM",
+            colors["trusted"],
+            scope_case,
+            scope_blocked,
+            scope_allowed,
+            "N = 0",
+            "wrong principal",
+            None,
+        ),
+        (
+            0.335,
+            "LIFECYCLE",
+            "MemOps",
+            colors["gold"],
+            lifecycle_case,
+            lifecycle_blocked,
+            lifecycle_allowed,
+            "L = 0",
+            "superseded now",
+            "history intent: same record may pass",
+        ),
+        (
+            0.065,
+            "POLICY",
+            "MemOps",
+            "#7A5195",
+            policy_case,
+            policy_blocked,
+            policy_allowed,
+            "P = 0",
+            "explicitly forgotten",
+            None,
+        ),
+    )
+    for (
+        y,
+        axis_label,
+        source,
+        axis_color,
+        case,
+        blocked_memory,
+        allowed_memory,
+        check_label,
+        check_reason,
+        intent_note,
+    ) in example_rows:
+        rounded_box(
+            0.018,
+            y,
+            0.680,
+            0.225,
+            facecolor="#FFFFFF",
+            edgecolor=colors["line"],
+            linewidth=0.65,
+        )
+        axis.plot([0.024, 0.024], [y + 0.014, y + 0.211], color=axis_color, lw=3.0)
+        axis.text(
+            0.037,
+            y + 0.190,
+            axis_label,
+            fontsize=5.3,
+            weight="bold",
+            color=axis_color,
+        )
+        axis.text(
+            0.111,
+            y + 0.190,
+            source,
+            fontsize=4.3,
+            color=colors["neutral"],
+        )
+        axis.text(
+            0.037,
+            y + 0.112,
+            textwrap.fill(str(case["query"]), width=27),
+            fontsize=4.9,
+            color=colors["dark"],
+            va="center",
+            linespacing=1.12,
+        )
+
+        rounded_box(
+            0.195,
+            y + 0.025,
+            0.300,
+            0.175,
+            facecolor=colors["pale_gray"],
+            edgecolor=colors["line"],
+            linewidth=0.55,
+        )
+        axis.text(
+            0.209,
+            y + 0.175,
+            "TOPICAL MATCH",
+            fontsize=4.4,
+            weight="bold",
+            color=colors["trusted"],
+        )
+        axis.text(
+            0.209,
+            y + 0.120,
+            textwrap.fill(f"“{blocked_memory['text']}”", width=45),
+            fontsize=4.7,
+            color=colors["dark"],
+            va="center",
+            linespacing=1.08,
+        )
+        rounded_box(
+            0.207,
+            y + 0.037,
+            0.276,
+            0.037,
+            facecolor=colors["pale_green"],
+            edgecolor="#C7DFD0",
+            linewidth=0.4,
+            radius=0.004,
+        )
+        eligible_text = textwrap.shorten(
+            str(allowed_memory["text"]),
+            width=47,
+            placeholder="...",
+        )
+        axis.text(
+            0.218,
+            y + 0.055,
+            f"eligible alternative: {eligible_text}",
+            fontsize=3.8,
+            color=colors["allowed"],
+            va="center",
+        )
+
+        arrow((0.498, y + 0.112), (0.512, y + 0.112), color=colors["blocked"])
+        rounded_box(
+            0.516,
+            y + 0.045,
+            0.092,
+            0.135,
+            facecolor=colors["pale_red"],
+            edgecolor=colors["blocked"],
+            linewidth=0.75,
+        )
+        axis.text(
+            0.562,
+            y + 0.137,
+            check_label,
+            ha="center",
+            fontsize=5.6,
+            weight="bold",
+            color=colors["blocked"],
+        )
+        axis.text(
+            0.562,
+            y + 0.087,
+            textwrap.fill(check_reason, width=16),
+            ha="center",
+            va="center",
+            fontsize=4.2,
+            color=colors["neutral"],
+        )
+
+        arrow((0.611, y + 0.112), (0.624, y + 0.112), color=colors["blocked"])
+        rounded_box(
+            0.628,
+            y + 0.067,
+            0.056,
+            0.090,
+            facecolor=colors["pale_red"],
+            edgecolor=colors["blocked"],
+            linewidth=0.85,
+        )
+        axis.text(
+            0.656,
+            y + 0.112,
+            "DROP",
+            ha="center",
+            va="center",
+            fontsize=5.2,
+            weight="bold",
+            color=colors["blocked"],
+        )
+        if intent_note is not None:
+            rounded_box(
+                0.516,
+                y + 0.009,
+                0.168,
+                0.030,
+                facecolor=colors["pale_blue"],
+                edgecolor="#BFD4E8",
+                linewidth=0.4,
+                radius=0.004,
+            )
+            axis.text(
+                0.600,
+                y + 0.024,
+                intent_note,
+                ha="center",
+                va="center",
+                fontsize=3.5,
+                color=colors["trusted"],
+            )
+
+    # Panel b: the observable path and the three distinct empirical tests.
+    axis.plot([0.715, 0.715], [0.04, 0.94], color="#D7DCE1", lw=0.8)
+    axis.text(0.735, 0.965, "b", fontsize=8, weight="bold", va="top")
+    axis.text(
+        0.762,
+        0.965,
+        "Verify before exposure",
+        fontsize=7.6,
+        weight="bold",
+        va="top",
+        color=colors["dark"],
+    )
+
+    path_stages = (
+        (0.733, 0.850, 0.058, "RETRIEVE", colors["pale_gray"], colors["neutral"]),
+        (0.800, 0.850, 0.055, "VERIFY", colors["pale_blue"], colors["trusted"]),
+        (0.864, 0.850, 0.055, "EXPOSE", colors["pale_green"], colors["allowed"]),
+        (0.928, 0.850, 0.058, "DISCLOSE", colors["pale_red"], colors["blocked"]),
+    )
+    for x, y, width, label, facecolor, edgecolor in path_stages:
+        rounded_box(
+            x,
+            y,
+            width,
+            0.060,
+            facecolor=facecolor,
+            edgecolor=edgecolor,
+            linewidth=0.55,
+        )
+        axis.text(
+            x + width / 2,
+            y + 0.030,
+            label,
+            ha="center",
+            va="center",
+            fontsize=3.8,
+            weight="bold",
+            color=edgecolor,
+        )
+    for source_x, target_x in ((0.792, 0.797), (0.856, 0.861), (0.920, 0.925)):
+        arrow((source_x, 0.880), (target_x, 0.880), width=0.6)
+
+    axis.text(
+        0.735,
+        0.805,
+        "Distinct frozen analyses; estimates are not pooled",
+        fontsize=4.4,
         color=colors["neutral"],
     )
 
     evidence_rows = (
         (
-            0.685,
+            0.575,
             "1",
             "SUPPORT",
             "Trusted namespace at k=20",
@@ -1963,7 +2009,7 @@ def _write_pipeline_figure(
             colors["pale_green"],
         ),
         (
-            0.430,
+            0.335,
             "2",
             "VERIFICATION",
             "Stable-control overflip",
@@ -1974,7 +2020,7 @@ def _write_pipeline_figure(
             colors["pale_blue"],
         ),
         (
-            0.175,
+            0.095,
             "3",
             "EXPOSURE",
             "Relevant-inadmissible effect",
@@ -1987,19 +2033,19 @@ def _write_pipeline_figure(
     )
     for y, number, heading, context, value, detail, figure_label, color, facecolor in evidence_rows:
         rounded_box(
-            0.755,
+            0.735,
             y,
-            0.228,
-            0.190,
+            0.251,
+            0.185,
             facecolor=facecolor,
             edgecolor="#FFFFFF",
             linewidth=0,
             radius=0.004,
         )
-        axis.add_patch(Circle((0.773, y + 0.153), 0.012, facecolor=color, edgecolor="none"))
+        axis.add_patch(Circle((0.753, y + 0.148), 0.011, facecolor=color, edgecolor="none"))
         axis.text(
-            0.773,
-            y + 0.153,
+            0.753,
+            y + 0.148,
             number,
             ha="center",
             va="center",
@@ -2008,8 +2054,8 @@ def _write_pipeline_figure(
             color="#FFFFFF",
         )
         axis.text(
-            0.793,
-            y + 0.158,
+            0.771,
+            y + 0.153,
             heading,
             fontsize=5.2,
             weight="bold",
@@ -2017,8 +2063,8 @@ def _write_pipeline_figure(
             va="center",
         )
         axis.text(
-            0.970,
-            y + 0.158,
+            0.973,
+            y + 0.153,
             figure_label,
             fontsize=4.4,
             weight="bold",
@@ -2027,23 +2073,23 @@ def _write_pipeline_figure(
             va="center",
         )
         axis.text(
-            0.773,
-            y + 0.111,
+            0.753,
+            y + 0.105,
             context,
             fontsize=4.9,
             color=colors["neutral"],
         )
         axis.text(
-            0.773,
-            y + 0.067,
+            0.753,
+            y + 0.062,
             value,
             fontsize=6.4,
             weight="bold",
             color=color,
         )
         axis.text(
-            0.773,
-            y + 0.030,
+            0.753,
+            y + 0.027,
             detail,
             fontsize=5.2 if heading == "SUPPORT" else 4.6,
             weight="bold" if heading == "SUPPORT" else "normal",
@@ -2051,19 +2097,10 @@ def _write_pipeline_figure(
         )
 
     axis.text(
-        0.869,
-        0.045,
-        "Decide before the prompt.",
-        ha="center",
-        fontsize=6.1,
-        weight="bold",
-        color=colors["dark"],
-    )
-    axis.text(
         0.014,
         0.012,
-        "Abridged audited MemOps example; right-side estimates come from distinct frozen analyses.",
-        fontsize=3.9,
+        "Abridged audited RHELM/MemOps examples; examples establish failure types, not prevalence.",
+        fontsize=3.8,
         color="#89919A",
     )
 

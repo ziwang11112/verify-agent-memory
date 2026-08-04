@@ -3,29 +3,29 @@
 This file fixes the message, evidence population, and claim boundary for every main
 paper figure. It is a review aid; `claims/claims.yaml` remains authoritative.
 
-## Figure 1: Related Retrieval Is Not Eligible Evidence
+## Figure 1: Topical Match Is Not Eligible Evidence
 
-**Conclusion:** Semantic retrieval can surface both current and superseded records;
-authenticated eligibility metadata must decide which records may cross the prompt
-boundary. The same old record can be excluded for a current-state query and retained
-for a history query.
+**Conclusion:** Semantic retrieval can surface memories from the wrong principal,
+superseded state, or an explicit forget target; authenticated eligibility evidence
+must decide which records may cross the prompt boundary. The same old record can be
+excluded for a current-state query and retained for a history query.
 
 | Panel | Role | Intended read |
 | --- | --- | --- |
-| a | Audited candidate-level MemOps flow | A current query retrieves related March 7 and March 14 records; the superseded record is dropped before exposure but retained under a history intent |
-| b | Quantitative evidence roadmap | Distinct support, verification, and exposure analyses diagnose successive failure points without pooling populations or estimands |
+| a | Three audited candidate-level RHELM/MemOps cases | Wrong-principal, superseded-current, and explicitly forgotten candidates can all be topically matched yet fail a different pre-prompt check; the Lisbon row also shows the history-intent reversal |
+| b | Observable path and quantitative evidence roadmap | Retrieval, verification, exposure, and disclosure are logged separately; distinct support, verification, and exposure analyses diagnose successive failure points without pooling populations or estimands |
 
-**Evidence:** Panel a uses C1 and the abridged superseded-Lisbon pair from the audited
-MemOps packet listed in `evidence/examples/retrieval_admissibility_cases.json`; its
-history query is an example-derived counterfactual. Panel b indexes C9 top-20 support,
-C11 controlled stable overflip, and C8 controlled exposure. The three estimates come
-from distinct populations and are not combined. The other three audited cases appear
-in Appendix Figure A1.
+**Evidence:** Panel a uses C1 and the abridged wrong-namespace market,
+superseded-Lisbon, and user-forgotten-phone cases listed in
+`evidence/examples/retrieval_admissibility_cases.json`; the Lisbon history note is an
+example-derived counterfactual. Panel b indexes C9 top-20 support, C11 controlled
+stable overflip, and C8 controlled exposure. The three estimates come from distinct
+populations and are not combined. All four audited cases appear in Appendix Figure
+A1.
 
 **Boundary:** Text is abridged for figure legibility; packet IDs, memory IDs, source
-labels, and verdicts are preserved in the example manifest. The dashed red bypass is
-a mechanism illustration, not an observed natural answer. The figure does not infer
-policy, scope, intent, or lifecycle state, estimate prevalence, or pool its roadmap
+labels, and verdicts are preserved in the example manifest. The examples do not infer
+policy, scope, intent, or lifecycle state, estimate prevalence, or pool the roadmap
 statistics.
 
 ## Figure 2: Constraint Value Depends on Metadata Reliability
