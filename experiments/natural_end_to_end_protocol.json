@@ -153,6 +153,12 @@
     "semantic_or_output_repair": false,
     "selective_rerun": false,
     "complete_bundle_required_for_comparison": true,
+    "verifier_bundle_reuse": {
+      "source_protocol_sha256": "5a914194d618c730dcdf9fb50cd6c809ab6704bf722eec49ebffe7734a6e214c",
+      "source_implementation_commit": "709ee9eb0a0e7f5e734fa85a317351f086a29704",
+      "source_response_set_sha256": "2a4f269d22f7d0c7f1ce81487f6cc61973a31a572bb0ad6857adec2ba7ed8c7d",
+      "required_checks": "exact_verifier_request_body_payload_schema_parser_and_response_set_identity"
+    },
     "total_hard_cap_usd": 13500.0,
     "official_rhelm_or_memops_claim": false
   }

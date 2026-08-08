@@ -56,6 +56,7 @@ CONTRACT_PATHS = (
     "experiments/prompts/natural_end_to_end_judge_v1.txt",
     "experiments/prompts/natural_end_to_end_reader_v1.txt",
     "scripts/run_inferred_admissibility_experiment.py",
+    "scripts/import_natural_verifier_bundle.py",
     "scripts/run_natural_end_to_end_experiment.py",
     "src/verify_agent_memory/inferred_admissibility.py",
     "src/verify_agent_memory/natural_end_to_end.py",

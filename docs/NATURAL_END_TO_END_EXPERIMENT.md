@@ -27,6 +27,12 @@ reader-visible prompts may be evaluated once and shared across arms only when th
 are identical. Reader outputs are capped at 2,048 provider tokens; the earlier 512-token
 pilot was frozen unscored after a valid Claude response reached the cap.
 
+The v2 protocol may reuse the completed v1 verifier bundle because the only substantive
+execution change is the downstream reader output cap. The import is allowed only after
+all 3,767 verifier payload hashes, OpenAI request-body hashes, current-schema parses, and
+the response-set hash match exactly. Imported envelopes retain source-record hashes and
+a private compatibility manifest; verifier response content is unchanged.
+
 ## Gold coverage
 
 - Answer utility: 3,767/3,767 queries.

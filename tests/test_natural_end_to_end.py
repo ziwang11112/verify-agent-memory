@@ -4,6 +4,7 @@ import json
 
 import pytest
 
+from scripts import import_natural_verifier_bundle as verifier_import
 from scripts import run_natural_end_to_end_experiment as runtime
 from verify_agent_memory.natural_end_to_end import (
     ARMS,
@@ -311,3 +312,44 @@ def test_provider_stage_lock_is_exclusive_and_self_cleaning(tmp_path) -> None:
             pass
 
     assert not lock_path.exists()
+
+
+def test_v1_verifier_protocol_is_compatible_only_with_reader_budget_amendment() -> None:
+    target = runtime.load_protocol(runtime.DEFAULT_PROTOCOL)
+    source = json.loads(
+        verifier_import._git_file_bytes(
+            "709ee9eb0a0e7f5e734fa85a317351f086a29704",
+            verifier_import.PROTOCOL_PATH,
+        )
+    )
+    verifier_import.assert_protocol_compatibility(source, target.raw)
+
+    changed = json.loads(json.dumps(target.raw))
+    changed["text_verifier"]["violation_threshold"] = 0.90
+    with pytest.raises(ValueError, match="outside the allowed"):
+        verifier_import.assert_protocol_compatibility(source, changed)
+
+
+def test_migrated_verifier_record_preserves_response_and_binds_source() -> None:
+    source = {
+        "schema_version": 1,
+        "protocol_sha256": "source-protocol",
+        "implementation_commit": "source-commit",
+        "response": {"value": 1},
+    }
+    migrated = verifier_import.migrated_record(
+        source,
+        target_protocol_sha256="target-protocol",
+        target_commit="target-commit",
+        source_record_sha256="source-record",
+    )
+
+    assert migrated["response"] is source["response"]
+    assert migrated["protocol_sha256"] == "target-protocol"
+    assert migrated["implementation_commit"] == "target-commit"
+    assert migrated["compatibility_source"] == {
+        "protocol_sha256": "source-protocol",
+        "implementation_commit": "source-commit",
+        "record_sha256": "source-record",
+        "response_unchanged": True,
+    }
