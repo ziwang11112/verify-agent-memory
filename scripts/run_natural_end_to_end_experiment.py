@@ -252,7 +252,7 @@ def _binding(value: object, label: str) -> ProviderBinding:
 def load_protocol(path: Path) -> Protocol:
     raw = _read_json(path)
     if raw.get("schema_version") != 1 or raw.get("protocol_id") != (
-        "natural-heldout-route-to-reader-v1"
+        "natural-heldout-route-to-reader-v2"
     ):
         raise ValueError("natural end-to-end protocol identity drifted")
     if raw.get("status") != "frozen_nonofficial_same_population_end_to_end_evaluation":
@@ -1468,7 +1468,7 @@ def score(
     ]
     manifest = {
         "schema_version": 1,
-        "protocol_id": "natural-heldout-route-to-reader-v1",
+        "protocol_id": "natural-heldout-route-to-reader-v2",
         "status": "complete_nonofficial_same_population_end_to_end_evaluation",
         "protocol_sha256": protocol.protocol_sha256,
         "case_bundle_sha256": _sha256_file(cases_path),

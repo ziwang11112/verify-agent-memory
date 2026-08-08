@@ -24,7 +24,8 @@ gold.
 The reader sees the query, optional as-of time, candidate text, and visible record order.
 It never sees arm names, hidden memory IDs, relevance labels, or admissibility gold. Exact
 reader-visible prompts may be evaluated once and shared across arms only when their bytes
-are identical.
+are identical. Reader outputs are capped at 2,048 provider tokens; the earlier 512-token
+pilot was frozen unscored after a valid Claude response reached the cap.
 
 ## Gold coverage
 

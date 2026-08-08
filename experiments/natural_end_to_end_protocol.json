@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "protocol_id": "natural-heldout-route-to-reader-v1",
+  "protocol_id": "natural-heldout-route-to-reader-v2",
   "status": "frozen_nonofficial_same_population_end_to_end_evaluation",
   "objective": "measure_retrieval_admissibility_prompt_exposure_and_answer_outcomes_on_one_natural_population",
   "source_contract": {
@@ -144,7 +144,7 @@
   },
   "execution": {
     "maximum_reader_calls_per_provider_before_exact_prompt_deduplication": 18835,
-    "maximum_output_tokens_reader": 512,
+    "maximum_output_tokens_reader": 2048,
     "maximum_output_tokens_verifier": 4096,
     "maximum_output_tokens_judge": 256,
     "timeout_seconds": 180,

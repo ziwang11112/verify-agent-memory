@@ -273,6 +273,7 @@ def test_frozen_execution_protocol_loads_without_credentials_or_calls() -> None:
     assert protocol.target_recall == 0.8
     assert protocol.verifier_threshold == 0.95
     assert protocol.verifier_memory_max_bytes == 2048
+    assert protocol.maximum_output_tokens_reader == 2048
     assert [binding.provider for binding in protocol.readers] == [
         "OpenAI",
         "Anthropic",
