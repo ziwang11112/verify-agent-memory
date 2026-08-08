@@ -295,3 +295,18 @@ def test_verifier_payload_hides_released_labels() -> None:
         "memory_key",
     ):
         assert hidden not in serialized
+
+
+def test_provider_stage_lock_is_exclusive_and_self_cleaning(tmp_path) -> None:
+    protocol = runtime.load_protocol(runtime.DEFAULT_PROTOCOL)
+    lock_path = runtime._lock_path(tmp_path, "verifier", protocol.verifier)
+
+    with runtime._exclusive_stage_lock(tmp_path, "verifier", protocol.verifier):
+        assert lock_path.is_file()
+        with (
+            pytest.raises(RuntimeError, match="already locked"),
+            runtime._exclusive_stage_lock(tmp_path, "verifier", protocol.verifier),
+        ):
+            pass
+
+    assert not lock_path.exists()

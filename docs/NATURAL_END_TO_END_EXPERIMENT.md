@@ -74,4 +74,6 @@ python scripts/materialize_natural_end_to_end_cases.py
 
 Every successful call is checkpointed separately. A provider failure stops new
 submissions after the small in-flight window drains; completed calls remain resumable.
-No semantic repair or outcome-selective rerun is performed.
+Each provider stage holds an atomic single-writer lock for its full execution. A stale
+lock fails closed and must be audited rather than removed automatically. No semantic
+repair or outcome-selective rerun is performed.

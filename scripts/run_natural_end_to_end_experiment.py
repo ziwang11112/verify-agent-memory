@@ -15,6 +15,7 @@ import time
 from collections import defaultdict
 from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -410,6 +411,50 @@ def _failure_path(runtime: Path, stage: str, binding: ProviderBinding, request_i
     return _stage_root(runtime, stage, binding) / "failures" / f"{request_id}-{timestamp}.json"
 
 
+def _lock_path(runtime: Path, stage: str, binding: ProviderBinding) -> Path:
+    return runtime / ".locks" / f"{stage}-{_provider_slug(binding)}.lock"
+
+
+@contextmanager
+def _exclusive_stage_lock(
+    runtime: Path,
+    stage: str,
+    binding: ProviderBinding,
+):
+    """Permit only one writer for a provider stage and fail closed on stale locks."""
+    path = _lock_path(runtime, stage, binding)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    token = f"{os.getpid()}-{time.time_ns()}"
+    try:
+        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError as error:
+        raise RuntimeError(f"provider stage is already locked: {path}") from error
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            json.dump(
+                {
+                    "schema_version": 1,
+                    "stage": stage,
+                    "provider": binding.provider,
+                    "model": binding.model,
+                    "pid": os.getpid(),
+                    "created_unix_ns": time.time_ns(),
+                    "token": token,
+                },
+                handle,
+                sort_keys=True,
+            )
+            handle.write("\n")
+        yield
+    finally:
+        try:
+            current = _read_json(path)
+        except (FileNotFoundError, json.JSONDecodeError, OSError, TypeError, ValueError):
+            current = None
+        if isinstance(current, Mapping) and current.get("token") == token:
+            path.unlink()
+
+
 def _record_cost(record: Mapping[str, Any]) -> float:
     return _number(record.get("cost_usd"), "response.cost_usd")
 
@@ -504,6 +549,34 @@ def _call_provider(
 
 
 def _execute_specs(
+    *,
+    protocol: Protocol,
+    runtime: Path,
+    stage: str,
+    binding: ProviderBinding,
+    specs: Mapping[str, CallSpec],
+    system_prompt: str,
+    maximum_output_tokens: int,
+    dotenv: Path,
+    workers: int,
+    parser: Callable[[object, str], object],
+) -> dict[str, object]:
+    with _exclusive_stage_lock(runtime, stage, binding):
+        return _execute_specs_locked(
+            protocol=protocol,
+            runtime=runtime,
+            stage=stage,
+            binding=binding,
+            specs=specs,
+            system_prompt=system_prompt,
+            maximum_output_tokens=maximum_output_tokens,
+            dotenv=dotenv,
+            workers=workers,
+            parser=parser,
+        )
+
+
+def _execute_specs_locked(
     *,
     protocol: Protocol,
     runtime: Path,
