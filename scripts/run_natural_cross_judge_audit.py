@@ -253,6 +253,28 @@ def _validate_recovery_contract(protocol: AuditProtocol) -> None:
         recovery.get("source_protocol_sha256"),
         "recovery source protocol",
     )
+    for prefix in ("failure", "fixture"):
+        _string(recovery.get(f"{prefix}_path"), f"recovery {prefix} path")
+        digest = _string(recovery.get(f"{prefix}_sha256"), f"recovery {prefix} hash")
+        if len(digest) != 64:
+            raise ValueError(f"recovery {prefix} hash must be a SHA-256")
+    if recovery.get("accepted_benchmark_response_count") != 0:
+        raise ValueError("model migration is allowed only before an accepted benchmark label")
+    if recovery.get("selection_uses_outcomes") is not False:
+        raise ValueError("cross-judge recovery cannot use outcomes")
+    if recovery.get("provider_response_content_inspected") is not False:
+        raise ValueError("cross-judge recovery cannot inspect an incomplete provider response")
+    accounted = _number(recovery.get("fixture_cost_usd"), "prior fixture cost") + _number(
+        recovery.get("failure_cost_bound_usd"), "prior failure bound"
+    )
+    if abs(accounted - protocol.prior_budget_consumption_usd) > 1e-12:
+        raise ValueError("prior recovery budget is not fully accounted")
+
+
+def _validate_recovery_artifacts(protocol: AuditProtocol) -> None:
+    if protocol.raw["protocol_id"] != "natural-cross-judge-ceiling-recovery-v1":
+        return
+    recovery = _mapping(protocol.raw.get("recovery"), "recovery")
     failure_path = ROOT / _string(recovery.get("failure_path"), "recovery failure path")
     _assert_hash(failure_path, recovery.get("failure_sha256"), "recovery failure")
     fixture_path = ROOT / _string(recovery.get("fixture_path"), "recovery fixture path")
@@ -268,10 +290,6 @@ def _validate_recovery_contract(protocol: AuditProtocol) -> None:
     for key, value in expected_failure.items():
         if failure.get(key) != value:
             raise ValueError(f"cross-judge recovery failure drifted: {key}")
-    if recovery.get("accepted_benchmark_response_count") != 0:
-        raise ValueError("model migration is allowed only before an accepted benchmark label")
-    if recovery.get("selection_uses_outcomes") is not False:
-        raise ValueError("cross-judge recovery cannot use outcomes")
 
 
 def _validate_source_completion(source: Mapping[str, Any]) -> dict[str, Any]:
@@ -547,6 +565,7 @@ def _require_clean_contract() -> str:
 
 
 def validate(protocol: AuditProtocol, sample_manifest: Path) -> dict[str, Any]:
+    _validate_recovery_artifacts(protocol)
     units, specs, plans = _load_frozen_sample(protocol, sample_manifest)
     return {
         "protocol_sha256": protocol.sha256,
@@ -569,6 +588,7 @@ def _fixture_path(runtime: Path, binding: base.ProviderBinding) -> Path:
 
 def run_fixture(protocol: AuditProtocol, *, runtime: Path, dotenv: Path) -> dict[str, Any]:
     implementation_commit = _require_clean_contract()
+    _validate_recovery_artifacts(protocol)
     execution = _execution_protocol(protocol)
     path = _fixture_path(runtime, execution.judge)
     if path.is_file():
@@ -837,6 +857,7 @@ def analyze(
     output: Path,
 ) -> dict[str, Any]:
     _require_clean_contract()
+    _validate_recovery_artifacts(protocol)
     units, specs, plans = _load_frozen_sample(protocol, sample_manifest)
     execution = _execution_protocol(protocol)
     completion_path = runtime / "completion.json"
