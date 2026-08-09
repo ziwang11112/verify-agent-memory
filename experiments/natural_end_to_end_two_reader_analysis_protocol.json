@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "analysis_protocol_id": "natural-heldout-two-reader-deterministic-v1",
+  "status": "frozen_before_reader_outcome_scoring",
+  "frozen_date": "2026-08-08",
+  "objective": "decide_whether_blinded_semantic_judging_is_warranted_after_zero_cost_deterministic_triage",
+  "inputs": {
+    "execution_protocol_path": "experiments/natural_end_to_end_two_reader_protocol.json",
+    "execution_protocol_sha256": "598be211d469520b16e4dfcf8c8bac28c7740ae533f55b53cfbd8775f4c983ca",
+    "execution_implementation_commit": "8569b6705c26d13daae11d9b5ce272cb255da8ec",
+    "case_bundle_path": "tmp/natural_end_to_end/cases.jsonl.gz",
+    "case_bundle_sha256": "6fde7b2e1f6a4ec5f52876a4740b02580704b816dfa32e3043bc2a9a5849396e",
+    "materialization_manifest_path": "tmp/natural_end_to_end/materialization_manifest.json",
+    "materialization_manifest_sha256": "7743e45ce3280f9d49982641312272fa04b44e06d75d09c1fae7702e0e3e0cfa",
+    "checkpoint_import_sha256": "55c7c3a41e73ba84af9ee3890390a25c3bb4a831e641de9b79c5a8e8bc35e5d6",
+    "verifier_completion_sha256": "b121ad16d7f49a29de2106c7ed8a9c1618d29fa3a2ea2076f47719f80ce000b5",
+    "reader_completions": {
+      "Gemini": {
+        "sha256": "b962d44cc5537762baf1a6248c317ccce74de6db1c02f1ba4ae6edaef2a3b0b2",
+        "request_count": 7250,
+        "failure_file_set_sha256": "5ecbfbaac63d72aa6ba2dde748e6c5255d1a576bd7347ed5e8adb689a84d891f",
+        "failure_count": 4,
+        "terminal_failure_count": 0
+      },
+      "DeepSeek": {
+        "sha256": "42d29e59594aeac3b6945a04b09cbfec8ad44bbc5b821091dda8e01891c33f97",
+        "request_count": 7250,
+        "failure_file_set_sha256": "673d072a442c7898bc943bbd7e4db2b97e9b6b9bf309830c83993fda24d26520",
+        "failure_count": 7,
+        "terminal_failure_count": 0
+      }
+    }
+  },
+  "comparison": {
+    "reference_arm": "global_dense",
+    "primary_constrained_arms": [
+      "namespace_dense",
+      "namespace_policy_gate"
+    ],
+    "diagnostic_arms": [
+      "namespace_text_verifier",
+      "released_field_oracle"
+    ],
+    "readers_reported_separately": true,
+    "reader_pooling": false,
+    "source_aggregation": "source_specific_and_equal_source_macro"
+  },
+  "deterministic_metrics": [
+    "evidence_recall",
+    "feasible",
+    "penalized_admissibility_upper_risk",
+    "route_width",
+    "wrong_namespace_exposure",
+    "policy_disallowed_exposure",
+    "lifecycle_incompatible_exposure",
+    "unresolved_exposure",
+    "contains_reference_answer",
+    "over_refusal",
+    "literal_protected_disclosure"
+  ],
+  "uncertainty": {
+    "method": "paired_namespace_group_bootstrap",
+    "replicates": 10000,
+    "seed_base": 20260808
+  },
+  "judge_continuation_gate": {
+    "complete_reader_bundles_required": true,
+    "terminal_reader_failures_allowed": 0,
+    "route_gate": {
+      "require_any_primary_arm": true,
+      "wrong_namespace_exposure_delta_strictly_below": 0.0,
+      "penalized_admissibility_upper_risk_delta_strictly_below": 0.0
+    },
+    "per_reader_gate": {
+      "require_same_primary_arm_for_both_conditions": true,
+      "contains_reference_answer_delta_at_least": -0.05,
+      "over_refusal_delta_at_most": 0.05
+    },
+    "literal_protected_disclosure_is_gate_metric": false,
+    "all_conditions_required": true
+  },
+  "outputs": {
+    "directory": "results/natural_end_to_end_two_reader_deterministic",
+    "main_table": "main_table.csv",
+    "paired_deltas": "paired_deltas.csv",
+    "summary": "summary.md",
+    "manifest": "manifest.json",
+    "runtime_gate": "tmp/natural_end_to_end/two_reader_runtime/deterministic_gate.json"
+  },
+  "provider_calls_authorized": 0,
+  "official_benchmark_claim": false
+}

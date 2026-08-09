@@ -47,6 +47,9 @@ from verify_agent_memory.natural_end_to_end import (  # noqa: E402
 
 DEFAULT_PROTOCOL = ROOT / "experiments" / "natural_end_to_end_protocol.json"
 TWO_READER_PROTOCOL = ROOT / "experiments" / "natural_end_to_end_two_reader_protocol.json"
+TWO_READER_ANALYSIS_PROTOCOL = (
+    ROOT / "experiments" / "natural_end_to_end_two_reader_analysis_protocol.json"
+)
 DEFAULT_CASES = ROOT / "tmp" / "natural_end_to_end" / "cases.jsonl.gz"
 DEFAULT_MATERIALIZATION = ROOT / "tmp" / "natural_end_to_end" / "materialization_manifest.json"
 DEFAULT_RUNTIME = ROOT / "tmp" / "natural_end_to_end" / "provider_runtime"
@@ -55,12 +58,14 @@ DEFAULT_DOTENV = ROOT.parent / "bomi-codex-starter" / ".env"
 CONTRACT_PATHS = (
     "experiments/natural_end_to_end_protocol.json",
     "experiments/natural_end_to_end_two_reader_protocol.json",
+    "experiments/natural_end_to_end_two_reader_analysis_protocol.json",
     "experiments/prompts/inferred_admissibility_v1.txt",
     "experiments/prompts/natural_end_to_end_judge_v1.txt",
     "experiments/prompts/natural_end_to_end_reader_v1.txt",
     "scripts/run_inferred_admissibility_experiment.py",
     "scripts/import_natural_verifier_bundle.py",
     "scripts/import_natural_two_reader_checkpoints.py",
+    "scripts/analyze_natural_two_reader_deterministic.py",
     "scripts/run_natural_end_to_end_experiment.py",
     "src/verify_agent_memory/inferred_admissibility.py",
     "src/verify_agent_memory/natural_end_to_end.py",
@@ -541,12 +546,13 @@ def _load_record(
     binding: ProviderBinding,
     spec: CallSpec,
     parser: Callable[[object, str], object],
+    implementation_commit: str | None = None,
 ) -> Mapping[str, Any]:
     row = _read_json(path)
     expected = {
         "schema_version": 1,
         "protocol_sha256": protocol.protocol_sha256,
-        "implementation_commit": _git_head(),
+        "implementation_commit": implementation_commit or _git_head(),
         "stage": stage,
         "provider": binding.provider,
         "model": binding.model,
@@ -559,6 +565,28 @@ def _load_record(
     parser(row.get("response"), spec.request_id)
     _record_cost(row)
     return row
+
+
+def _completed_stage_commit(
+    protocol: Protocol,
+    runtime: Path,
+    stage: str,
+    binding: ProviderBinding,
+) -> str:
+    path = _completion_path(runtime, stage, binding)
+    receipt = _read_json(path)
+    expected = {
+        "schema_version": 1,
+        "protocol_sha256": protocol.protocol_sha256,
+        "stage": stage,
+        "provider": binding.provider,
+        "model": binding.model,
+        "complete_bundle": True,
+    }
+    for key, value in expected.items():
+        if receipt.get(key) != value:
+            raise ValueError(f"completed stage binding drifted: {path}/{key}")
+    return _string(receipt.get("implementation_commit"), f"{path}.implementation_commit")
 
 
 def _conservative_call_cost(
@@ -1144,6 +1172,12 @@ def _load_verifier_scores(
 ) -> dict[str, dict[str, float]]:
     specs, inference_cases = _verifier_specs(cases, protocol)
     parser = _verifier_parser_factory(inference_cases)
+    implementation_commit = _completed_stage_commit(
+        protocol,
+        runtime,
+        "verifier",
+        protocol.verifier,
+    )
     scores = {}
     for case in cases:
         record = _load_record(
@@ -1153,6 +1187,7 @@ def _load_verifier_scores(
             binding=protocol.verifier,
             spec=specs[case.case_id],
             parser=parser,
+            implementation_commit=implementation_commit,
         )
         prediction = verifier_contract.prediction_from_mapping(
             record["response"],
@@ -1198,7 +1233,11 @@ def _reader_binding(protocol: Protocol, provider: str) -> ProviderBinding:
     return matches[0]
 
 
-def _require_judge_gate(protocol: Protocol, runtime: Path) -> None:
+def _require_judge_gate(
+    protocol: Protocol,
+    runtime: Path,
+    analysis_protocol_path: Path = TWO_READER_ANALYSIS_PROTOCOL,
+) -> None:
     judge = _mapping(protocol.raw.get("judge"), "protocol.judge")
     if judge.get("execution_locked_until_deterministic_gate") is not True:
         return
@@ -1215,6 +1254,28 @@ def _require_judge_gate(protocol: Protocol, runtime: Path) -> None:
     for key, value in expected.items():
         if receipt.get(key) != value:
             raise ValueError(f"deterministic judge gate drifted: {key}")
+    if protocol.protocol_id != "natural-heldout-route-to-reader-two-reader-v3":
+        return
+    analysis = _read_json(analysis_protocol_path)
+    if analysis.get("analysis_protocol_id") != ("natural-heldout-two-reader-deterministic-v1"):
+        raise ValueError("deterministic analysis protocol identity drifted")
+    inputs = _mapping(analysis.get("inputs"), "analysis.inputs")
+    analysis_expected = {
+        "analysis_protocol_id": analysis["analysis_protocol_id"],
+        "analysis_protocol_sha256": _sha256_file(analysis_protocol_path),
+        "analysis_implementation_commit": _git_head(),
+        "execution_implementation_commit": inputs.get("execution_implementation_commit"),
+    }
+    for key, value in analysis_expected.items():
+        if receipt.get(key) != value:
+            raise ValueError(f"deterministic judge gate drifted: {key}")
+    outputs = _mapping(analysis.get("outputs"), "analysis.outputs")
+    output_dir = ROOT / _string(outputs.get("directory"), "analysis.outputs.directory")
+    manifest = output_dir / _string(outputs.get("manifest"), "analysis.outputs.manifest")
+    if not manifest.is_file() or receipt.get("deterministic_manifest_sha256") != (
+        _sha256_file(manifest)
+    ):
+        raise ValueError("deterministic judge gate manifest drifted")
 
 
 def _load_reader_responses(
@@ -1225,6 +1286,12 @@ def _load_reader_responses(
     specs: Mapping[str, CallSpec],
 ) -> dict[str, ReaderResponse]:
     responses = {}
+    implementation_commit = _completed_stage_commit(
+        protocol,
+        runtime,
+        "reader",
+        binding,
+    )
     for request_id, spec in specs.items():
         record = _load_record(
             _response_path(runtime, "reader", binding, request_id),
@@ -1233,6 +1300,7 @@ def _load_reader_responses(
             binding=binding,
             spec=spec,
             parser=_reader_parser,
+            implementation_commit=implementation_commit,
         )
         responses[request_id] = ReaderResponse.from_mapping(record["response"])
     return responses
@@ -1377,6 +1445,12 @@ def _load_judge_responses(
     specs: Mapping[str, CallSpec],
 ) -> dict[str, JudgeResponse]:
     responses = {}
+    implementation_commit = _completed_stage_commit(
+        protocol,
+        runtime,
+        "judge",
+        protocol.judge,
+    )
     for request_id, spec in specs.items():
         record = _load_record(
             _response_path(runtime, "judge", protocol.judge, request_id),
@@ -1385,6 +1459,7 @@ def _load_judge_responses(
             binding=protocol.judge,
             spec=spec,
             parser=_judge_parser,
+            implementation_commit=implementation_commit,
         )
         responses[request_id] = JudgeResponse.from_mapping(record["response"])
     return responses

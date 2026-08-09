@@ -354,24 +354,42 @@ def test_two_reader_migration_preserves_response_and_compatibility_chain() -> No
     }
 
 
-def test_two_reader_judge_requires_zero_call_deterministic_gate(tmp_path) -> None:
+def test_two_reader_judge_requires_zero_call_deterministic_gate(
+    tmp_path,
+    monkeypatch,
+) -> None:
     protocol = runtime.load_protocol(runtime.TWO_READER_PROTOCOL)
     with pytest.raises(RuntimeError, match="judge execution is locked"):
         runtime._require_judge_gate(protocol, tmp_path)
 
+    analysis_path = tmp_path / "analysis_protocol.json"
+    output = tmp_path / "deterministic"
+    runtime._write_json(output / "manifest.json", {"status": "complete"})
+    analysis = {
+        "analysis_protocol_id": "natural-heldout-two-reader-deterministic-v1",
+        "inputs": {"execution_implementation_commit": "execution-commit"},
+        "outputs": {"directory": str(output), "manifest": "manifest.json"},
+    }
+    runtime._write_json(analysis_path, analysis)
+    monkeypatch.setattr(runtime, "_git_head", lambda: "analysis-commit")
     gate = {
         "schema_version": 1,
         "protocol_sha256": protocol.protocol_sha256,
+        "analysis_protocol_id": analysis["analysis_protocol_id"],
+        "analysis_protocol_sha256": runtime._sha256_file(analysis_path),
+        "analysis_implementation_commit": "analysis-commit",
+        "execution_implementation_commit": "execution-commit",
         "status": "deterministic_gate_passed",
+        "deterministic_manifest_sha256": runtime._sha256_file(output / "manifest.json"),
         "provider_calls_made": 0,
     }
     runtime._write_json(tmp_path / "deterministic_gate.json", gate)
-    runtime._require_judge_gate(protocol, tmp_path)
+    runtime._require_judge_gate(protocol, tmp_path, analysis_path)
 
     gate["provider_calls_made"] = 1
     runtime._write_json(tmp_path / "deterministic_gate.json", gate)
     with pytest.raises(ValueError, match="provider_calls_made"):
-        runtime._require_judge_gate(protocol, tmp_path)
+        runtime._require_judge_gate(protocol, tmp_path, analysis_path)
 
 
 def test_reader_fixture_cap_stops_before_credential_read(tmp_path, monkeypatch) -> None:
