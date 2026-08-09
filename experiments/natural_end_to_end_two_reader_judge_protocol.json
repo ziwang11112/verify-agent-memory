@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-heldout-two-reader-semantic-judge-v1",
+  "status": "frozen_before_any_semantic_judge_outcome",
+  "frozen_date": "2026-08-08",
+  "objective": "estimate_semantic_answer_outcomes_for_the_complete_paired_route_panel_within_the_approved_judge_budget",
+  "source_execution": {
+    "protocol_path": "experiments/natural_end_to_end_two_reader_protocol.json",
+    "protocol_sha256": "598be211d469520b16e4dfcf8c8bac28c7740ae533f55b53cfbd8775f4c983ca",
+    "runtime": "tmp/natural_end_to_end/two_reader_runtime",
+    "case_bundle_path": "tmp/natural_end_to_end/cases.jsonl.gz",
+    "case_bundle_sha256": "6fde7b2e1f6a4ec5f52876a4740b02580704b816dfa32e3043bc2a9a5849396e",
+    "reader_completions": {
+      "Gemini": "b962d44cc5537762baf1a6248c317ccce74de6db1c02f1ba4ae6edaef2a3b0b2",
+      "DeepSeek": "42d29e59594aeac3b6945a04b09cbfec8ad44bbc5b821091dda8e01891c33f97"
+    }
+  },
+  "continuation_gate": {
+    "analysis_protocol_path": "experiments/natural_end_to_end_two_reader_analysis_protocol.json",
+    "analysis_protocol_sha256": "85b9b3d7650d0d7f9bb41738cca4bd367c5c68b15aa47aa5ab48586c8d23c669",
+    "analysis_implementation_commit": "8f785cd8735fe1276d8e4d24ca0aa589a28fbdd3",
+    "deterministic_manifest_path": "results/natural_end_to_end_two_reader_deterministic/manifest.json",
+    "deterministic_manifest_sha256": "d52df597b6b603baf0b320d843ca2ed382de3d59f1d234de519973f15fa2b03c",
+    "runtime_gate_path": "tmp/natural_end_to_end/two_reader_runtime/deterministic_gate.json",
+    "runtime_gate_sha256": "e4a354e2941b658585a71aa46f6d73fe4eee50b7aba883e6c4951a84b834cb40",
+    "required_status": "deterministic_gate_passed",
+    "provider_calls_in_gate": 0
+  },
+  "sampling": {
+    "selection_stage": "before_any_semantic_judge_call_or_outcome",
+    "selection_fields": [
+      "source",
+      "case_id"
+    ],
+    "outcome_or_route_dependent_selection": false,
+    "rhelm": {
+      "method": "census",
+      "population_count": 523,
+      "sample_count": 523
+    },
+    "memops": {
+      "method": "deterministic_simple_random_sample_without_replacement",
+      "population_count": 3244,
+      "sample_count": 1000,
+      "ranking": "ascending_sha256_then_case_id",
+      "salt": "natural-two-reader-judge-v1|",
+      "population_namespace_group_count": 80,
+      "sample_namespace_group_count": 80
+    },
+    "sample_case_count": 1523,
+    "sample_case_id_set_sha256": "a39e1f6a2313ed8f6918d27bcc2ac4516fc2acc1d34c9bc7dffcacca07105491",
+    "arms": [
+      "global_dense",
+      "namespace_dense",
+      "namespace_policy_gate",
+      "namespace_text_verifier",
+      "released_field_oracle"
+    ],
+    "reader_providers": [
+      "Gemini",
+      "DeepSeek"
+    ],
+    "pairing": "every_selected_case_crossed_with_every_arm_and_reader"
+  },
+  "judge": {
+    "provider": "Anthropic",
+    "model": "claude-haiku-4-5",
+    "prompt_sha256": "7f6a306e87c972e8a4c06bc68df724351d7da70fee3ef460e091516be0f0c412",
+    "arm_and_reader_blinded": true,
+    "exact_prompt_deduplication": true,
+    "expected_unique_request_count": 8790,
+    "expected_request_id_set_sha256": "0725e15d54c7fd280361f0d3648d7ffe50c4d772b9d6580cbaffd56bbe280ac9",
+    "maximum_output_tokens": 256,
+    "semantic_or_output_repair": false,
+    "selective_rerun": false,
+    "reader_estimates_pooled": false
+  },
+  "budget": {
+    "currency": "USD",
+    "fixture_hard_cap_usd": 0.01,
+    "planned_calls_conservative_cap_usd": 45.0,
+    "total_incremental_hard_cap_usd": 60.0,
+    "fixture_success_and_conservative_failure_reservations_all_count_toward_total": true
+  },
+  "uncertainty": {
+    "method": "paired_namespace_group_bootstrap",
+    "replicates": 10000,
+    "seed_base": 20260808,
+    "source_specific_and_equal_source_macro": true
+  },
+  "outputs": {
+    "runtime": "tmp/natural_end_to_end/two_reader_judge_runtime",
+    "directory": "results/natural_end_to_end_two_reader_judged"
+  },
+  "official_rhelm_or_memops_claim": false
+}

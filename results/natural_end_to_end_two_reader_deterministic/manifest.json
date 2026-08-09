@@ -1,0 +1,68 @@
+{
+  "analysis_implementation_commit": "8f785cd8735fe1276d8e4d24ca0aa589a28fbdd3",
+  "analysis_protocol_id": "natural-heldout-two-reader-deterministic-v1",
+  "analysis_protocol_sha256": "85b9b3d7650d0d7f9bb41738cca4bd367c5c68b15aa47aa5ab48586c8d23c669",
+  "artifacts": {
+    "main_table.csv": "6e9d7ff1ab0226f01f88f92708ae9501a8ab33d98c7ee9d1a602f778831f8ead",
+    "paired_deltas.csv": "d5c9113e3d5dfbdad0e2faf1eef9d5979ab7a15dafc2395b05959ad6da02a085",
+    "summary.md": "05cb1bc84638e2b5be12ab266e4088413c610c3a1baed8c29c0d1e1d8fd8b42d"
+  },
+  "case_count": 3767,
+  "execution_implementation_commit": "8569b6705c26d13daae11d9b5ce272cb255da8ec",
+  "execution_protocol_sha256": "598be211d469520b16e4dfcf8c8bac28c7740ae533f55b53cfbd8775f4c983ca",
+  "gate": {
+    "passed": true,
+    "reader_details": {
+      "DeepSeek": {
+        "arms": {
+          "namespace_dense": {
+            "contains_reference_answer_delta": 0.01523388965774143,
+            "over_refusal_delta": -0.04942379282947427,
+            "passed": true
+          },
+          "namespace_policy_gate": {
+            "contains_reference_answer_delta": 0.014925628252069419,
+            "over_refusal_delta": -0.04849900861245824,
+            "passed": true
+          }
+        },
+        "passed": true
+      },
+      "Gemini": {
+        "arms": {
+          "namespace_dense": {
+            "contains_reference_answer_delta": 0.01369258262938138,
+            "over_refusal_delta": -0.03305469960132311,
+            "passed": true
+          },
+          "namespace_policy_gate": {
+            "contains_reference_answer_delta": 0.01338432122370937,
+            "over_refusal_delta": -0.0265812100822109,
+            "passed": true
+          }
+        },
+        "passed": true
+      }
+    },
+    "reader_gate_passed": true,
+    "route_details": {
+      "namespace_dense": {
+        "passed": true,
+        "penalized_admissibility_upper_risk_delta": -0.084415414314897,
+        "wrong_namespace_exposure_delta": -0.3165815165753867
+      },
+      "namespace_policy_gate": {
+        "passed": true,
+        "penalized_admissibility_upper_risk_delta": -0.10154492360441447,
+        "wrong_namespace_exposure_delta": -0.3165815165753867
+      }
+    },
+    "route_gate_passed": true
+  },
+  "official_benchmark_result": false,
+  "provider_calls_made": 0,
+  "reader_estimates_pooled": false,
+  "row_count": 37670,
+  "schema_version": 1,
+  "status": "complete_zero_call_deterministic_triage"
+}
