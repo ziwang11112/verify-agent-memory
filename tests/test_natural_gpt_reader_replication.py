@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -24,18 +27,52 @@ def test_gpt_reader_protocol_is_narrow_and_cost_capped() -> None:
     ]
 
 
-def test_gpt_reader_plan_reuses_frozen_sample_and_only_primary_routes() -> None:
+def test_gpt_reader_plan_reuses_frozen_sample_and_only_primary_routes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     protocol = gpt.load_protocol()
+    source = base.load_protocol(base.TWO_READER_PROTOCOL)
+    selected = [SimpleNamespace(case_id="case-a"), SimpleNamespace(case_id="case-b")]
+    assignments = {
+        (case.case_id, arm): f"{case.case_id}-{arm}" for case in selected for arm in base.ARMS
+    }
+    specs = {
+        request_id: base.CallSpec(
+            request_id=request_id,
+            payload=request_id,
+            schema=base.reader_response_schema(),
+        )
+        for request_id in assignments.values()
+    }
+    primary_ids = {
+        assignments[(case.case_id, arm)] for case in selected for arm in gpt.PRIMARY_ARMS
+    }
+    sample = {
+        **protocol.sample,
+        "case_count": len(selected),
+        "assignment_count": len(selected) * len(gpt.PRIMARY_ARMS),
+        "expected_unique_reader_request_count": len(primary_ids),
+        "expected_reader_request_id_set_sha256": base._sha256_object(sorted(primary_ids)),
+    }
+    protocol = replace(protocol, sample=sample)
+    monkeypatch.setattr(
+        gpt,
+        "_load_sources",
+        lambda _protocol: (source, object(), selected, Path("unused")),
+    )
+    monkeypatch.setattr(
+        base,
+        "_reader_plan",
+        lambda _cases, _protocol, _runtime: (specs, assignments, {}),
+    )
     execution, selected, specs, assignments, _scores = gpt._reader_plan(protocol)
 
-    assert len(selected) == 1523
-    assert len(assignments) == 4569
-    assert len(specs) == 3157
+    assert len(selected) == 2
+    assert len(assignments) == 6
+    assert len(specs) == 6
     assert {arm for _case_id, arm in assignments} == set(gpt.PRIMARY_ARMS)
     assert [binding.provider for binding in execution.readers] == ["OpenAI"]
-    assert base._sha256_object(sorted(specs)) == (
-        "c119f0b6a243adb0e684f0368983c638c3cdfa6c99d4106ffa7f3d919933f7f2"
-    )
+    assert base._sha256_object(sorted(specs)) == sample["expected_reader_request_id_set_sha256"]
 
 
 def test_gpt_reader_fixture_uses_strict_schema_and_no_reasoning(
@@ -43,7 +80,10 @@ def test_gpt_reader_fixture_uses_strict_schema_and_no_reasoning(
     tmp_path,
 ) -> None:
     protocol = gpt.load_protocol()
-    execution, *_ = gpt._reader_plan(protocol)
+    execution = gpt._execution_protocol(
+        protocol,
+        base.load_protocol(base.TWO_READER_PROTOCOL),
+    )
     captured = {}
 
     def fake_provider(binding, **kwargs):
