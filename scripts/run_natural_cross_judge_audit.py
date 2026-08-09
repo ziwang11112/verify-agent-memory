@@ -41,7 +41,9 @@ PRIMARY_ARMS = gpt.PRIMARY_ARMS
 CONTRACT_PATHS = (
     *base.CONTRACT_PATHS,
     "docs/NATURAL_CROSS_JUDGE_AUDIT.md",
+    "docs/NATURAL_CROSS_JUDGE_RECOVERY.md",
     "experiments/natural_cross_judge_audit_protocol.json",
+    "experiments/natural_cross_judge_recovery_protocol.json",
     "experiments/manifests/natural_cross_judge_sample.json",
     "scripts/run_natural_cross_judge_audit.py",
     "src/verify_agent_memory/judge_agreement.py",
@@ -114,9 +116,17 @@ class AuditProtocol:
     def call_reservation_usd(self) -> float:
         return _number(self.budget["per_call_reservation_usd"], "call reservation")
 
+    @property
+    def prior_budget_consumption_usd(self) -> float:
+        return _number(
+            self.budget.get("prior_budget_consumption_usd", 0.0),
+            "prior budget consumption",
+        )
+
 
 def load_protocol(path: Path = DEFAULT_PROTOCOL) -> AuditProtocol:
     raw = _mapping(json.loads(path.read_text(encoding="utf-8")), "audit protocol")
+    protocol_id = raw.get("protocol_id")
     expected_top = {
         "schema_version",
         "protocol_id",
@@ -131,13 +141,22 @@ def load_protocol(path: Path = DEFAULT_PROTOCOL) -> AuditProtocol:
         "analysis",
         "outputs",
     }
+    if protocol_id == "natural-cross-judge-ceiling-recovery-v1":
+        expected_top.add("recovery")
     if set(raw) != expected_top:
         raise ValueError("cross-judge protocol has missing or unknown top-level fields")
-    if raw.get("schema_version") != 1 or raw.get("protocol_id") != (
-        "natural-cross-judge-posthoc-audit-v1"
-    ):
+    if raw.get("schema_version") != 1 or protocol_id not in {
+        "natural-cross-judge-posthoc-audit-v1",
+        "natural-cross-judge-ceiling-recovery-v1",
+    }:
         raise ValueError("cross-judge protocol identity drifted")
-    if raw.get("status") != "frozen_before_any_strong_judge_provider_call":
+    expected_status = {
+        "natural-cross-judge-posthoc-audit-v1": ("frozen_before_any_strong_judge_provider_call"),
+        "natural-cross-judge-ceiling-recovery-v1": (
+            "frozen_after_zero_label_ceiling_failure_before_gpt51_provider_call"
+        ),
+    }[str(protocol_id)]
+    if raw.get("status") != expected_status:
         raise ValueError("cross-judge protocol is not frozen")
     interpretation = _mapping(raw["interpretation"], "interpretation")
     required_false = (
@@ -173,22 +192,48 @@ def load_protocol(path: Path = DEFAULT_PROTOCOL) -> AuditProtocol:
         raise ValueError("cross-judge selection must remain outcome independent")
     if _integer(protocol.sampling.get("sample_count"), "sample count", minimum=1) != 200:
         raise ValueError("cross-judge sample count drifted")
-    if protocol.binding.provider != "OpenAI" or protocol.binding.model != ("gpt-5-pro-2025-10-06"):
+    expected_model = {
+        "natural-cross-judge-posthoc-audit-v1": "gpt-5-pro-2025-10-06",
+        "natural-cross-judge-ceiling-recovery-v1": "gpt-5.1-2025-11-13",
+    }[str(protocol_id)]
+    if protocol.binding.provider != "OpenAI" or protocol.binding.model != expected_model:
         raise ValueError("strong judge binding drifted")
     if protocol.binding.controls != {"effort": "high"}:
-        raise ValueError("GPT-5 Pro reasoning control drifted")
+        raise ValueError("strong judge reasoning control drifted")
     if protocol.judge.get("strict_json_schema") is not True:
         raise ValueError("strong judge must use strict structured output")
-    if _integer(protocol.judge.get("maximum_output_tokens"), "output ceiling") != 512:
+    expected_output_tokens = {
+        "natural-cross-judge-posthoc-audit-v1": 512,
+        "natural-cross-judge-ceiling-recovery-v1": 4096,
+    }[str(protocol_id)]
+    if (
+        _integer(protocol.judge.get("maximum_output_tokens"), "output ceiling")
+        != expected_output_tokens
+    ):
         raise ValueError("strong judge output ceiling drifted")
     if _integer(protocol.judge.get("maximum_transport_retries"), "retries") != 0:
         raise ValueError("transport retries are forbidden")
-    if protocol.fixture_cap_usd != 0.25 or protocol.total_cap_usd != 20.0:
+    expected_fixture_cap = {
+        "natural-cross-judge-posthoc-audit-v1": 0.25,
+        "natural-cross-judge-ceiling-recovery-v1": 0.1,
+    }[str(protocol_id)]
+    expected_reservation = {
+        "natural-cross-judge-posthoc-audit-v1": 0.096,
+        "natural-cross-judge-ceiling-recovery-v1": 0.04384,
+    }[str(protocol_id)]
+    if protocol.fixture_cap_usd != expected_fixture_cap or protocol.total_cap_usd != 20.0:
         raise ValueError("cross-judge budget drifted")
-    if protocol.call_reservation_usd != 0.096:
+    if protocol.call_reservation_usd != expected_reservation:
         raise ValueError("cross-judge call reservation drifted")
-    if protocol.fixture_cap_usd + 200 * protocol.call_reservation_usd > (protocol.total_cap_usd):
+    if (
+        protocol.prior_budget_consumption_usd
+        + protocol.fixture_cap_usd
+        + 200 * protocol.call_reservation_usd
+        > protocol.total_cap_usd
+    ):
         raise ValueError("cross-judge reservations exceed the hard cap")
+    if protocol_id == "natural-cross-judge-ceiling-recovery-v1":
+        _validate_recovery_contract(protocol)
     return protocol
 
 
@@ -196,6 +241,37 @@ def _assert_hash(path: Path, expected: object, label: str) -> None:
     expected_hash = _string(expected, f"{label} SHA-256")
     if len(expected_hash) != 64 or not path.is_file() or base._sha256_file(path) != expected_hash:
         raise ValueError(f"{label} hash drifted")
+
+
+def _validate_recovery_contract(protocol: AuditProtocol) -> None:
+    recovery = _mapping(protocol.raw.get("recovery"), "recovery")
+    source_protocol_path = ROOT / _string(
+        recovery.get("source_protocol_path"), "recovery source protocol path"
+    )
+    _assert_hash(
+        source_protocol_path,
+        recovery.get("source_protocol_sha256"),
+        "recovery source protocol",
+    )
+    failure_path = ROOT / _string(recovery.get("failure_path"), "recovery failure path")
+    _assert_hash(failure_path, recovery.get("failure_sha256"), "recovery failure")
+    fixture_path = ROOT / _string(recovery.get("fixture_path"), "recovery fixture path")
+    _assert_hash(fixture_path, recovery.get("fixture_sha256"), "recovery fixture")
+    failure = _mapping(base._read_json(failure_path), "recovery failure")
+    expected_failure = {
+        "protocol_sha256": recovery.get("source_protocol_sha256"),
+        "implementation_commit": recovery.get("source_implementation_commit"),
+        "request_id": recovery.get("failed_request_id"),
+        "response_accepted": False,
+        "automatic_rerun_allowed": False,
+    }
+    for key, value in expected_failure.items():
+        if failure.get(key) != value:
+            raise ValueError(f"cross-judge recovery failure drifted: {key}")
+    if recovery.get("accepted_benchmark_response_count") != 0:
+        raise ValueError("model migration is allowed only before an accepted benchmark label")
+    if recovery.get("selection_uses_outcomes") is not False:
+        raise ValueError("cross-judge recovery cannot use outcomes")
 
 
 def _validate_source_completion(source: Mapping[str, Any]) -> dict[str, Any]:
@@ -362,7 +438,7 @@ def derive_sample(protocol: AuditProtocol) -> tuple[dict[str, Any], dict[str, ba
     specs = {request_id: plans.specs[request_id] for request_id in request_ids}
     manifest = {
         "schema_version": 1,
-        "protocol_id": protocol.raw["protocol_id"],
+        "protocol_id": protocol.sampling.get("manifest_protocol_id", protocol.raw["protocol_id"]),
         "selection_type": "posthoc_outcome_independent_exact_payload_sample",
         "sampling_seed": protocol.sampling["seed"],
         "selection_fields": protocol.sampling["selection_fields"],
@@ -586,7 +662,11 @@ def execute(
     api_key = credentials.get("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is absent or empty")
-    spent = fixture_cost + sum(float(record["cost_usd"]) for record in existing.values())
+    spent = (
+        protocol.prior_budget_consumption_usd
+        + fixture_cost
+        + sum(float(record["cost_usd"]) for record in existing.values())
+    )
     pending = sorted(set(specs) - set(existing))
     if spent + len(pending) * protocol.call_reservation_usd > protocol.total_cap_usd:
         raise RuntimeError("remaining call reservations exceed the cross-judge hard cap")
@@ -663,6 +743,7 @@ def execute(
         "output_tokens": sum(int(row["usage"]["output_tokens"]) for row in existing.values()),
         "response_cost_usd": sum(float(row["cost_usd"]) for row in existing.values()),
         "fixture_cost_usd": fixture_cost,
+        "prior_budget_consumption_usd": protocol.prior_budget_consumption_usd,
         "total_incremental_cost_usd": spent,
         "total_incremental_hard_cap_usd": protocol.total_cap_usd,
         "response_set_sha256": base._sha256_object(
@@ -898,11 +979,18 @@ def analyze(
     overall = agreement_rows[0]
     quality = quality_rows[0]
     passed = float(overall["exact_agreement"]) >= float(protocol.analysis["agreement_gate"])
+    recovery_note = (
+        "The original GPT-5 Pro attempt accepted zero benchmark labels before a "
+        "512-token completion-ceiling failure; the frozen recovery migrated to GPT-5.1 "
+        "before outcome inspection.\n\n"
+        if protocol.raw["protocol_id"] == "natural-cross-judge-ceiling-recovery-v1"
+        else ""
+    )
     summary = f"""# Natural cross-judge audit
 
 ## Result
 
-The blinded GPT-5 Pro audit agreed with the frozen Claude Haiku 4.5 labels on
+The blinded `{protocol.binding.model}` audit agreed with the frozen Claude Haiku 4.5 labels on
 **{float(overall["exact_agreement"]):.3f}** of 200 exact-deduplicated outputs
 (item-bootstrap 95% CI **[{float(overall["exact_agreement_ci_low"]):.3f},
 {float(overall["exact_agreement_ci_high"]):.3f}]**). Cohen's kappa was
@@ -917,7 +1005,7 @@ For the 0--10 answer-quality score, exact agreement was
 
 ## Scope
 
-This is a post-hoc but outcome-independent robustness audit, not an independently
+{recovery_note}This is a post-hoc but outcome-independent robustness audit, not an independently
 preregistered replication. The 200 payloads were selected without inspecting reader
 answers or either judge's labels, using near-equal quotas over three readers, two
 sources, and the three common primary routes. Exact duplicate judge payloads were
@@ -943,6 +1031,7 @@ included in the public artifacts.
             "output_tokens",
             "response_cost_usd",
             "fixture_cost_usd",
+            "prior_budget_consumption_usd",
             "total_incremental_cost_usd",
             "total_incremental_hard_cap_usd",
             "response_set_sha256",

@@ -30,6 +30,26 @@ def test_cross_judge_protocol_is_posthoc_blinded_and_cost_capped() -> None:
     assert protocol.raw["interpretation"]["independently_preregistered_replication"] is False
 
 
+def test_ceiling_recovery_is_zero_label_migration_under_same_cap() -> None:
+    protocol = audit.load_protocol(
+        audit.ROOT / "experiments" / "natural_cross_judge_recovery_protocol.json"
+    )
+    recovery = protocol.raw["recovery"]
+
+    assert protocol.binding.model == "gpt-5.1-2025-11-13"
+    assert protocol.binding.controls == {"effort": "high"}
+    assert protocol.judge["maximum_output_tokens"] == 4096
+    assert recovery["accepted_benchmark_response_count"] == 0
+    assert recovery["selection_uses_outcomes"] is False
+    assert protocol.prior_budget_consumption_usd == pytest.approx(0.14907)
+    assert (
+        protocol.prior_budget_consumption_usd
+        + protocol.fixture_cap_usd
+        + 200 * protocol.call_reservation_usd
+    ) == pytest.approx(9.01707)
+    assert protocol.total_cap_usd == 20.0
+
+
 def test_unique_stratified_sample_is_deterministic_and_exact() -> None:
     assignments = []
     quotas = {}
