@@ -17,6 +17,7 @@ from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -151,6 +152,7 @@ def _write_csv(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
     os.replace(temporary, path)
 
 
+@cache
 def _git_head() -> str:
     return subprocess.run(
         ["git", "rev-parse", "HEAD"],

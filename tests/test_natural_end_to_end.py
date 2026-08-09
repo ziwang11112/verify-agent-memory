@@ -533,6 +533,26 @@ def test_provider_stage_lock_is_exclusive_and_self_cleaning(tmp_path) -> None:
     assert not lock_path.exists()
 
 
+def test_git_head_is_cached_within_one_runtime_process(monkeypatch) -> None:
+    calls = []
+
+    class Result:
+        stdout = "cached-commit\n"
+
+    def fake_run(*args, **kwargs):
+        calls.append((args, kwargs))
+        return Result()
+
+    runtime._git_head.cache_clear()
+    monkeypatch.setattr(runtime.subprocess, "run", fake_run)
+    try:
+        assert runtime._git_head() == "cached-commit"
+        assert runtime._git_head() == "cached-commit"
+        assert len(calls) == 1
+    finally:
+        runtime._git_head.cache_clear()
+
+
 def test_v1_verifier_protocol_is_compatible_only_with_reader_budget_amendment() -> None:
     target = runtime.load_protocol(runtime.DEFAULT_PROTOCOL)
     source = json.loads(
