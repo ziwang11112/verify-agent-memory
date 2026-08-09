@@ -59,6 +59,7 @@ CONTRACT_PATHS = (
     "experiments/natural_end_to_end_protocol.json",
     "experiments/natural_end_to_end_two_reader_protocol.json",
     "experiments/natural_end_to_end_two_reader_analysis_protocol.json",
+    "experiments/natural_end_to_end_gpt_reader_protocol.json",
     "experiments/prompts/inferred_admissibility_v1.txt",
     "experiments/prompts/natural_end_to_end_judge_v1.txt",
     "experiments/prompts/natural_end_to_end_reader_v1.txt",
@@ -67,6 +68,7 @@ CONTRACT_PATHS = (
     "scripts/import_natural_two_reader_checkpoints.py",
     "scripts/analyze_natural_two_reader_deterministic.py",
     "scripts/run_natural_end_to_end_experiment.py",
+    "scripts/run_natural_gpt_reader_replication.py",
     "src/verify_agent_memory/inferred_admissibility.py",
     "src/verify_agent_memory/natural_end_to_end.py",
 )
