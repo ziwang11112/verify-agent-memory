@@ -1,0 +1,38 @@
+{
+  "artifacts": {
+    "execution_receipt.json": "779ca0d7d4bc760335c09126c5549531df143b9f3df5dcc31c059a3bb71a6d94",
+    "main_table.csv": "9cf98341edbb00a2c8598c1113d6f52c7ad9e4cb168006f2752d010935c57a84",
+    "paired_deltas.csv": "e6eb979e116a83721c17133559d6b8197a9781a2d4cd92ea172a3c588155b848",
+    "summary.md": "23f691fbc9768cdabd530b81e36ab778439b664bbb89fcea1f9863e882b3d5ac"
+  },
+  "case_bundle_sha256": "6fde7b2e1f6a4ec5f52876a4740b02580704b816dfa32e3043bc2a9a5849396e",
+  "execution_protocol_sha256": "598be211d469520b16e4dfcf8c8bac28c7740ae533f55b53cfbd8775f4c983ca",
+  "judge": {
+    "model": "claude-haiku-4-5-20251001",
+    "provider": "Anthropic"
+  },
+  "judge_protocol_id": "natural-heldout-two-reader-semantic-judge-v1",
+  "judge_protocol_sha256": "92fab9c54a283b2e56f5cecf6059ff3a4eb23d96846cd5734e3a9ae51487e26a",
+  "official_benchmark_result": false,
+  "reader_estimates_pooled": false,
+  "reader_models": [
+    {
+      "model": "gemini-3.6-flash",
+      "provider": "Gemini"
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "provider": "DeepSeek"
+    }
+  ],
+  "sample_case_count": 1523,
+  "sample_case_id_set_sha256": "a39e1f6a2313ed8f6918d27bcc2ac4516fc2acc1d34c9bc7dffcacca07105491",
+  "sample_completion_sha256": "67e511afc1f22140f35ad18aa7f1836b6dee8ece90e829d9750254089bea78c7",
+  "schema_version": 1,
+  "source_sample_counts": {
+    "memops": 1000,
+    "rhelm": 523
+  },
+  "status": "complete_nonofficial_cost_aware_semantic_judge_sample",
+  "total_budget_consumption_usd": 15.506006
+}

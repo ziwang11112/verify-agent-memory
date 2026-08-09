@@ -1093,6 +1093,109 @@ def _score_rows(
     return rows
 
 
+def _paired_result(
+    paired: list[dict[str, object]],
+    *,
+    provider: str,
+    arm: str,
+    reference: str,
+    metric: str,
+) -> dict[str, object]:
+    matches = [
+        row
+        for row in paired
+        if row["reader_provider"] == provider
+        and row["arm"] == arm
+        and row["reference"] == reference
+        and row["metric"] == metric
+    ]
+    if len(matches) != 1:
+        raise RuntimeError("paired result lookup is not unique")
+    return matches[0]
+
+
+def _delta_ci(row: dict[str, object]) -> str:
+    return (
+        f"{float(row['mean_delta_arm_minus_reference']):+.4f} "
+        f"[{float(row['bootstrap_ci95_lower']):+.4f}, "
+        f"{float(row['bootstrap_ci95_upper']):+.4f}]"
+    )
+
+
+def _paired_interpretation(paired: list[dict[str, object]]) -> str:
+    def result(provider: str, arm: str, reference: str, metric: str) -> str:
+        return _delta_ci(
+            _paired_result(
+                paired,
+                provider=provider,
+                arm=arm,
+                reference=reference,
+                metric=metric,
+            )
+        )
+
+    namespace_deepseek_accuracy = result(
+        "DeepSeek", "namespace_dense", "global_dense", "answer_correct"
+    )
+    namespace_gemini_accuracy = result(
+        "Gemini", "namespace_dense", "global_dense", "answer_correct"
+    )
+    namespace_recall = result("DeepSeek", "namespace_dense", "global_dense", "evidence_recall")
+    namespace_risk = result(
+        "DeepSeek",
+        "namespace_dense",
+        "global_dense",
+        "penalized_admissibility_upper_risk",
+    )
+    policy_risk = result(
+        "DeepSeek",
+        "namespace_policy_gate",
+        "namespace_dense",
+        "penalized_admissibility_upper_risk",
+    )
+    verifier_risk = result(
+        "DeepSeek",
+        "namespace_text_verifier",
+        "namespace_dense",
+        "penalized_admissibility_upper_risk",
+    )
+    return "\n".join(
+        [
+            "## Paired findings",
+            "",
+            "- **Namespace support restriction is the robust positive result.** Relative to "
+            "global dense retrieval, namespace dense raises answer accuracy for DeepSeek by "
+            f"{namespace_deepseek_accuracy} and for Gemini by {namespace_gemini_accuracy}. It "
+            f"also raises evidence recall by {namespace_recall}, lowers penalized admissibility "
+            f"risk by {namespace_risk}, and lowers over-refusal for both readers.",
+            "- **Additional deletion gates reduce route risk but do not establish a utility "
+            "gain.** The released-policy gate lowers risk relative to namespace dense by "
+            f"{policy_risk}, "
+            "while answer-accuracy intervals include zero for DeepSeek "
+            f"({result('DeepSeek', 'namespace_policy_gate', 'namespace_dense', 'answer_correct')}) "
+            "and Gemini "
+            f"({result('Gemini', 'namespace_policy_gate', 'namespace_dense', 'answer_correct')}).",
+            "- **The text-only verifier is not supported as the main route.** Relative to "
+            f"namespace dense it increases penalized risk by {verifier_risk}; "
+            "Gemini answer accuracy falls by "
+            f"{result('Gemini', 'namespace_text_verifier', 'namespace_dense', 'answer_correct')}, "
+            "while the DeepSeek interval includes zero.",
+            "- **Disclosure effects are reader-specific and not a general safety win.** "
+            "Namespace-dense protected-disclosure intervals include zero for both readers. "
+            "The policy gate's Gemini stale-disclosure delta is "
+            f"{result('Gemini', 'namespace_policy_gate', 'namespace_dense', 'stale_disclosure')}, "
+            "whereas the DeepSeek interval includes zero; this axis should not be pooled or "
+            "described as uniformly improved.",
+            "",
+            "Taken together, the same-population result supports trusted namespace restriction "
+            "as the main deployable intervention. It does not show that progressively stricter "
+            "policy, text-verifier, or oracle deletion monotonically improves downstream answer "
+            "quality or disclosure. The experiment remains a prespecified non-official sample, "
+            "and all reader estimates remain separate.",
+        ]
+    )
+
+
 def score(
     *,
     judge_protocol: JudgeProtocol,
@@ -1147,10 +1250,41 @@ def score(
         "benchmark submission.\n"
     )
     (output / "summary.md").write_text(
-        summary.replace("\n\nThis is", f"\n{sample_note}\nThis is", 1),
+        summary.replace("\n\nThis is", f"\n{sample_note}\nThis is", 1)
+        + "\n"
+        + _paired_interpretation(paired)
+        + "\n",
         encoding="utf-8",
         newline="\n",
     )
+    public_execution_receipt = {
+        "schema_version": 1,
+        "judge_protocol_sha256": judge_protocol.sha256,
+        "execution_protocol_sha256": execution_protocol.protocol_sha256,
+        "execution_implementation_commit": completion["implementation_commit"],
+        "provider": execution_protocol.judge.provider,
+        "model": execution_protocol.judge.model,
+        "sample_case_count": len(selected),
+        "request_count": completion["request_count"],
+        "imported_response_count": judge_protocol.max_token_recovery["accepted_response_count"],
+        "recovered_or_new_response_count": (
+            int(completion["request_count"])
+            - int(judge_protocol.max_token_recovery["accepted_response_count"])
+        ),
+        "preserved_failure_count": judge_protocol.max_token_recovery["failure_count"],
+        "prior_fixture_cost_usd": completion["prior_fixture_cost_usd"],
+        "recovery_fixture_cost_usd": completion["fixture_cost_usd"],
+        "response_cost_usd": completion["response_cost_usd"],
+        "conservative_failure_cost_usd": completion["conservative_failure_cost_usd"],
+        "total_budget_consumption_usd": completion["total_budget_consumption_usd"],
+        "total_incremental_hard_cap_usd": completion["total_incremental_hard_cap_usd"],
+        "provider_completion_sha256": completion["provider_completion_sha256"],
+        "sample_completion_sha256": base._sha256_file(_sample_completion_path(runtime)),
+        "complete_bundle": True,
+        "benchmark_payload_or_response_content_included": False,
+        "official_benchmark_result": False,
+    }
+    base._write_json(output / "execution_receipt.json", public_execution_receipt)
     manifest = {
         "schema_version": 1,
         "judge_protocol_id": judge_protocol.raw["protocol_id"],
@@ -1177,7 +1311,12 @@ def score(
         "total_budget_consumption_usd": completion["total_budget_consumption_usd"],
         "artifacts": {
             name: base._sha256_file(output / name)
-            for name in ("main_table.csv", "paired_deltas.csv", "summary.md")
+            for name in (
+                "main_table.csv",
+                "paired_deltas.csv",
+                "summary.md",
+                "execution_receipt.json",
+            )
         },
         "official_benchmark_result": False,
     }
