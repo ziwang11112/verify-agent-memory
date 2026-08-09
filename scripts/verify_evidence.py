@@ -29,7 +29,7 @@ REQUIRED_COLUMNS = {
     "n",
     "notes",
 }
-REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 14)}
+REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 15)}
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 PROHIBITED_OUTPUT_LABELS = {"ncr_threshold", "ncr_a5"}
 EXPECTED_METRIC_COUNTS = {
@@ -45,6 +45,7 @@ EXPECTED_METRIC_COUNTS = {
     "C11": 29,
     "C12": 5,
     "C13": 34,
+    "C14": 16,
 }
 
 
@@ -222,6 +223,8 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
             "gpt-5.6-luna": "gpt_5_6_luna",
         }.get(row["source"])
         return (reader, contrast, metric) if reader else None
+    if claim_id == "C14":
+        return (contrast, metric)
     if claim_id in {"C9", "C10", "C11"}:
         return (contrast, metric)
     return None
@@ -262,6 +265,8 @@ def _contract_interval_metric(row: Mapping[str, str]) -> str | None:
             "gpt-5.6-luna": "gpt_5_6_luna",
         }.get(row["source"])
         return f"{reader}__{row['contrast']}__{metric}" if reader else None
+    if claim_id == "C14":
+        return f"{row['contrast']}_{metric}"
     if claim_id in {"C9", "C10", "C11"}:
         return f"{row['contrast']}_{metric}"
     return None
@@ -508,6 +513,19 @@ def validate_evidence(repository_root: Path) -> list[str]:
                     )
                 if row["source"] == "gpt-5.6-luna" and "sequential_reader_replication" not in notes:
                     errors.append(f"{prefix} lacks sequential reader-replication boundary")
+            if row["claim_id"] == "C14":
+                notes = row["notes"]
+                required_notes = {
+                    "post_hoc_outcome_independent",
+                    "not_independently_preregistered",
+                    "full_population_not_rescored",
+                    "one_alternate_judge",
+                    "reader_effects_not_reestimated",
+                    "nonofficial_sample",
+                }
+                missing_notes = sorted(note for note in required_notes if note not in notes)
+                if missing_notes:
+                    errors.append(f"{prefix} lacks cross-judge audit boundaries: {missing_notes!r}")
 
             claim = claims.get(claim_id)
             contract_path = _contract_value_path(row)

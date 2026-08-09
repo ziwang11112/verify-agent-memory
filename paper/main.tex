@@ -48,6 +48,10 @@ judged answer accuracy by \DeepSeekNaturalAccuracyDelta{},
 separately reported readers; all intervals exclude zero, and over-refusal also falls.
 Additional released-policy deletion lowers route risk without an established answer-
 utility gain, while text-only verification increases route risk.
+An outcome-independent post-hoc audit of
+\CrossJudgeSampleCount{} outputs finds \CrossJudgeAgreement{} answer-correctness
+agreement with an alternate judge (95\% CI \CrossJudgeAgreementCI{}), reducing but
+not eliminating dependence on the primary judge.
 
 In paired exposure tests, four separately reported readers have positive selectivity
 gaps, but DeepSeek V4 Pro retains a strictly positive relevant-inadmissible
@@ -328,10 +332,12 @@ frozen subset of the natural population.
     Experiment and data & Systems compared & Primary outcomes \\
     \midrule
     \textbf{Natural support + closure.} Public RHELM + MemOps; \NaturalQueryCount{}
-      retrieval queries and a frozen \NaturalEndToEndCaseCount{}-case reader sample
+      retrieval queries, a frozen \NaturalEndToEndCaseCount{}-case reader sample,
+      and a 200-output alternate-judge audit
       & Nine retrieval arms; five closure routes for DeepSeek/Gemini and three
-      primary routes for GPT Luna & Recall, admissibility risk, answer utility,
-      over-refusal, typed disclosure \\
+      primary routes for GPT Luna; Claude Haiku primary judge and GPT-5.1 audit &
+      Recall, admissibility risk, answer utility, over-refusal, typed disclosure,
+      judge agreement \\
     \addlinespace[2pt]
     \textbf{Metadata reliability.} Same evaluation groups; 10 seeds per channel and
       eight corruption rates & Frozen namespace, policy, lifecycle, and combined
@@ -385,6 +391,10 @@ outcomes.  The resulting \NaturalEndToEndCaseCount{} cases span all 87 evaluatio
 groups and are paired across routes within each reader.  DeepSeek and Gemini cover
 five routes; GPT Luna is a sequential robustness replication over the three primary
 routes after a frozen continuation gate.  Reader estimates are never pooled.
+After freezing those results, we selected 200 exact-deduplicated judge payloads
+without outcomes in near-equal reader-by-source-by-common-route strata.  This
+post-hoc audit checks one alternate judge on the shared three-route support; it does
+not re-score the full closure or re-estimate route effects.
 
 \subsection{Models and comparison systems}
 
@@ -429,9 +439,12 @@ The natural closure uses \texttt{deepseek-v4-pro},
 \texttt{gemini-3.6-flash}, and \texttt{gpt-5.6-luna} as separately reported
 readers.  A blinded \texttt{claude-haiku-4-5-20251001} judge scores answer
 correctness, quality, and over-refusal from the reference evidence; it does not see
-the route or reader identity.  This shared judge makes the result cross-reader, not
-cross-judge, evidence.  GPT Luna was run sequentially after the positive two-reader
-continuation gate and is not an independently preregistered replication.
+the route or reader identity.  Thus the full closure is cross-reader but relies on
+one primary judge.  A post-hoc, outcome-independent audit applies the same contract
+with \texttt{gpt-5.1-2025-11-13} to 200 outputs; it is not an independently
+preregistered or full-population cross-judge replication.  GPT Luna was run
+sequentially after the positive two-reader continuation gate and is not an
+independently preregistered reader replication.
 
 \subsection{Metrics}
 
@@ -448,7 +461,9 @@ false denial.  Controlled verification reports focal consistency and stable
 overflip; paired exposure uses Equation~\ref{eq:paired-exposure}.  Natural downstream
 outcomes are judged answer correctness, bounded answer quality, over-refusal, and
 released-field protected/stale disclosure.  Answer and disclosure effects remain
-reader-specific.  Appendix
+reader-specific.  The cross-judge audit reports exact agreement, Cohen's $\kappa$,
+Gwet's AC1, and ordinal agreement; its pointwise intervals use 10,000 output-level
+bootstrap replicates.  Appendix
 \ref{app:metric-details} gives the exact definitions, undefined-denominator rules,
 risk decomposition, and edge cases.
 
@@ -509,6 +524,19 @@ penalized admissibility upper risk by \NaturalEndToEndAdmRiskDelta{}
 (\NaturalEndToEndAdmRiskDeltaCI{}).  Answer-accuracy, answer-quality, and over-
 refusal intervals all favor namespace support for DeepSeek, Gemini, and GPT Luna,
 with no pooling across readers.
+
+The alternate-judge audit finds answer-correctness agreement
+\CrossJudgeAgreement{} (95\% CI \CrossJudgeAgreementCI{}), Cohen's
+$\kappa=\CrossJudgeKappa{}$, and Gwet's AC1 $=\CrossJudgeACOne{}$.  Directional
+disagreements are nearly symmetric: \CrossJudgeClaudePositiveGPTNegative{} primary-
+positive/alternate-negative versus \CrossJudgeClaudeNegativeGPTPositive{} primary-
+negative/alternate-positive.  Agreement is \CrossJudgeOriginalPanelAgreement{}
+(\CrossJudgeOriginalPanelAgreementCI{}) on outputs from the original DeepSeek/Gemini
+panel, but \CrossJudgeGPTPanelAgreement{}
+(\CrossJudgeGPTPanelAgreementCI{}) on the sequential GPT-reader subgroup.  This
+post-hoc sample materially reduces concern about a judge-specific sign pattern, but
+its overall interval extends below 0.85 and it does not independently reproduce the
+route-effect estimates.
 
 More deletion is not monotonically better.  The released-policy gate lowers route
 risk a further \NaturalPolicyAdmRiskDelta{} (\NaturalPolicyAdmRiskDeltaCI{}) relative
@@ -647,10 +675,13 @@ inadmissible content after exposure.
 
 The natural audit covers two public sources and released metadata; its reader closure
 uses all RHELM but a frozen 1,000-case MemOps sample.  All readers share one blinded
-judge, GPT Luna is sequential, and disclosure intervals include zero.  Thus utility
-gains are neither cross-judge replication nor a general safety result.  V2 scores are
-post-hoc, corruption brackets are not population thresholds, metadata rules are
-approximations, and candidate counts are not production latency.  GateMem is
+primary judge, GPT Luna is sequential, and disclosure intervals include zero.  The
+post-hoc alternate-judge audit covers only 200 outputs, its GPT-reader subgroup is
+below the 0.85 point threshold, and it does not re-estimate effects.  Thus the utility
+gains are neither independently preregistered, full-population cross-judge
+replication nor a general safety result.  V2 scores are post-hoc, corruption brackets are not
+population thresholds, metadata rules are approximations, and candidate counts are
+not production latency.  GateMem is
 observational; verifier diagnostics contain 72 natural cases and 16 constructed
 scenarios; paired exposure uses literal markers and measures neither internal use nor
 natural prevalence.  Heterogeneous readers do not define a leaderboard.

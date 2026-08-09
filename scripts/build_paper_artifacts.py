@@ -560,6 +560,27 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
                     contrast="namespace_text_verifier_minus_namespace_dense",
                     metric=metric,
                 )
+    for metric in ("exact_agreement", "cohen_kappa", "gwet_ac1"):
+        selected[f"c14_overall_{metric}"] = _one(
+            rows,
+            claim_id="C14",
+            contrast="overall",
+            metric=metric,
+        )
+    for contrast in ("original_two_reader", "sequential_gpt_reader"):
+        selected[f"c14_{contrast}_exact_agreement"] = _one(
+            rows,
+            claim_id="C14",
+            contrast=contrast,
+            metric="exact_agreement",
+        )
+    for metric in ("cheap_correct_strong_incorrect", "cheap_incorrect_strong_correct"):
+        selected[f"c14_directional_{metric}"] = _one(
+            rows,
+            claim_id="C14",
+            contrast="directional_disagreement",
+            metric=metric,
+        )
     return selected
 
 
@@ -1098,6 +1119,46 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             _macro("NaturalTextVerifierAdmRiskDelta", _signed(_number(text_risk), digits=4)),
             _macro("NaturalTextVerifierAdmRiskDeltaCI", _ci(text_risk, digits=4)),
             _macro("NaturalEndToEndCaseCount", "1{,}523"),
+        )
+    )
+    cross_judge = selected["c14_overall_exact_agreement"]
+    macros.extend(
+        (
+            _macro("CrossJudgeSampleCount", _count(cross_judge)),
+            _macro("CrossJudgeAgreement", _plain(_number(cross_judge))),
+            _macro("CrossJudgeAgreementCI", _ci(cross_judge, signed=False)),
+            _macro(
+                "CrossJudgeKappa",
+                _plain(_number(selected["c14_overall_cohen_kappa"])),
+            ),
+            _macro(
+                "CrossJudgeACOne",
+                _plain(_number(selected["c14_overall_gwet_ac1"])),
+            ),
+            _macro(
+                "CrossJudgeOriginalPanelAgreement",
+                _plain(_number(selected["c14_original_two_reader_exact_agreement"])),
+            ),
+            _macro(
+                "CrossJudgeOriginalPanelAgreementCI",
+                _ci(selected["c14_original_two_reader_exact_agreement"], signed=False),
+            ),
+            _macro(
+                "CrossJudgeGPTPanelAgreement",
+                _plain(_number(selected["c14_sequential_gpt_reader_exact_agreement"])),
+            ),
+            _macro(
+                "CrossJudgeGPTPanelAgreementCI",
+                _ci(selected["c14_sequential_gpt_reader_exact_agreement"], signed=False),
+            ),
+            _macro(
+                "CrossJudgeClaudePositiveGPTNegative",
+                str(int(_number(selected["c14_directional_cheap_correct_strong_incorrect"]))),
+            ),
+            _macro(
+                "CrossJudgeClaudeNegativeGPTPositive",
+                str(int(_number(selected["c14_directional_cheap_incorrect_strong_correct"]))),
+            ),
         )
     )
     _write_ascii_lines(path, macros)

@@ -1,0 +1,24 @@
+{
+  "agreement_gate": 0.85,
+  "agreement_gate_met": true,
+  "artifacts": {
+    "answer_correct_agreement.csv": "537d4136e2058a00d3cd9626ae914a32b73c5e728697b961fd6fc7d9eaa531d8",
+    "answer_correct_confusion.csv": "cfabf4f1697d0f0a33009c1202fc77e0cf7e3f968597366daf8f43042816bc06",
+    "answer_quality_agreement.csv": "fd82560f8f9f2614f2b09256e719d26b717c4f42f258698216eab1812642fb26",
+    "audit_summary.md": "9cfbc30853d85484b237f1a695a2cf51ebc8c86d7726104f5fabc5c361031c0e",
+    "execution_receipt.json": "92ec86887df04781c110426dc548c51b807ac6b42df48de89c584338d74e6f27",
+    "sample_profile.csv": "336b84193d7f33d2a1a1575b1d198d7d47c6282a580e4a964f830adeed2a7cae",
+    "secondary_label_agreement.csv": "5dea83f898c13683de8ae37e6e2fd826cd469bca8e19a3c6ce314d79dc33ef37"
+  },
+  "independently_preregistered_replication": false,
+  "official_benchmark_claim": false,
+  "primary_metric": "answer_correct_exact_agreement",
+  "primary_value": 0.865,
+  "protocol_sha256": "aab8876f2e5ddf669287d8ea6f83ade449825d6c068e4a845659ec8d4340d8b2",
+  "raw_content_included": false,
+  "reader_estimates_pooled": false,
+  "sample_count": 200,
+  "sample_manifest_sha256": "6843262b71afd10ba0f9651e82e672092ff5a16065302b9cc563226e76ff7ced",
+  "schema_version": 1,
+  "status": "complete_posthoc_outcome_independent_cross_judge_audit"
+}

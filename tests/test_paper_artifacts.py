@@ -31,6 +31,9 @@ def test_paper_evidence_selectors_cover_primary_claims() -> None:
     assert selected["c13_deepseek_namespace_answer_correct"]["claim_id"] == "C13"
     assert selected["c13_gemini_namespace_answer_correct"]["claim_id"] == "C13"
     assert selected["c13_gpt_luna_namespace_answer_correct"]["claim_id"] == "C13"
+    assert selected["c14_overall_exact_agreement"]["claim_id"] == "C14"
+    assert selected["c14_original_two_reader_exact_agreement"]["n"] == "134"
+    assert selected["c14_sequential_gpt_reader_exact_agreement"]["n"] == "66"
 
 
 def test_natural_end_to_end_table_uses_claim_bound_generated_values() -> None:
@@ -48,6 +51,8 @@ def test_natural_end_to_end_table_uses_claim_bound_generated_values() -> None:
         r"\DeepSeekNaturalAccuracyDelta",
         r"\GeminiNaturalAccuracyDelta",
         r"\GPTLunaNaturalAccuracyDelta",
+        r"\CrossJudgeAgreement",
+        r"\CrossJudgeAgreementCI",
     ):
         assert macro in main
     assert r"\input{generated/natural_end_to_end_results.tex}" in main

@@ -11,8 +11,8 @@ The paper is a verification and evaluation paper, not a new memory-index proposa
 - Working title: *The Wrong Memory at the Right Time: Evaluating Retrieval
   Admissibility in Long-Term Agents*.
 - Current build: the conclusion ends on page 9 and references begin on page 10; the
-  complete package has 24 pages including references, appendices, and the checklist.
-- Evidence contract: C1-C13, all backed by normalized content-free artifacts.
+  complete package has 25 pages including references, appendices, and the checklist.
+- Evidence contract: C1-C14, all backed by normalized content-free artifacts.
 - Main empirical chain:
 
 ```text
@@ -54,6 +54,7 @@ retrieval, or paired prompting in isolation.
 | Experiment | Population | Systems | Primary question |
 | --- | --- | --- | --- |
 | Natural support and closure | Public RHELM and MemOps; 87 groups, 182,908 memories, 3,767 retrieval queries; frozen 1,523-case reader subset | Nine frozen retrieval arms; global and namespace dense are primary; three separately reported readers on the closure subset | Does trusted support improve route quality and judged answers on the same natural cases? |
+| Cross-judge audit | Outcome-independent, exact-deduplicated sample of 200 natural-closure outputs | Primary Claude Haiku labels versus one GPT-5.1 alternate judge | Is the primary answer-correctness signal specific to one judge? |
 | Metadata reliability | Same frozen natural rankings; ten seeds per corruption point | Namespace, policy, lifecycle, and combined filters | Which metadata supplies value, and how do missing, false-deny, fail-open, and swap errors change it? |
 | Natural verification | 96 public-development cases: 24 calibration, 72 analysis | Released-field oracle, GPT-5.6 Sol, Gemini 3.6 Flash | Can text-only verification recover released-field headroom without losing required evidence? |
 | Controlled verification | 16 constructed scenarios; 32 focal and 64 stable pairs | Keep-all, released-label oracle, GPT-5.6 Sol, Gemini 3.6 Flash, DeepSeek V4 Pro | Do models follow focal rule changes while preserving stable evidence? |
@@ -75,7 +76,9 @@ populations and estimands.
 - `gpt-5.6-luna`: sequential OpenAI robustness replication for the natural closure;
   it is not part of an independently preregistered three-reader panel.
 - `claude-haiku-4-5-20251001`: one blinded shared judge for all natural-closure
-  readers. Agreement across readers is therefore not cross-judge replication.
+  readers. Full-population effects therefore remain shared-judge estimates.
+- `gpt-5.1-2025-11-13`: alternate judge for a post-hoc, outcome-independent
+  200-output audit only; it does not re-score the full closure or re-estimate effects.
 - `claude-opus-5`: independently executed Anthropic reader replication, thinking
   disabled and medium effort. It is not pooled with the original panel.
 - GPT-4o and GPT-4o mini occur only in the older observational GateMem appendix.
@@ -95,6 +98,11 @@ same-tier capability leaderboard.
   all pointwise paired intervals exclude zero. Answer quality improves and over-
   refusal falls for all three readers. The shared-judge and sequential-replication
   boundaries remain explicit.
+- On the post-hoc 200-output audit, primary and alternate answer-correctness labels
+  agree on 0.865 (95% CI [0.815, 0.910]); Cohen's kappa is 0.728 and disagreements
+  are nearly symmetric (14 versus 13). Agreement is 0.881 on the original two-reader
+  panel and 0.833 on the sequential GPT-reader subgroup, so the audit reduces but
+  does not remove judge-dependence concern.
 - The released-policy gate further lowers route risk by -0.019 relative to namespace
   dense, but its answer-accuracy intervals include zero for every reader. The tested
   text-only verifier instead increases route risk by +0.0068 and does not establish a
@@ -124,8 +132,9 @@ copying empirical numbers into LaTeX.
 - A causal natural-route exposure effect; the GateMem analysis is observational.
 - An isolated causal moderator effect of admissibility in the paired intervention.
 - A pooled four-reader result or model capability ranking.
-- A pooled natural-reader estimate, cross-judge replication, or independently
-  preregistered status for the sequential GPT-5.6 Luna replication.
+- A pooled natural-reader estimate, independently preregistered or full-population
+  cross-judge replication, or independently preregistered status for the sequential
+  GPT-5.6 Luna replication.
 - A general protected- or stale-disclosure reduction from namespace support; every
   natural-reader interval on those outcomes includes zero.
 - Universal failure of clustering or thresholds beyond the frozen tested variants.
@@ -141,8 +150,9 @@ human-agreement experiment. Neither belongs to this paper's evidence story.
    not natural prevalence or production safety.
 3. The natural closure uses one shared blinded judge, and GPT-5.6 Luna was run
    sequentially after the original positive continuation gate. This supports a same-
-   population utility-risk result, not independent three-reader or cross-judge
-   replication.
+   population utility-risk result. The post-hoc 200-output alternate-judge audit
+   reduces but does not remove the lack of independently preregistered,
+   full-population cross-judge replication.
 4. Released metadata is an oracle-like evidence source. No latent-field inference or
    noisy production identity system is demonstrated.
 5. The main text uses the full nine-page allowance; further prose additions must be
@@ -163,7 +173,8 @@ human-agreement experiment. Neither belongs to this paper's evidence story.
   contract, then regenerating artifacts. Pure prose edits do not.
 - Preserve double-blind wording and the 4-9 content-page limit.
 - Keep C8, the original three-reader controlled exposure execution, separate from
-  C12, the Claude replication, and C13, the natural route-to-reader closure.
+  C12, the Claude replication, C13, the natural route-to-reader closure, and C14,
+  the limited alternate-judge audit.
 
 ## Recommended Reading Order
 

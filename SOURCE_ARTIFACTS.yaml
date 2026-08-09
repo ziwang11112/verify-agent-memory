@@ -736,3 +736,91 @@ artifacts:
     transformation_required: "Retain only content-free reader and judge completion, model, request, protocol, and cost metadata."
     public_paper_label: "GPT natural replication execution receipt"
     contains_raw_text_or_private_content: false
+
+  - id: natural_cross_judge_manifest
+    category: GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    source_path: "results/natural_cross_judge_audit/manifest.json"
+    source_sha256: "15d8b7ce0e832d9afbcc7dda437d9b658a69976e76496f33e0f08540788a52bf"
+    intended_normalized_destination: "evidence/manifests/cross_judge_audit.json"
+    transformation_required: "Preserve the post-hoc, outcome-independent, 200-output, nonofficial, and no-full-rescoring boundaries."
+    public_paper_label: "natural cross-judge audit manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_cross_judge_answer_correct
+    category: GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    source_path: "results/natural_cross_judge_audit/answer_correct_agreement.csv"
+    source_sha256: "537d4136e2058a00d3cd9626ae914a32b73c5e728697b961fd6fc7d9eaa531d8"
+    intended_normalized_destination: "evidence/normalized/cross_judge_audit.csv"
+    transformation_required: "Select overall, reader-panel, and reader-specific answer-correctness agreement without treating the audit as a route-effect replication."
+    public_paper_label: "natural cross-judge answer-correctness agreement"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_cross_judge_confusion
+    category: GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    source_path: "results/natural_cross_judge_audit/answer_correct_confusion.csv"
+    source_sha256: "cfabf4f1697d0f0a33009c1202fc77e0cf7e3f968597366daf8f43042816bc06"
+    intended_normalized_destination: "evidence/normalized/cross_judge_audit.csv"
+    transformation_required: "Retain only aggregate directional disagreements; do not expose prompts, answers, or per-output IDs."
+    public_paper_label: "natural cross-judge answer-correctness confusion"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_cross_judge_answer_quality
+    category: GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    source_path: "results/natural_cross_judge_audit/answer_quality_agreement.csv"
+    source_sha256: "fd82560f8f9f2614f2b09256e719d26b717c4f42f258698216eab1812642fb26"
+    intended_normalized_destination: "evidence/normalized/cross_judge_audit.csv"
+    transformation_required: "Retain aggregate ordinal agreement, including low exact agreement and within-one agreement."
+    public_paper_label: "natural cross-judge answer-quality agreement"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_cross_judge_secondary_labels
+    category: GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    source_path: "results/natural_cross_judge_audit/secondary_label_agreement.csv"
+    source_sha256: "5dea83f898c13683de8ae37e6e2fd826cd469bca8e19a3c6ce314d79dc33ef37"
+    intended_normalized_destination: "evidence/normalized/cross_judge_audit.csv"
+    transformation_required: "Retain aggregate protected- and stale-disclosure agreement as descriptive secondary evidence only."
+    public_paper_label: "natural cross-judge secondary-label agreement"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_cross_judge_sample_profile
+    category: GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    source_path: "results/natural_cross_judge_audit/sample_profile.csv"
+    source_sha256: "336b84193d7f33d2a1a1575b1d198d7d47c6282a580e4a964f830adeed2a7cae"
+    intended_normalized_destination: "evidence/manifests/cross_judge_audit.json"
+    transformation_required: "Preserve content-free reader, source, and route stratum counts for the outcome-independent sample."
+    public_paper_label: "natural cross-judge sample profile"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_cross_judge_receipt
+    category: GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    source_path: "results/natural_cross_judge_audit/execution_receipt.json"
+    source_sha256: "92ec86887df04781c110426dc548c51b807ac6b42df48de89c584338d74e6f27"
+    intended_normalized_destination: "evidence/manifests/cross_judge_audit.json"
+    transformation_required: "Retain only content-free completion, model, request, protocol, token, and cost metadata."
+    public_paper_label: "natural cross-judge execution receipt"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_cross_judge_summary
+    category: GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    source_path: "results/natural_cross_judge_audit/audit_summary.md"
+    source_sha256: "9cfbc30853d85484b237f1a695a2cf51ebc8c86d7726104f5fabc5c361031c0e"
+    intended_normalized_destination: "evidence/manifests/cross_judge_audit.json"
+    transformation_required: "Preserve the aggregate interpretation, including the confidence-interval and GPT-reader subgroup caveats."
+    public_paper_label: "natural cross-judge audit summary"
+    contains_raw_text_or_private_content: false

@@ -64,7 +64,7 @@ page-count and visual-inspection receipt is in `paper/BUILD_REPORT.md`.
 
 - `paper/main.tex` must use `dblblindworkshop`.
 - `paper/checklist.tex` must contain no TODO answers.
-- C1-C13 must each appear in `paper/CLAIM_MAP.md`.
+- C1-C14 must each appear in `paper/CLAIM_MAP.md`.
 - Generated artifact hashes must match the manifest.
 - No empirical number should be hand-entered in prose when a generated macro exists.
 - The main text must not use retired internal method labels.

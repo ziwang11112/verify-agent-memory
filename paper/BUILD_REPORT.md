@@ -6,20 +6,20 @@
 - Command: `uv run --extra dev --extra paper python -m scripts.compile_paper`.
 - Engine: MiKTeX pdfTeX 1.40.28 with BibTeX 0.99e.
 - Output: `paper/build/main.pdf` (ignored by Git).
-- Total pages: 24.
+- Total pages: 25.
 - Main text ends: page 9.
 - References begin: page 10.
-- Appendices begin: page 11, after the references.
+- Appendices begin: page 12, after the references.
 - NeurIPS checklist begins: page 18.
 - Content length: within the workshop's 4-9 page limit, excluding references and
   appendices.
 
 ## Validation
 
-- All 24 pages were rendered at inspection resolution during the artifact audit. The
-  current evidence-closure build additionally rechecked pages 1, 2, 7--10: the
-  conclusion ends on page 9, references begin on page 10, and Appendix A begins on
-  page 11. The checklist begins on page 18.
+- All 25 pages were rendered at inspection resolution during the artifact audit. The
+  current cross-judge build additionally rechecked pages 1, 5, 7, and 9 at higher
+  resolution: the conclusion ends on page 9, references begin on page 10, and
+  Appendix A begins on page 12. The checklist begins on page 18.
 - No clipped text, overlapping elements, broken tables, or unreadable figures were
   observed.
 - Section 4 now exposes the datasets and splits, retrieval and reader model
@@ -30,8 +30,9 @@
   hashes, derivations,
   edge-case conventions, and selected hyperparameters remain in the appendix for
   auditability. Table 2 reports the three reader-specific natural route-to-answer
-  contrasts on the same 1,523 cases; every displayed estimate is emitted by the
-  claim-bound macro pipeline.
+  contrasts on the same 1,523 cases. The experiment map and result prose also expose
+  the bounded 200-output alternate-judge audit; every displayed estimate is emitted
+  by the claim-bound macro pipeline.
 - Figure 1 combines a compact four-row query--candidate audit matrix with explicit
   scope, lifecycle, and policy decisions, the observable path, and the three evidence
   populations. Figure 2 presents the value, source, and channel-specific fragility of
@@ -45,6 +46,10 @@
   DeepSeek V4 Pro, Gemini 3.6 Flash, and the sequential GPT-5.6 Luna replication.
   Reader estimates remain separate; all three use one blinded Claude Haiku judge, and
   protected- and stale-disclosure intervals include zero.
+- The post-hoc, outcome-independent alternate-judge audit reports 0.865 answer-
+  correctness agreement [0.815, 0.910], kappa 0.728, and nearly symmetric directional
+  disagreement. It is explicitly bounded as one alternate judge on 200 outputs, not
+  a full-population re-score or independent route-effect replication.
 - The main results report the 58.1-fold reduction in mean candidates scored for clean
   namespace support and explicitly bound it as exact-search retrieval work, not
   wall-clock or production latency. Related work now includes ABAC, Securing the

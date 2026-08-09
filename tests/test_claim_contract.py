@@ -270,6 +270,22 @@ def test_natural_end_to_end_claim_forbids_general_disclosure_gain() -> None:
     assert "C13 must preserve the disclosure null-result boundary" in validate(data)
 
 
+def test_cross_judge_claim_requires_posthoc_sample_boundaries() -> None:
+    data = load_valid_contract()
+    audit = claim(data, "C14")
+    audit["known_limitations"] = [
+        item
+        for item in audit["known_limitations"]
+        if "not independently preregistered" not in item.lower()
+        and "does not re-score" not in item.lower()
+        and "gpt-reader subgroup" not in item.lower()
+    ]
+    errors = validate(data)
+    assert "C14 must preserve the non-preregistered boundary" in errors
+    assert "C14 must preserve the 200-output sample boundary" in errors
+    assert "C14 must preserve the weaker GPT-reader subgroup" in errors
+
+
 def test_readable_contract_must_render_every_claim() -> None:
     data = load_valid_contract()
     assert "CLAIM_CONTRACT.md does not render C7" in validate_contract(data, "### C1: only")
@@ -310,6 +326,18 @@ def test_posthoc_source_must_use_frozen_implementation_commit() -> None:
     posthoc["frozen_commit"] = "0" * 40
     errors = validate_source_index(sources, load_valid_contract())
     assert any("must match the natural-posthoc implementation" in error for error in errors)
+
+
+def test_cross_judge_source_must_use_execution_commit() -> None:
+    sources = load_valid_source_index()
+    audit = next(
+        item
+        for item in sources["artifacts"]
+        if item["category"] == "GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT"
+    )
+    audit["frozen_commit"] = "0" * 40
+    errors = validate_source_index(sources, load_valid_contract())
+    assert any("must match the cross-judge execution" in error for error in errors)
 
 
 def test_governance_documents_preserve_boundaries() -> None:

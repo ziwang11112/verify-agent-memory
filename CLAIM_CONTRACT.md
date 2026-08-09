@@ -426,6 +426,41 @@ have intervals containing zero for every reader. GPT evaluated only the three
 primary routes; the text-verifier and released-field-oracle diagnostics were not
 rerun for GPT.
 
+## Natural Cross-Judge Audit
+
+### C14: Post-hoc alternate-judge agreement
+
+**Status:** Post-hoc outcome-independent cross-judge audit
+
+We selected 200 exact-deduplicated outputs without inspecting outcomes, using near-
+equal reader-by-source-by-common-route strata, and asked GPT-5.1 to apply the frozen
+judge contract independently of the primary Claude Haiku labels. Answer-correctness
+exact agreement was 0.865 (95% output-bootstrap CI [0.815, 0.910]), Cohen's kappa was
+0.728, and Gwet's AC1 was 0.732. The judges disagreed in nearly symmetric directions:
+14 outputs were Claude-positive/GPT-negative and 13 were Claude-negative/GPT-positive.
+
+Agreement was 0.881 [0.821, 0.933] on outputs from the original DeepSeek/Gemini
+reader panel and 0.833 [0.742, 0.924] on the sequential GPT-reader subgroup. Ordinal
+answer-quality exact agreement was only 0.240, although within-one agreement was
+0.755 and quadratic weighted kappa was 0.884. Protected- and stale-disclosure exact
+agreement were 0.975 and 0.970, respectively, as descriptive secondary checks.
+
+**Allowed:** The outcome-independent 200-output audit found substantial but imperfect
+answer-correctness agreement and materially reduces concern that the natural result
+is specific to one judge. The overall point estimate crossed the frozen 0.85 audit
+threshold, while its confidence interval and the GPT-reader subgroup require caution.
+
+**Forbidden:** Do not call this independently preregistered cross-judge replication,
+claim that GPT-5.1 re-scored the full 1,523-case population, say that every reader
+subgroup met the threshold, treat the judges as interchangeable, infer that route-
+effect estimates were independently reproduced, or present an official RHELM or
+MemOps benchmark result.
+
+**Boundary:** This is a post-hoc, outcome-independent agreement audit over one
+alternate judge. It does not re-score the full natural closure, re-estimate route or
+reader effects, or remove the shared-primary-judge limitation from C13. Reader
+effects remain separate and are never pooled.
+
 ## Writing Rule
 
 Every manuscript sentence that asserts an empirical result must map to one claim ID.

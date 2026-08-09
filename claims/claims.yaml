@@ -1177,3 +1177,111 @@ claims:
       - "test_natural_end_to_end_claim_requires_sequential_replication_boundary"
       - "test_natural_end_to_end_claim_forbids_general_disclosure_gain"
       - "test_confidence_intervals_contain_estimates"
+
+  - id: C14
+    status: post_hoc_outcome_independent_cross_judge_audit
+    claim: "On an outcome-independent, exact-deduplicated sample of 200 natural closure outputs, GPT-5.1 and the primary Claude Haiku judge agreed on 86.5% of answer-correctness labels; directional disagreements were nearly symmetric."
+    estimand: "Exact agreement, Cohen's kappa, Gwet's AC1, and descriptive ordinal/secondary-label agreement between the primary Claude Haiku judge and one alternate GPT-5.1 judge, with 10,000 output-level bootstrap replicates."
+    population: "A post-hoc sample of 200 unique judge payloads selected without outcomes in near-equal reader-by-source-by-common-route strata from the frozen 1,523-case natural closure."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    execution_commit:
+      provider_execution: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+      deterministic_analysis: "65b8a9e9fe6e931e986d0c630145886073759b5f"
+    source_artifacts:
+      - "results/natural_cross_judge_audit/manifest.json"
+      - "results/natural_cross_judge_audit/answer_correct_agreement.csv"
+      - "results/natural_cross_judge_audit/answer_correct_confusion.csv"
+      - "results/natural_cross_judge_audit/answer_quality_agreement.csv"
+      - "results/natural_cross_judge_audit/secondary_label_agreement.csv"
+      - "results/natural_cross_judge_audit/sample_profile.csv"
+      - "results/natural_cross_judge_audit/execution_receipt.json"
+      - "results/natural_cross_judge_audit/audit_summary.md"
+    exact_values:
+      sample_count: 200
+      agreement_gate: 0.85
+      agreement_gate_met: true
+      independently_preregistered_replication: false
+      reader_effects_reestimated: false
+      overall:
+        exact_agreement: 0.865
+        cohen_kappa: 0.7284794851166533
+        gwet_ac1: 0.7315102548166563
+      original_two_reader:
+        exact_agreement: 0.8805970149253731
+      sequential_gpt_reader:
+        exact_agreement: 0.8333333333333334
+      reader_deepseek:
+        exact_agreement: 0.9104477611940298
+      reader_gemini:
+        exact_agreement: 0.8507462686567164
+      answer_quality:
+        exact_agreement: 0.24
+        within_one_agreement: 0.755
+        mean_absolute_error: 1.245
+        mean_strong_minus_cheap: 0.215
+        quadratic_weighted_kappa: 0.8837257200205212
+      protected_disclosure:
+        exact_agreement: 0.975
+      stale_disclosure:
+        exact_agreement: 0.97
+      directional_disagreement:
+        cheap_correct_strong_incorrect: 14
+        cheap_incorrect_strong_correct: 13
+    confidence_intervals:
+      - metric: overall_exact_agreement
+        estimate: 0.865
+        lower: 0.815
+        upper: 0.91
+      - metric: overall_cohen_kappa
+        estimate: 0.7284794851166533
+        lower: 0.626865671641791
+        upper: 0.8200000000000001
+      - metric: overall_gwet_ac1
+        estimate: 0.7315102548166563
+        lower: 0.633309382820049
+        upper: 0.8244929797191889
+      - metric: original_two_reader_exact_agreement
+        estimate: 0.8805970149253731
+        lower: 0.8208955223880597
+        upper: 0.9328358208955224
+      - metric: sequential_gpt_reader_exact_agreement
+        estimate: 0.8333333333333334
+        lower: 0.7424242424242424
+        upper: 0.9242424242424242
+      - metric: reader_deepseek_exact_agreement
+        estimate: 0.9104477611940298
+        lower: 0.835820895522388
+        upper: 0.9701492537313433
+      - metric: reader_gemini_exact_agreement
+        estimate: 0.8507462686567164
+        lower: 0.7611940298507462
+        upper: 0.9253731343283582
+    allowed_wording:
+      - "A post-hoc, outcome-independent 200-output audit found 0.865 exact answer-correctness agreement between Claude Haiku and GPT-5.1, with a 95% bootstrap interval of [0.815, 0.910]."
+      - "The alternate-judge audit materially reduces, but does not eliminate, concern that the natural result is specific to one judge."
+      - "The original DeepSeek/Gemini reader panel had 0.881 agreement, while the sequential GPT-reader subgroup had 0.833 agreement."
+      - "Directional answer-correctness disagreements were nearly symmetric at 14 versus 13."
+    forbidden_wording:
+      - "The natural closure was independently cross-judge replicated."
+      - "The full 1,523-case population was re-scored by GPT-5.1."
+      - "Every reader subgroup met the 0.85 agreement threshold."
+      - "The two judges are interchangeable."
+      - "The audit independently reproduces the route-effect estimates."
+      - "This is an official RHELM or MemOps benchmark result."
+    known_limitations:
+      - "This is a post-hoc, outcome-independent audit and was not independently preregistered."
+      - "The audit covers 200 exact-deduplicated outputs and does not re-score the full 1,523-case natural closure."
+      - "The GPT-reader subgroup exact agreement is 0.833 with a wide [0.742, 0.924] interval, below the 0.85 point threshold."
+      - "Only one alternate judge was evaluated, and the overall exact-agreement interval extends below 0.85."
+      - "Answer-quality exact agreement is 0.240 even though within-one agreement is 0.755 and quadratic weighted kappa is 0.884."
+      - "The audit evaluates judge-label agreement only; it does not re-estimate route effects, disclosure effects, or reader utility."
+      - "Reader estimates remain separate and are never pooled."
+    paper_locations:
+      - "Experimental Design"
+      - "Natural End-to-End Results"
+      - "Limitations"
+    verification_tests:
+      - "test_cross_judge_claim_requires_posthoc_sample_boundaries"
+      - "test_cross_judge_import_preserves_bounded_audit_scope"
+      - "test_confidence_intervals_contain_estimates"

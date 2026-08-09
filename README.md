@@ -121,6 +121,10 @@ and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
   by `-0.0847`, and lowers over-refusal by `-0.0381`. Its protected- and stale-
   disclosure intervals include zero, so this is a utility-risk replication rather
   than a general disclosure-safety claim.
+- A post-hoc, outcome-independent alternate-judge audit over 200 exact-deduplicated
+  outputs finds 0.865 answer-correctness agreement (95% CI [0.815, 0.910]), with
+  nearly symmetric directional disagreements. The sequential GPT-reader subgroup is
+  lower at 0.833, so this reduces but does not remove the shared-judge limitation.
 - The evaluated threshold and cluster routers do not establish incremental utility
   beyond namespace support.
 - Corrected v2 attribution shows that released policy metadata drives the incremental

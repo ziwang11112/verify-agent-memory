@@ -52,6 +52,7 @@ SOURCE_CATEGORIES = {
     "GENERATED_FROM_FROZEN_POSTHOC",
     "GENERATED_FROM_PUBLIC_DIAGNOSTIC",
     "GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION",
+    "GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT",
 }
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
@@ -61,6 +62,7 @@ COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT = "82d3bce8023d1ccc97bb21b0bbb36e15a4b3
 CLAUDE_OPUS5_EXPOSURE_EXECUTION_COMMIT = "938320909b4c2d13e286987dc4297a7cb6ef73a7"
 NATURAL_END_TO_END_SOURCE_SNAPSHOT = "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
 NATURAL_POSTHOC_IMPLEMENTATION_COMMIT = "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+CROSS_JUDGE_EXECUTION_COMMIT = "3007717b6dc1dc038e6f79c946f533b2369caffe"
 
 
 def _is_sequence(value: Any) -> bool:
@@ -286,6 +288,32 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
         if "official rhelm or memops" not in forbidden:
             errors.append("C13 must forbid an official benchmark interpretation")
 
+    cross_judge = claim_by_id.get("C14")
+    if cross_judge:
+        limitations = _combined_text(cross_judge.get("known_limitations"))
+        forbidden = _combined_text(cross_judge.get("forbidden_wording"))
+        exact_values = cross_judge.get("exact_values")
+        if cross_judge.get("status") != "post_hoc_outcome_independent_cross_judge_audit":
+            errors.append("C14 must remain a post-hoc outcome-independent cross-judge audit")
+        for phrase, message in (
+            ("post-hoc", "C14 must preserve the post-hoc boundary"),
+            (
+                "not independently preregistered",
+                "C14 must preserve the non-preregistered boundary",
+            ),
+            ("does not re-score", "C14 must preserve the 200-output sample boundary"),
+            ("gpt-reader subgroup", "C14 must preserve the weaker GPT-reader subgroup"),
+        ):
+            if phrase not in limitations:
+                errors.append(message)
+        if (
+            not isinstance(exact_values, Mapping)
+            or exact_values.get("independently_preregistered_replication") is not False
+        ):
+            errors.append("C14.independently_preregistered_replication must be false")
+        if "official rhelm or memops" not in forbidden:
+            errors.append("C14 must forbid an official benchmark interpretation")
+
     if readable_contract is not None:
         for claim_id in claim_by_id:
             if f"### {claim_id}:" not in readable_contract:
@@ -342,6 +370,9 @@ def validate_source_index(source_data: Any, contract_data: Any) -> list[str]:
                 errors.append(
                     f"{artifact_id}.frozen_commit must match the natural end-to-end snapshot"
                 )
+        elif category == "GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT":
+            if artifact.get("frozen_commit") != CROSS_JUDGE_EXECUTION_COMMIT:
+                errors.append(f"{artifact_id}.frozen_commit must match the cross-judge execution")
         elif category == "GENERATED_FROM_FROZEN_POSTHOC":
             if artifact.get("frozen_commit") != NATURAL_POSTHOC_IMPLEMENTATION_COMMIT:
                 errors.append(

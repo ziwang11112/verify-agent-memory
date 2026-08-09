@@ -17,6 +17,7 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 | C11 | Sections 4 and 5.4 | Appendix Figure 5 | Natural and controlled public-development diagnostics are separate and never pooled |
 | C12 | Sections 4 and 5.5 | Figure 3 | Independently executed Claude Opus 5 replication under the C8 construction; separate estimates, no pooling, and no model-leaderboard claim |
 | C13 | Sections 4 and 5.1 | Table 2 | Frozen 1,523-case natural subset; readers reported separately; one shared blinded judge; GPT is sequential; no general disclosure reduction or official benchmark claim |
+| C14 | Sections 4, 5.1, and Limitations | Main text | Post-hoc outcome-independent 200-output alternate-judge audit; not a full-population re-score, independent preregistration, or route-effect replication |
 
 ## Paper-Level Claims
 
@@ -45,6 +46,8 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
     answer-utility gain, and tested text-only verification is not a consistent
     substitute for trusted namespace support.
 12. Reader selectivity does not replace pre-prompt admissibility verification.
+13. A post-hoc alternate-judge audit finds substantial but imperfect agreement on a
+    frozen 200-output sample, reducing but not eliminating shared-judge dependence.
 
 ## Claims Not Made
 
@@ -58,7 +61,7 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 - Cross-provider replication of the GateMem reader analysis.
 - A pooled reader effect or a capability leaderboard from the heterogeneous reader
   configurations.
-- Independent cross-judge replication or an independently preregistered GPT Luna
-  replication in the natural closure.
+- Independently preregistered or full-population cross-judge replication, or an
+  independently preregistered GPT Luna replication in the natural closure.
 - A general reduction in protected or stale disclosure from namespace support.
 - A deployable method for inferring intent, scope, or lifecycle state.
