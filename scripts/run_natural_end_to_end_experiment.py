@@ -12,7 +12,7 @@ import random
 import subprocess
 import sys
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
@@ -45,6 +45,7 @@ from verify_agent_memory.natural_end_to_end import (  # noqa: E402
 )
 
 DEFAULT_PROTOCOL = ROOT / "experiments" / "natural_end_to_end_protocol.json"
+TWO_READER_PROTOCOL = ROOT / "experiments" / "natural_end_to_end_two_reader_protocol.json"
 DEFAULT_CASES = ROOT / "tmp" / "natural_end_to_end" / "cases.jsonl.gz"
 DEFAULT_MATERIALIZATION = ROOT / "tmp" / "natural_end_to_end" / "materialization_manifest.json"
 DEFAULT_RUNTIME = ROOT / "tmp" / "natural_end_to_end" / "provider_runtime"
@@ -52,11 +53,13 @@ DEFAULT_OUTPUT = ROOT / "results" / "natural_end_to_end"
 DEFAULT_DOTENV = ROOT.parent / "bomi-codex-starter" / ".env"
 CONTRACT_PATHS = (
     "experiments/natural_end_to_end_protocol.json",
+    "experiments/natural_end_to_end_two_reader_protocol.json",
     "experiments/prompts/inferred_admissibility_v1.txt",
     "experiments/prompts/natural_end_to_end_judge_v1.txt",
     "experiments/prompts/natural_end_to_end_reader_v1.txt",
     "scripts/run_inferred_admissibility_experiment.py",
     "scripts/import_natural_verifier_bundle.py",
+    "scripts/import_natural_two_reader_checkpoints.py",
     "scripts/run_natural_end_to_end_experiment.py",
     "src/verify_agent_memory/inferred_admissibility.py",
     "src/verify_agent_memory/natural_end_to_end.py",
@@ -189,6 +192,7 @@ class ProviderBinding:
 class Protocol:
     path: Path
     raw: Mapping[str, Any]
+    protocol_id: str
     protocol_sha256: str
     reader_prompt: str
     verifier_prompt: str
@@ -204,6 +208,7 @@ class Protocol:
     maximum_output_tokens_judge: int
     timeout_seconds: int
     maximum_transport_retries: int
+    reader_incremental_hard_caps: Mapping[str, float]
 
 
 def _prompt(value: object, label: str) -> str:
@@ -230,6 +235,7 @@ def _binding(value: object, label: str) -> ProviderBinding:
         "threshold_source",
         "arm_and_reader_blinded",
         "maximum_calls_before_exact_prompt_deduplication",
+        "execution_locked_until_deterministic_gate",
     }
     return ProviderBinding(
         provider=_string(row.get("provider"), f"{label}.provider"),
@@ -252,11 +258,21 @@ def _binding(value: object, label: str) -> ProviderBinding:
 
 def load_protocol(path: Path) -> Protocol:
     raw = _read_json(path)
-    if raw.get("schema_version") != 1 or raw.get("protocol_id") != (
-        "natural-heldout-route-to-reader-v2"
-    ):
+    protocol_id = _string(raw.get("protocol_id"), "protocol.protocol_id")
+    if raw.get("schema_version") != 1 or protocol_id not in {
+        "natural-heldout-route-to-reader-v2",
+        "natural-heldout-route-to-reader-two-reader-v3",
+    }:
         raise ValueError("natural end-to-end protocol identity drifted")
-    if raw.get("status") != "frozen_nonofficial_same_population_end_to_end_evaluation":
+    expected_status = {
+        "natural-heldout-route-to-reader-v2": (
+            "frozen_nonofficial_same_population_end_to_end_evaluation"
+        ),
+        "natural-heldout-route-to-reader-two-reader-v3": (
+            "frozen_nonofficial_cost_aware_two_reader_completion"
+        ),
+    }[protocol_id]
+    if raw.get("status") != expected_status:
         raise ValueError("natural end-to-end protocol status drifted")
     source = _mapping(raw.get("source_contract"), "protocol.source_contract")
     if source.get("query_counts") != {"rhelm": 523, "memops": 3244, "total": 3767}:
@@ -276,13 +292,44 @@ def load_protocol(path: Path) -> Protocol:
         _binding(item, f"protocol.reader.providers[{index}]")
         for index, item in enumerate(_sequence(reader.get("providers"), "reader.providers"))
     )
-    if {binding.provider for binding in readers} != {
-        "OpenAI",
-        "Anthropic",
-        "Gemini",
-        "DeepSeek",
-    }:
+    expected_readers = {
+        "natural-heldout-route-to-reader-v2": (
+            "OpenAI",
+            "Anthropic",
+            "Gemini",
+            "DeepSeek",
+        ),
+        "natural-heldout-route-to-reader-two-reader-v3": ("Gemini", "DeepSeek"),
+    }[protocol_id]
+    if tuple(binding.provider for binding in readers) != expected_readers:
         raise ValueError("natural end-to-end reader panel drifted")
+    judge_binding = _binding(judge, "protocol.judge")
+    expected_judge = {
+        "natural-heldout-route-to-reader-v2": ("OpenAI", "gpt-5.6-sol"),
+        "natural-heldout-route-to-reader-two-reader-v3": (
+            "Anthropic",
+            "claude-haiku-4-5",
+        ),
+    }[protocol_id]
+    if (judge_binding.provider, judge_binding.model) != expected_judge:
+        raise ValueError("natural end-to-end judge binding drifted")
+    raw_incremental_caps = _mapping(
+        execution.get("reader_incremental_hard_cap_usd", {}),
+        "protocol.execution.reader_incremental_hard_cap_usd",
+    )
+    incremental_caps = {
+        provider: _number(value, f"reader_incremental_hard_cap_usd.{provider}")
+        for provider, value in raw_incremental_caps.items()
+    }
+    if protocol_id == "natural-heldout-route-to-reader-v2" and incremental_caps:
+        raise ValueError("v2 protocol cannot define incremental reader caps")
+    if protocol_id == "natural-heldout-route-to-reader-two-reader-v3":
+        if incremental_caps != {"Gemini": 29.0, "DeepSeek": 16.0}:
+            raise ValueError("two-reader incremental caps must bind Gemini $29 and DeepSeek $16")
+        if execution.get("maximum_model_contract_recovery_attempts") != 1:
+            raise ValueError("two-reader model-contract recovery limit drifted")
+        if execution.get("outcome_selective_rerun") is not False:
+            raise ValueError("two-reader outcome-selective rerun rule drifted")
     if sum(binding.hard_cap_usd for binding in readers) + _number(
         verifier.get("hard_cap_usd"),
         "text_verifier.hard_cap_usd",
@@ -294,13 +341,14 @@ def load_protocol(path: Path) -> Protocol:
     return Protocol(
         path=path,
         raw=raw,
+        protocol_id=protocol_id,
         protocol_sha256=_sha256_file(path),
         reader_prompt=_prompt(reader.get("prompt"), "protocol.reader.prompt"),
         verifier_prompt=_prompt(verifier.get("prompt"), "protocol.text_verifier.prompt"),
         judge_prompt=_prompt(judge.get("prompt"), "protocol.judge.prompt"),
         verifier=_binding(verifier, "protocol.text_verifier"),
         readers=readers,
-        judge=_binding(judge, "protocol.judge"),
+        judge=judge_binding,
         verifier_threshold=_number(
             verifier.get("violation_threshold"),
             "text_verifier.violation_threshold",
@@ -335,6 +383,7 @@ def load_protocol(path: Path) -> Protocol:
             execution.get("maximum_transport_retries"),
             "execution.maximum_transport_retries",
         ),
+        reader_incremental_hard_caps=incremental_caps,
     )
 
 
@@ -503,6 +552,21 @@ def _conservative_call_cost(
     ) / 1_000_000
 
 
+def _retryable_execution_error(error: BaseException) -> bool:
+    if not isinstance(error, RuntimeError):
+        return False
+    message = str(error)
+    if message in {"provider transport failure", "provider request failed"}:
+        return True
+    if not message.startswith("provider HTTP failure: "):
+        return False
+    try:
+        status = int(message.rsplit(": ", 1)[1])
+    except ValueError:
+        return False
+    return status == 429 or status >= 500
+
+
 def _call_provider(
     *,
     protocol: Protocol,
@@ -561,6 +625,7 @@ def _execute_specs(
     dotenv: Path,
     workers: int,
     parser: Callable[[object, str], object],
+    incremental_cost_cap_usd: float | None = None,
 ) -> dict[str, object]:
     with _exclusive_stage_lock(runtime, stage, binding):
         return _execute_specs_locked(
@@ -574,6 +639,7 @@ def _execute_specs(
             dotenv=dotenv,
             workers=workers,
             parser=parser,
+            incremental_cost_cap_usd=incremental_cost_cap_usd,
         )
 
 
@@ -589,6 +655,7 @@ def _execute_specs_locked(
     dotenv: Path,
     workers: int,
     parser: Callable[[object, str], object],
+    incremental_cost_cap_usd: float | None = None,
 ) -> dict[str, object]:
     if workers < 1:
         raise ValueError("workers must be positive")
@@ -615,6 +682,42 @@ def _execute_specs_locked(
                 parser=parser,
             )
     spent = sum(_record_cost(record) for record in existing.values())
+    incremental_spent = sum(
+        _record_cost(record) for record in existing.values() if "compatibility_source" not in record
+    )
+    failure_budget_spent = 0.0
+    terminal_failure_ids = set()
+    failure_root = _stage_root(runtime, stage, binding) / "failures"
+    for failure_path in failure_root.glob("*.json") if failure_root.is_dir() else ():
+        failure = _read_json(failure_path)
+        if (
+            failure.get("protocol_sha256") == protocol.protocol_sha256
+            and failure.get("provider") == binding.provider
+            and failure.get("model") == binding.model
+        ):
+            failure_budget_spent += _number(
+                failure.get("cost_bound_usd", 0),
+                f"{failure_path}.cost_bound_usd",
+            )
+            request_id = failure.get("request_id")
+            if (
+                isinstance(request_id, str)
+                and request_id in specs
+                and request_id not in existing
+                and failure.get("retry_eligible") is False
+            ):
+                terminal_failure_ids.add(request_id)
+    if terminal_failure_ids:
+        raise RuntimeError(
+            f"{stage}/{binding.provider} has {len(terminal_failure_ids)} terminal "
+            "contract failure(s); an amended protocol is required"
+        )
+    incremental_budget_spent = incremental_spent + failure_budget_spent
+    if incremental_cost_cap_usd is not None and incremental_budget_spent > incremental_cost_cap_usd:
+        raise RuntimeError(
+            f"recorded incremental {stage} spend ${incremental_budget_spent:.2f} "
+            f"exceeds {binding.provider} cap ${incremental_cost_cap_usd:.2f}"
+        )
     pending_ids = sorted(set(specs) - set(existing))
     pending_bound = sum(
         _conservative_call_cost(
@@ -635,12 +738,25 @@ def _execute_specs_locked(
 
     failures = []
     completed = len(existing)
+    pending_queue = deque(pending_ids)
+    reservations: dict[Future[Mapping[str, Any]], float] = {}
 
     def submit(
         executor: ThreadPoolExecutor,
         request_id: str,
-    ) -> Future[Mapping[str, Any]]:
-        return executor.submit(
+    ) -> Future[Mapping[str, Any]] | None:
+        call_bound = _conservative_call_cost(
+            specs[request_id],
+            binding,
+            system_prompt=system_prompt,
+            maximum_output_tokens=maximum_output_tokens,
+        )
+        if incremental_cost_cap_usd is not None and (
+            incremental_budget_spent + sum(reservations.values()) + call_bound
+            > incremental_cost_cap_usd
+        ):
+            return None
+        future = executor.submit(
             _call_provider,
             protocol=protocol,
             stage=stage,
@@ -652,22 +768,32 @@ def _execute_specs_locked(
             parser=parser,
             implementation_commit=implementation_commit,
         )
+        reservations[future] = call_bound
+        return future
+
+    def fill(executor: ThreadPoolExecutor, futures: dict[Future[Mapping[str, Any]], str]) -> None:
+        while pending_queue and len(futures) < workers:
+            request_id = pending_queue[0]
+            future = submit(executor, request_id)
+            if future is None:
+                return
+            pending_queue.popleft()
+            futures[future] = request_id
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        iterator = iter(pending_ids)
         futures: dict[Future[Mapping[str, Any]], str] = {}
-        for _ in range(min(workers, len(pending_ids))):
-            request_id = next(iterator)
-            futures[submit(executor, request_id)] = request_id
+        fill(executor, futures)
         while futures:
             finished, _ = wait(futures, return_when=FIRST_COMPLETED)
             for future in finished:
                 request_id = futures.pop(future)
+                call_bound = reservations.pop(future)
                 try:
                     record = future.result()
                     _write_json(_response_path(runtime, stage, binding, request_id), record)
                     existing[request_id] = record
                     completed += 1
+                    incremental_budget_spent += _record_cost(record)
                     if completed % 25 == 0 or completed == len(specs):
                         print(
                             json.dumps(
@@ -682,6 +808,14 @@ def _execute_specs_locked(
                             flush=True,
                         )
                 except Exception as exc:  # noqa: BLE001 - preserve partial paid progress.
+                    retry_eligible = _retryable_execution_error(exc)
+                    failure_cost_bound = (
+                        0.0
+                        if isinstance(exc, RuntimeError)
+                        and str(exc) == "provider HTTP failure: 429"
+                        else call_bound
+                    )
+                    incremental_budget_spent += failure_cost_bound
                     failure = {
                         "schema_version": 1,
                         "protocol_sha256": protocol.protocol_sha256,
@@ -689,23 +823,30 @@ def _execute_specs_locked(
                         "provider": binding.provider,
                         "model": binding.model,
                         "request_id": request_id,
+                        "implementation_commit": implementation_commit,
                         "error_type": type(exc).__name__,
                         "error": str(exc),
+                        "cost_bound_usd": failure_cost_bound,
+                        "response_accepted": False,
+                        "retry_eligible": retry_eligible,
+                        "automatic_rerun_allowed": retry_eligible,
                     }
                     _write_json(_failure_path(runtime, stage, binding, request_id), failure)
                     failures.append(failure)
             if failures:
                 continue
-            while len(futures) < workers:
-                try:
-                    request_id = next(iterator)
-                except StopIteration:
-                    break
-                futures[submit(executor, request_id)] = request_id
+            fill(executor, futures)
     if failures:
         raise RuntimeError(
             f"{stage}/{binding.provider} stopped after {len(failures)} failure(s); "
             "successful calls remain checkpointed"
+        )
+    if pending_queue:
+        if incremental_cost_cap_usd is None:
+            raise RuntimeError(f"{stage}/{binding.provider} stopped with pending requests")
+        raise RuntimeError(
+            f"incremental {stage} cap ${incremental_cost_cap_usd:.2f} cannot reserve "
+            f"the next {binding.provider} request; successful calls remain checkpointed"
         )
     return _complete_stage(protocol, runtime, stage, binding, specs, existing)
 
@@ -742,6 +883,21 @@ def _complete_stage(
         ),
         "complete_bundle": True,
     }
+    incremental_cap = protocol.reader_incremental_hard_caps.get(binding.provider)
+    if stage == "reader" and incremental_cap is not None:
+        imported = [record for record in records.values() if "compatibility_source" in record]
+        completion.update(
+            {
+                "imported_response_count": len(imported),
+                "incremental_response_count": len(records) - len(imported),
+                "incremental_cost_usd": sum(
+                    _record_cost(record)
+                    for record in records.values()
+                    if "compatibility_source" not in record
+                ),
+                "incremental_hard_cap_usd": incremental_cap,
+            }
+        )
     _write_json(_completion_path(runtime, stage, binding), completion)
     return completion
 
@@ -952,6 +1108,25 @@ def _reader_binding(protocol: Protocol, provider: str) -> ProviderBinding:
     if len(matches) != 1:
         raise ValueError(f"unknown reader provider {provider!r}")
     return matches[0]
+
+
+def _require_judge_gate(protocol: Protocol, runtime: Path) -> None:
+    judge = _mapping(protocol.raw.get("judge"), "protocol.judge")
+    if judge.get("execution_locked_until_deterministic_gate") is not True:
+        return
+    path = runtime / "deterministic_gate.json"
+    if not path.is_file():
+        raise RuntimeError("judge execution is locked pending deterministic_gate.json")
+    receipt = _read_json(path)
+    expected = {
+        "schema_version": 1,
+        "protocol_sha256": protocol.protocol_sha256,
+        "status": "deterministic_gate_passed",
+        "provider_calls_made": 0,
+    }
+    for key, value in expected.items():
+        if receipt.get(key) != value:
+            raise ValueError(f"deterministic judge gate drifted: {key}")
 
 
 def _load_reader_responses(
@@ -1469,7 +1644,7 @@ def score(
     ]
     manifest = {
         "schema_version": 1,
-        "protocol_id": "natural-heldout-route-to-reader-v2",
+        "protocol_id": protocol.protocol_id,
         "status": "complete_nonofficial_same_population_end_to_end_evaluation",
         "protocol_sha256": protocol.protocol_sha256,
         "case_bundle_sha256": _sha256_file(cases_path),
@@ -1535,6 +1710,7 @@ def main() -> None:
             if args.stage == "verifier":
                 binding = protocol.verifier
             elif args.stage == "judge":
+                _require_judge_gate(protocol, args.runtime)
                 binding = protocol.judge
             else:
                 if not args.provider:
@@ -1594,8 +1770,12 @@ def main() -> None:
                     dotenv=args.dotenv,
                     workers=args.workers,
                     parser=_reader_parser,
+                    incremental_cost_cap_usd=protocol.reader_incremental_hard_caps.get(
+                        binding.provider
+                    ),
                 )
         elif args.command in {"plan-judge", "execute-judge"}:
+            _require_judge_gate(protocol, args.runtime)
             specs, _assignments, _responses, _reader_assignments, _scores = _judge_plan(
                 cases,
                 protocol,
@@ -1622,6 +1802,7 @@ def main() -> None:
                     parser=_judge_parser,
                 )
         elif args.command == "score":
+            _require_judge_gate(protocol, args.runtime)
             result = score(
                 protocol=protocol,
                 cases_path=args.cases,

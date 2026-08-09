@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import json
 
 import pytest
 
+from scripts import import_natural_two_reader_checkpoints as checkpoint_import
 from scripts import import_natural_verifier_bundle as verifier_import
 from scripts import run_natural_end_to_end_experiment as runtime
 from verify_agent_memory.natural_end_to_end import (
@@ -281,6 +283,223 @@ def test_frozen_execution_protocol_loads_without_credentials_or_calls() -> None:
         "Gemini",
         "DeepSeek",
     ]
+
+
+def test_cost_aware_two_reader_protocol_binds_panel_caps_and_judge() -> None:
+    protocol = runtime.load_protocol(runtime.TWO_READER_PROTOCOL)
+
+    assert protocol.protocol_id == "natural-heldout-route-to-reader-two-reader-v3"
+    assert [binding.provider for binding in protocol.readers] == ["Gemini", "DeepSeek"]
+    assert protocol.reader_incremental_hard_caps == {"Gemini": 29.0, "DeepSeek": 16.0}
+    assert (protocol.judge.provider, protocol.judge.model) == (
+        "Anthropic",
+        "claude-haiku-4-5",
+    )
+
+
+def test_two_reader_protocol_compatibility_rejects_frozen_request_drift() -> None:
+    source = json.loads(runtime.DEFAULT_PROTOCOL.read_text(encoding="utf-8"))
+    target = json.loads(runtime.TWO_READER_PROTOCOL.read_text(encoding="utf-8"))
+    checkpoint_import.assert_protocol_compatibility(source, target)
+
+    changed = json.loads(json.dumps(target))
+    changed["reader"]["providers"][0]["model"] = "different-model"
+    with pytest.raises(ValueError, match="reader binding drifted"):
+        checkpoint_import.assert_protocol_compatibility(source, changed)
+
+    changed = json.loads(json.dumps(target))
+    changed["retrieval"]["candidate_depth"] = 19
+    with pytest.raises(ValueError, match="frozen retrieval"):
+        checkpoint_import.assert_protocol_compatibility(source, changed)
+
+
+def test_two_reader_file_set_hash_is_stable_and_content_bound(tmp_path) -> None:
+    (tmp_path / "b.json").write_text("B", encoding="ascii")
+    (tmp_path / "a.json").write_text("A", encoding="ascii")
+    entries = (
+        f"a.json:{hashlib.sha256(b'A').hexdigest()}\nb.json:{hashlib.sha256(b'B').hexdigest()}\n"
+    )
+    expected = hashlib.sha256(entries.encode("utf-8")).hexdigest()
+
+    assert checkpoint_import.file_set_sha256(tmp_path) == expected
+    (tmp_path / "a.json").write_text("changed", encoding="ascii")
+    assert checkpoint_import.file_set_sha256(tmp_path) != expected
+
+
+def test_two_reader_migration_preserves_response_and_compatibility_chain() -> None:
+    prior = {"record_sha256": "older"}
+    source = {
+        "protocol_sha256": "source-protocol",
+        "implementation_commit": "source-commit",
+        "response": {"action": "answer", "answer": "Paris"},
+        "compatibility_source": prior,
+    }
+    migrated = checkpoint_import.migrated_record(
+        source,
+        target_protocol_sha256="target-protocol",
+        target_commit="target-commit",
+        source_record_sha256="source-record",
+    )
+
+    assert migrated["response"] is source["response"]
+    assert migrated["protocol_sha256"] == "target-protocol"
+    assert migrated["implementation_commit"] == "target-commit"
+    assert migrated["compatibility_source"] == {
+        "protocol_sha256": "source-protocol",
+        "implementation_commit": "source-commit",
+        "record_sha256": "source-record",
+        "response_unchanged": True,
+        "prior_compatibility_source": prior,
+    }
+
+
+def test_two_reader_judge_requires_zero_call_deterministic_gate(tmp_path) -> None:
+    protocol = runtime.load_protocol(runtime.TWO_READER_PROTOCOL)
+    with pytest.raises(RuntimeError, match="judge execution is locked"):
+        runtime._require_judge_gate(protocol, tmp_path)
+
+    gate = {
+        "schema_version": 1,
+        "protocol_sha256": protocol.protocol_sha256,
+        "status": "deterministic_gate_passed",
+        "provider_calls_made": 0,
+    }
+    runtime._write_json(tmp_path / "deterministic_gate.json", gate)
+    runtime._require_judge_gate(protocol, tmp_path)
+
+    gate["provider_calls_made"] = 1
+    runtime._write_json(tmp_path / "deterministic_gate.json", gate)
+    with pytest.raises(ValueError, match="provider_calls_made"):
+        runtime._require_judge_gate(protocol, tmp_path)
+
+
+def _reader_record(
+    protocol: runtime.Protocol,
+    binding: runtime.ProviderBinding,
+    spec: runtime.CallSpec,
+    *,
+    cost_usd: float,
+    imported: bool,
+) -> dict[str, object]:
+    record: dict[str, object] = {
+        "schema_version": 1,
+        "protocol_sha256": protocol.protocol_sha256,
+        "implementation_commit": "test-commit",
+        "stage": "reader",
+        "provider": binding.provider,
+        "model": binding.model,
+        "request_id": spec.request_id,
+        "payload_sha256": hashlib.sha256(spec.payload.encode("utf-8")).hexdigest(),
+        "request_body_sha256": "request-body",
+        "response": {"action": "answer", "answer": "Paris"},
+        "usage": {"input_tokens": 1, "output_tokens": 1},
+        "attempts": 1,
+        "latency_ms": 1,
+        "cost_usd": cost_usd,
+    }
+    if imported:
+        record["compatibility_source"] = {"response_unchanged": True}
+    return record
+
+
+def test_incremental_reader_cap_ignores_imported_cost_and_stops_before_call(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    protocol = runtime.load_protocol(runtime.TWO_READER_PROTOCOL)
+    binding = runtime._reader_binding(protocol, "Gemini")
+    imported = runtime.CallSpec("imported", '{"case":"old"}', {"type": "object"})
+    pending = runtime.CallSpec("pending", '{"case":"new"}', {"type": "object"})
+    specs = {spec.request_id: spec for spec in (imported, pending)}
+    runtime._write_json(
+        runtime._response_path(tmp_path, "reader", binding, imported.request_id),
+        _reader_record(protocol, binding, imported, cost_usd=10.0, imported=True),
+    )
+    fixture = runtime._stage_root(tmp_path, "fixtures", binding) / "reader.json"
+    runtime._write_json(fixture, {"fixture": True})
+    monkeypatch.setattr(runtime, "_require_clean_contract", lambda: "test-commit")
+    monkeypatch.setattr(runtime, "_git_head", lambda: "test-commit")
+    monkeypatch.setattr(
+        runtime.provider_runtime,
+        "_load_dotenv",
+        lambda _path: {"GEMINI_API_KEY": "not-a-real-key"},
+    )
+    monkeypatch.setattr(runtime, "_conservative_call_cost", lambda *_args, **_kwargs: 0.6)
+    calls = []
+    monkeypatch.setattr(runtime, "_call_provider", lambda **kwargs: calls.append(kwargs))
+
+    with pytest.raises(RuntimeError, match="incremental reader cap"):
+        runtime._execute_specs_locked(
+            protocol=protocol,
+            runtime=tmp_path,
+            stage="reader",
+            binding=binding,
+            specs=specs,
+            system_prompt=protocol.reader_prompt,
+            maximum_output_tokens=protocol.maximum_output_tokens_reader,
+            dotenv=tmp_path / ".env",
+            workers=1,
+            parser=runtime._reader_parser,
+            incremental_cost_cap_usd=0.5,
+        )
+    assert calls == []
+
+
+def test_terminal_reader_failure_blocks_automatic_rerun(tmp_path, monkeypatch) -> None:
+    protocol = runtime.load_protocol(runtime.TWO_READER_PROTOCOL)
+    binding = runtime._reader_binding(protocol, "DeepSeek")
+    spec = runtime.CallSpec("pending", '{"case":"new"}', {"type": "object"})
+    fixture = runtime._stage_root(tmp_path, "fixtures", binding) / "reader.json"
+    runtime._write_json(fixture, {"fixture": True})
+    failure = {
+        "schema_version": 1,
+        "protocol_sha256": protocol.protocol_sha256,
+        "stage": "reader",
+        "provider": binding.provider,
+        "model": binding.model,
+        "request_id": spec.request_id,
+        "cost_bound_usd": 0.01,
+        "retry_eligible": False,
+    }
+    runtime._write_json(
+        runtime._stage_root(tmp_path, "reader", binding) / "failures" / "terminal.json",
+        failure,
+    )
+    monkeypatch.setattr(runtime, "_require_clean_contract", lambda: "test-commit")
+    monkeypatch.setattr(
+        runtime.provider_runtime,
+        "_load_dotenv",
+        lambda _path: {"DEEPSEEK_API_KEY": "not-a-real-key"},
+    )
+
+    with pytest.raises(RuntimeError, match="terminal contract failure"):
+        runtime._execute_specs_locked(
+            protocol=protocol,
+            runtime=tmp_path,
+            stage="reader",
+            binding=binding,
+            specs={spec.request_id: spec},
+            system_prompt=protocol.reader_prompt,
+            maximum_output_tokens=protocol.maximum_output_tokens_reader,
+            dotenv=tmp_path / ".env",
+            workers=1,
+            parser=runtime._reader_parser,
+            incremental_cost_cap_usd=16.0,
+        )
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (RuntimeError("provider HTTP failure: 429"), True),
+        (RuntimeError("provider HTTP failure: 503"), True),
+        (RuntimeError("provider HTTP failure: 401"), False),
+        (RuntimeError("provider transport failure"), True),
+        (ValueError("reader response is invalid"), False),
+    ],
+)
+def test_execution_error_retry_classification(error, expected) -> None:
+    assert runtime._retryable_execution_error(error) is expected
 
 
 def test_verifier_payload_hides_released_labels() -> None:
