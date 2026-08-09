@@ -60,6 +60,7 @@ CONTRACT_PATHS = (
     "experiments/natural_end_to_end_two_reader_protocol.json",
     "experiments/natural_end_to_end_two_reader_analysis_protocol.json",
     "experiments/natural_end_to_end_gpt_reader_protocol.json",
+    "experiments/natural_end_to_end_gpt_judge_protocol.json",
     "experiments/prompts/inferred_admissibility_v1.txt",
     "experiments/prompts/natural_end_to_end_judge_v1.txt",
     "experiments/prompts/natural_end_to_end_reader_v1.txt",

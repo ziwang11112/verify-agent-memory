@@ -27,6 +27,21 @@ def test_gpt_reader_protocol_is_narrow_and_cost_capped() -> None:
     ]
 
 
+def test_gpt_judge_protocol_is_cross_provider_and_exactly_bound() -> None:
+    protocol = gpt.load_judge_protocol()
+
+    assert protocol.judge["provider"] == "Anthropic"
+    assert protocol.judge["model"] == "claude-haiku-4-5-20251001"
+    assert protocol.judge["expected_unique_request_count"] == 3397
+    assert protocol.judge["expected_request_id_set_sha256"] == (
+        "5d4237295a917968ff95f18033cd75ba1f9b4707f1b008d16a7c3670d52fac07"
+    )
+    assert protocol.fixture_cap_usd == 0.01
+    assert protocol.total_cap_usd == 10.0
+    assert protocol.outputs["reader_estimates_pooled"] is False
+    assert protocol.outputs["official_rhelm_or_memops_claim"] is False
+
+
 def test_gpt_reader_plan_reuses_frozen_sample_and_only_primary_routes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

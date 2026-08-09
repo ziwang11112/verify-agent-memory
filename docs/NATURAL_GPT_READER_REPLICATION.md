@@ -31,6 +31,11 @@ python scripts/run_natural_gpt_reader_replication.py validate
 python scripts/run_natural_gpt_reader_replication.py plan-reader
 python scripts/run_natural_gpt_reader_replication.py fixture-reader
 python scripts/run_natural_gpt_reader_replication.py execute-reader
+python scripts/run_natural_gpt_reader_replication.py validate-judge
+python scripts/run_natural_gpt_reader_replication.py plan-judge
+python scripts/run_natural_gpt_reader_replication.py fixture-judge
+python scripts/run_natural_gpt_reader_replication.py execute-judge
+python scripts/run_natural_gpt_reader_replication.py score
 ```
 
 Provider calls require committed, clean contract files. Runtime questions, prompts,
@@ -38,3 +43,6 @@ responses, and query-level scores remain under the ignored
 `tmp/natural_end_to_end/gpt_luna_replication_runtime/` directory.
 
 This is a non-official robustness replication, not an official RHELM or MemOps result.
+Claude Haiku is used only as the same blinded cross-provider scorer used for the
+Gemini/DeepSeek panel; it is not a reader arm. Its exact request set is frozen only
+after the complete GPT response bundle exists.

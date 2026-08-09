@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-heldout-gpt-luna-cross-provider-judge-v1",
+  "status": "frozen_after_complete_gpt_reader_before_judge_execution",
+  "frozen_date": "2026-08-09",
+  "objective": "score_the_complete_gpt_luna_primary_route_replication_with_the_existing_blinded_cross_provider_judge",
+  "source_reader": {
+    "protocol_path": "experiments/natural_end_to_end_gpt_reader_protocol.json",
+    "protocol_sha256": "cec44c31c91f36cdb6ca4e2cff81af63d93a2d9f12602d9a4f2218dcefebd1ef",
+    "execution_implementation_commit": "3eab4e37605595b56c4d63e7a06f387936c9c05d",
+    "runtime": "tmp/natural_end_to_end/gpt_luna_replication_runtime",
+    "completion_path": "tmp/natural_end_to_end/gpt_luna_replication_runtime/reader/openai-gpt-5.6-luna/completion.json",
+    "completion_sha256": "f0c81c3f633969fc7f3554d4f79aaea48ea93ede80945a5e2e341d3813f7e626",
+    "response_set_sha256": "3599e9b43ebe9191fb4471d4d7e03455396ad68459270b4b5e540be7f9105955",
+    "request_count": 3157,
+    "complete_bundle_required": true
+  },
+  "sample": {
+    "case_count": 1523,
+    "case_id_set_sha256": "a39e1f6a2313ed8f6918d27bcc2ac4516fc2acc1d34c9bc7dffcacca07105491",
+    "arms": [
+      "global_dense",
+      "namespace_dense",
+      "namespace_policy_gate"
+    ],
+    "assignment_count": 4569,
+    "selection_is_reader_outcome_independent": true
+  },
+  "judge": {
+    "source_protocol_path": "experiments/natural_end_to_end_two_reader_judge_protocol.json",
+    "source_protocol_sha256": "92fab9c54a283b2e56f5cecf6059ff3a4eb23d96846cd5734e3a9ae51487e26a",
+    "provider": "Anthropic",
+    "model": "claude-haiku-4-5-20251001",
+    "api_surface": "messages",
+    "thinking": "disabled",
+    "effort": "omitted",
+    "prompt_path": "experiments/prompts/natural_end_to_end_judge_v1.txt",
+    "prompt_sha256": "7f6a306e87c972e8a4c06bc68df724351d7da70fee3ef460e091516be0f0c412",
+    "arm_and_reader_blinded": true,
+    "maximum_output_tokens": 512,
+    "input_usd_per_million": 1.0,
+    "output_usd_per_million": 5.0,
+    "expected_unique_request_count": 3397,
+    "expected_request_id_set_sha256": "5d4237295a917968ff95f18033cd75ba1f9b4707f1b008d16a7c3670d52fac07"
+  },
+  "budget": {
+    "currency": "USD",
+    "fixture_hard_cap_usd": 0.01,
+    "conservative_all_requests_bound_usd": 20.972058,
+    "total_incremental_hard_cap_usd": 10.0,
+    "fixture_and_failure_reservations_count_toward_total": true
+  },
+  "execution": {
+    "timeout_seconds": 180,
+    "maximum_transport_retries": 2,
+    "maximum_model_contract_recovery_attempts": 1,
+    "checkpoint_after_each_successful_call": true,
+    "exact_prompt_deduplication": true,
+    "semantic_or_output_repair": false,
+    "selective_rerun": false,
+    "outcome_selective_rerun": false,
+    "partial_or_prefix_scoring": false,
+    "complete_bundle_required_for_scoring": true
+  },
+  "outputs": {
+    "runtime": "tmp/natural_end_to_end/gpt_luna_replication_runtime",
+    "directory": "results/natural_end_to_end_gpt_luna_judged",
+    "reader_estimates_pooled": false,
+    "official_rhelm_or_memops_claim": false,
+    "paper_claim_automatic_update": false
+  }
+}
