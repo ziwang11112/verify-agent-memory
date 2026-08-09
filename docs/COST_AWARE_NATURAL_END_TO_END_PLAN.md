@@ -181,13 +181,14 @@ Current reusable progress:
 | DeepSeek V4 Pro | 2,741 / 7,250 | 4,509 | $13.90 |
 | Combined | 5,974 / 14,500 | 8,526 | $38.36 |
 
-Quota or transport failures that produced no model answer may resume the exact frozen
-request. Historical malformed or schema-invalid attempts remain in the imported audit
+Quota, credential, or transport failures that produced no model answer may resume the
+exact frozen request. Historical malformed or schema-invalid attempts remain in the imported audit
 trail. In the v2 checkpoint, each of those request IDs already had a later accepted
 response before this amendment; the v3 import preserves that response and the earlier
-failure records separately. A new v3 model-contract failure is terminal: do not repair
-it or repeatedly sample until a valid answer appears. Such a failure freezes Stage 1
-as incomplete until a separately reviewed protocol amendment.
+failure records separately. A new v3 model-contract failure receives exactly one
+predeclared recovery attempt on the unchanged request. The output is never repaired;
+a second model-contract failure for that request is terminal and freezes Stage 1 as
+incomplete until a separately reviewed protocol amendment.
 
 Stage 1 gates:
 

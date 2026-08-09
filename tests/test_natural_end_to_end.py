@@ -532,13 +532,39 @@ def test_terminal_reader_failure_blocks_automatic_rerun(tmp_path, monkeypatch) -
     [
         (RuntimeError("provider HTTP failure: 429"), True),
         (RuntimeError("provider HTTP failure: 503"), True),
-        (RuntimeError("provider HTTP failure: 401"), False),
+        (RuntimeError("provider HTTP failure: 401"), True),
+        (RuntimeError("provider HTTP failure: 400"), False),
         (RuntimeError("provider transport failure"), True),
         (ValueError("reader response is invalid"), False),
     ],
 )
 def test_execution_error_retry_classification(error, expected) -> None:
     assert runtime._retryable_execution_error(error) is expected
+
+
+@pytest.mark.parametrize(
+    ("error", "prior", "expected"),
+    [
+        (RuntimeError("provider HTTP failure: 429"), 9, ("transport_no_response", True)),
+        (ValueError("reader response is invalid"), 0, ("model_contract", True)),
+        (ValueError("reader response is invalid"), 1, ("model_contract", False)),
+        (RuntimeError("provider HTTP failure: 401"), 0, ("transport_no_response", True)),
+        (RuntimeError("provider HTTP failure: 400"), 0, ("provider_terminal", False)),
+    ],
+)
+def test_execution_failure_policy_allows_one_contract_recovery(
+    error,
+    prior,
+    expected,
+) -> None:
+    assert (
+        runtime._execution_failure_policy(
+            error,
+            prior_model_contract_failures=prior,
+            maximum_model_contract_recovery_attempts=1,
+        )
+        == expected
+    )
 
 
 def test_verifier_payload_hides_released_labels() -> None:

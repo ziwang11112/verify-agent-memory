@@ -210,6 +210,7 @@ class Protocol:
     maximum_output_tokens_judge: int
     timeout_seconds: int
     maximum_transport_retries: int
+    maximum_model_contract_recovery_attempts: int
     reader_incremental_hard_caps: Mapping[str, float]
     reader_fixture_hard_caps: Mapping[str, float]
 
@@ -396,6 +397,10 @@ def load_protocol(path: Path) -> Protocol:
             execution.get("maximum_transport_retries"),
             "execution.maximum_transport_retries",
         ),
+        maximum_model_contract_recovery_attempts=_integer(
+            execution.get("maximum_model_contract_recovery_attempts", 0),
+            "execution.maximum_model_contract_recovery_attempts",
+        ),
         reader_incremental_hard_caps=incremental_caps,
         reader_fixture_hard_caps=fixture_caps,
     )
@@ -472,7 +477,12 @@ def _completion_path(runtime: Path, stage: str, binding: ProviderBinding) -> Pat
 
 def _failure_path(runtime: Path, stage: str, binding: ProviderBinding, request_id: str) -> Path:
     timestamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
-    return _stage_root(runtime, stage, binding) / "failures" / f"{request_id}-{timestamp}.json"
+    unique = time.time_ns()
+    return (
+        _stage_root(runtime, stage, binding)
+        / "failures"
+        / f"{request_id}-{timestamp}-{unique}.json"
+    )
 
 
 def _lock_path(runtime: Path, stage: str, binding: ProviderBinding) -> Path:
@@ -578,7 +588,21 @@ def _retryable_execution_error(error: BaseException) -> bool:
         status = int(message.rsplit(": ", 1)[1])
     except ValueError:
         return False
-    return status == 429 or status >= 500
+    return status in {401, 402, 403, 408, 409, 425, 429} or status >= 500
+
+
+def _execution_failure_policy(
+    error: BaseException,
+    *,
+    prior_model_contract_failures: int,
+    maximum_model_contract_recovery_attempts: int,
+) -> tuple[str, bool]:
+    if _retryable_execution_error(error):
+        return "transport_no_response", True
+    if isinstance(error, RuntimeError):
+        return "provider_terminal", False
+    retry_eligible = prior_model_contract_failures < maximum_model_contract_recovery_attempts
+    return "model_contract", retry_eligible
 
 
 def _call_provider(
@@ -716,6 +740,7 @@ def _execute_specs_locked(
     )
     failure_budget_spent = 0.0
     terminal_failure_ids = set()
+    prior_model_contract_failures: defaultdict[str, int] = defaultdict(int)
     failure_root = _stage_root(runtime, stage, binding) / "failures"
     for failure_path in failure_root.glob("*.json") if failure_root.is_dir() else ():
         failure = _read_json(failure_path)
@@ -729,6 +754,8 @@ def _execute_specs_locked(
                 f"{failure_path}.cost_bound_usd",
             )
             request_id = failure.get("request_id")
+            if isinstance(request_id, str) and failure.get("failure_class") == ("model_contract"):
+                prior_model_contract_failures[request_id] += 1
             if (
                 isinstance(request_id, str)
                 and request_id in specs
@@ -819,25 +846,14 @@ def _execute_specs_locked(
                 call_bound = reservations.pop(future)
                 try:
                     record = future.result()
-                    _write_json(_response_path(runtime, stage, binding, request_id), record)
-                    existing[request_id] = record
-                    completed += 1
-                    incremental_budget_spent += _record_cost(record)
-                    if completed % 25 == 0 or completed == len(specs):
-                        print(
-                            json.dumps(
-                                {
-                                    "stage": stage,
-                                    "provider": binding.provider,
-                                    "completed": completed,
-                                    "total": len(specs),
-                                },
-                                sort_keys=True,
-                            ),
-                            flush=True,
-                        )
                 except Exception as exc:  # noqa: BLE001 - preserve partial paid progress.
-                    retry_eligible = _retryable_execution_error(exc)
+                    failure_class, retry_eligible = _execution_failure_policy(
+                        exc,
+                        prior_model_contract_failures=prior_model_contract_failures[request_id],
+                        maximum_model_contract_recovery_attempts=(
+                            protocol.maximum_model_contract_recovery_attempts
+                        ),
+                    )
                     failure_cost_bound = (
                         0.0
                         if isinstance(exc, RuntimeError)
@@ -855,6 +871,8 @@ def _execute_specs_locked(
                         "implementation_commit": implementation_commit,
                         "error_type": type(exc).__name__,
                         "error": str(exc),
+                        "failure_class": failure_class,
+                        "prior_model_contract_failures": prior_model_contract_failures[request_id],
                         "cost_bound_usd": failure_cost_bound,
                         "response_accepted": False,
                         "retry_eligible": retry_eligible,
@@ -862,6 +880,24 @@ def _execute_specs_locked(
                     }
                     _write_json(_failure_path(runtime, stage, binding, request_id), failure)
                     failures.append(failure)
+                else:
+                    _write_json(_response_path(runtime, stage, binding, request_id), record)
+                    existing[request_id] = record
+                    completed += 1
+                    incremental_budget_spent += _record_cost(record)
+                    if completed % 25 == 0 or completed == len(specs):
+                        print(
+                            json.dumps(
+                                {
+                                    "stage": stage,
+                                    "provider": binding.provider,
+                                    "completed": completed,
+                                    "total": len(specs),
+                                },
+                                sort_keys=True,
+                            ),
+                            flush=True,
+                        )
             if failures:
                 continue
             fill(executor, futures)
