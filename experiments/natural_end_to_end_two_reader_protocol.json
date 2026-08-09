@@ -158,6 +158,10 @@
       "Gemini": 29.0,
       "DeepSeek": 16.0
     },
+    "reader_fixture_hard_cap_usd": {
+      "Gemini": 0.02,
+      "DeepSeek": 0.01
+    },
     "checkpoint_reuse": {
       "source_protocol_sha256": "df16d1fea462235c2953a5f078fb90459f49d7e1d7c1e3edd1a6a5b95c577ab8",
       "source_implementation_commit": "8432abe7a34c1b44c4a943bcdd150858ad43f6b9",

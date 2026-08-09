@@ -291,6 +291,7 @@ def test_cost_aware_two_reader_protocol_binds_panel_caps_and_judge() -> None:
     assert protocol.protocol_id == "natural-heldout-route-to-reader-two-reader-v3"
     assert [binding.provider for binding in protocol.readers] == ["Gemini", "DeepSeek"]
     assert protocol.reader_incremental_hard_caps == {"Gemini": 29.0, "DeepSeek": 16.0}
+    assert protocol.reader_fixture_hard_caps == {"Gemini": 0.02, "DeepSeek": 0.01}
     assert (protocol.judge.provider, protocol.judge.model) == (
         "Anthropic",
         "claude-haiku-4-5",
@@ -373,6 +374,26 @@ def test_two_reader_judge_requires_zero_call_deterministic_gate(tmp_path) -> Non
         runtime._require_judge_gate(protocol, tmp_path)
 
 
+def test_reader_fixture_cap_stops_before_credential_read(tmp_path, monkeypatch) -> None:
+    protocol = runtime.load_protocol(runtime.TWO_READER_PROTOCOL)
+    binding = runtime._reader_binding(protocol, "Gemini")
+    monkeypatch.setattr(runtime, "_require_clean_contract", lambda: "test-commit")
+    monkeypatch.setattr(runtime, "_conservative_call_cost", lambda *_args, **_kwargs: 0.03)
+
+    def forbidden_credential_read(_path):
+        raise AssertionError("credentials must not be read above the fixture cap")
+
+    monkeypatch.setattr(runtime.provider_runtime, "_load_dotenv", forbidden_credential_read)
+    with pytest.raises(RuntimeError, match="fixture bound"):
+        runtime.run_fixture(
+            protocol=protocol,
+            runtime=tmp_path,
+            stage="reader",
+            binding=binding,
+            dotenv=tmp_path / ".env",
+        )
+
+
 def _reader_record(
     protocol: runtime.Protocol,
     binding: runtime.ProviderBinding,
@@ -402,6 +423,24 @@ def _reader_record(
     return record
 
 
+def _reader_fixture(
+    protocol: runtime.Protocol,
+    binding: runtime.ProviderBinding,
+    *,
+    cost_usd: float,
+) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "protocol_sha256": protocol.protocol_sha256,
+        "implementation_commit": "test-commit",
+        "stage": "reader",
+        "provider": binding.provider,
+        "model": binding.model,
+        "cost_usd": cost_usd,
+        "synthetic_fixture": True,
+    }
+
+
 def test_incremental_reader_cap_ignores_imported_cost_and_stops_before_call(
     tmp_path,
     monkeypatch,
@@ -416,7 +455,7 @@ def test_incremental_reader_cap_ignores_imported_cost_and_stops_before_call(
         _reader_record(protocol, binding, imported, cost_usd=10.0, imported=True),
     )
     fixture = runtime._stage_root(tmp_path, "fixtures", binding) / "reader.json"
-    runtime._write_json(fixture, {"fixture": True})
+    runtime._write_json(fixture, _reader_fixture(protocol, binding, cost_usd=0.01))
     monkeypatch.setattr(runtime, "_require_clean_contract", lambda: "test-commit")
     monkeypatch.setattr(runtime, "_git_head", lambda: "test-commit")
     monkeypatch.setattr(
@@ -450,7 +489,7 @@ def test_terminal_reader_failure_blocks_automatic_rerun(tmp_path, monkeypatch) -
     binding = runtime._reader_binding(protocol, "DeepSeek")
     spec = runtime.CallSpec("pending", '{"case":"new"}', {"type": "object"})
     fixture = runtime._stage_root(tmp_path, "fixtures", binding) / "reader.json"
-    runtime._write_json(fixture, {"fixture": True})
+    runtime._write_json(fixture, _reader_fixture(protocol, binding, cost_usd=0.001))
     failure = {
         "schema_version": 1,
         "protocol_sha256": protocol.protocol_sha256,

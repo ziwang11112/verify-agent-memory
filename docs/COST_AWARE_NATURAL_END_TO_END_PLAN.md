@@ -290,6 +290,8 @@ locked behind their preceding evidence gates.
 - Atomic checkpoint after every accepted response.
 - Exact prompt deduplication before submission.
 - Content-free provider fixture before benchmark execution.
+- Reader fixture caps of `$0.02` for Gemini and `$0.01` for DeepSeek, charged
+  against the same provider-specific incremental caps as benchmark execution.
 - No semantic repair, response repair, selective rerun, prefix scoring, or model
   substitution.
 - Provider failures stop new submissions; successful checkpoints remain reusable.

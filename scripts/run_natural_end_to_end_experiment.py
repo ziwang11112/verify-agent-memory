@@ -211,6 +211,7 @@ class Protocol:
     timeout_seconds: int
     maximum_transport_retries: int
     reader_incremental_hard_caps: Mapping[str, float]
+    reader_fixture_hard_caps: Mapping[str, float]
 
 
 def _prompt(value: object, label: str) -> str:
@@ -323,11 +324,21 @@ def load_protocol(path: Path) -> Protocol:
         provider: _number(value, f"reader_incremental_hard_cap_usd.{provider}")
         for provider, value in raw_incremental_caps.items()
     }
-    if protocol_id == "natural-heldout-route-to-reader-v2" and incremental_caps:
+    raw_fixture_caps = _mapping(
+        execution.get("reader_fixture_hard_cap_usd", {}),
+        "protocol.execution.reader_fixture_hard_cap_usd",
+    )
+    fixture_caps = {
+        provider: _number(value, f"reader_fixture_hard_cap_usd.{provider}")
+        for provider, value in raw_fixture_caps.items()
+    }
+    if protocol_id == "natural-heldout-route-to-reader-v2" and (incremental_caps or fixture_caps):
         raise ValueError("v2 protocol cannot define incremental reader caps")
     if protocol_id == "natural-heldout-route-to-reader-two-reader-v3":
         if incremental_caps != {"Gemini": 29.0, "DeepSeek": 16.0}:
             raise ValueError("two-reader incremental caps must bind Gemini $29 and DeepSeek $16")
+        if fixture_caps != {"Gemini": 0.02, "DeepSeek": 0.01}:
+            raise ValueError("two-reader fixture caps must bind Gemini $0.02 and DeepSeek $0.01")
         if execution.get("maximum_model_contract_recovery_attempts") != 1:
             raise ValueError("two-reader model-contract recovery limit drifted")
         if execution.get("outcome_selective_rerun") is not False:
@@ -386,6 +397,7 @@ def load_protocol(path: Path) -> Protocol:
             "execution.maximum_transport_retries",
         ),
         reader_incremental_hard_caps=incremental_caps,
+        reader_fixture_hard_caps=fixture_caps,
     )
 
 
@@ -665,6 +677,21 @@ def _execute_specs_locked(
     fixture = _stage_root(runtime, "fixtures", binding) / f"{stage}.json"
     if not fixture.is_file():
         raise RuntimeError(f"provider fixture is required before {stage}: {fixture}")
+    fixture_cost = 0.0
+    if stage == "reader" and incremental_cost_cap_usd is not None:
+        fixture_receipt = _read_json(fixture)
+        expected_fixture = {
+            "protocol_sha256": protocol.protocol_sha256,
+            "implementation_commit": implementation_commit,
+            "stage": stage,
+            "provider": binding.provider,
+            "model": binding.model,
+            "synthetic_fixture": True,
+        }
+        for key, value in expected_fixture.items():
+            if fixture_receipt.get(key) != value:
+                raise ValueError(f"reader fixture receipt binding drifted: {key}")
+        fixture_cost = _record_cost(fixture_receipt)
     credentials = provider_runtime._load_dotenv(dotenv)
     credential_key = provider_runtime._credential_key(binding.provider)
     api_key = credentials.get(credential_key)
@@ -714,7 +741,7 @@ def _execute_specs_locked(
             f"{stage}/{binding.provider} has {len(terminal_failure_ids)} terminal "
             "contract failure(s); an amended protocol is required"
         )
-    incremental_budget_spent = incremental_spent + failure_budget_spent
+    incremental_budget_spent = fixture_cost + incremental_spent + failure_budget_spent
     if incremental_cost_cap_usd is not None and incremental_budget_spent > incremental_cost_cap_usd:
         raise RuntimeError(
             f"recorded incremental {stage} spend ${incremental_budget_spent:.2f} "
@@ -888,15 +915,20 @@ def _complete_stage(
     incremental_cap = protocol.reader_incremental_hard_caps.get(binding.provider)
     if stage == "reader" and incremental_cap is not None:
         imported = [record for record in records.values() if "compatibility_source" in record]
+        fixture_path = _stage_root(runtime, "fixtures", binding) / "reader.json"
+        fixture_cost = _record_cost(_read_json(fixture_path))
+        incremental_response_cost = sum(
+            _record_cost(record)
+            for record in records.values()
+            if "compatibility_source" not in record
+        )
         completion.update(
             {
                 "imported_response_count": len(imported),
                 "incremental_response_count": len(records) - len(imported),
-                "incremental_cost_usd": sum(
-                    _record_cost(record)
-                    for record in records.values()
-                    if "compatibility_source" not in record
-                ),
+                "fixture_cost_usd": fixture_cost,
+                "incremental_response_cost_usd": incremental_response_cost,
+                "total_incremental_cost_usd": fixture_cost + incremental_response_cost,
                 "incremental_hard_cap_usd": incremental_cap,
             }
         )
@@ -982,6 +1014,7 @@ def run_fixture(
         receipt = dict(_read_json(output))
         if (
             receipt.get("protocol_sha256") != protocol.protocol_sha256
+            or receipt.get("implementation_commit") != implementation_commit
             or receipt.get("stage") != stage
             or receipt.get("provider") != binding.provider
             or receipt.get("model") != binding.model
@@ -1024,6 +1057,20 @@ def run_fixture(
         system_prompt = protocol.judge_prompt
         maximum_output_tokens = protocol.maximum_output_tokens_judge
 
+    fixture_cap = protocol.reader_fixture_hard_caps.get(binding.provider)
+    if stage == "reader" and fixture_cap is not None:
+        fixture_bound = _conservative_call_cost(
+            spec,
+            binding,
+            system_prompt=system_prompt,
+            maximum_output_tokens=maximum_output_tokens,
+        )
+        if fixture_bound > fixture_cap:
+            raise RuntimeError(
+                f"conservative {binding.provider} reader fixture bound "
+                f"${fixture_bound:.4f} exceeds cap ${fixture_cap:.2f}"
+            )
+
     credentials = provider_runtime._load_dotenv(dotenv)
     key = provider_runtime._credential_key(binding.provider)
     api_key = credentials.get(key)
@@ -1046,8 +1093,11 @@ def run_fixture(
         "response": None,
         "response_sha256": _sha256_object(record["response"]),
         "synthetic_fixture": True,
+        "fixture_hard_cap_usd": fixture_cap,
     }
     _write_json(output, receipt)
+    if fixture_cap is not None and _record_cost(receipt) > fixture_cap:
+        raise RuntimeError(f"{binding.provider} reader fixture exceeded its hard cap")
     return receipt
 
 
@@ -1751,12 +1801,20 @@ def main() -> None:
             specs, _assignments, _scores = _reader_plan(cases, protocol, args.runtime)
             if args.command == "plan-readers":
                 result = {
-                    binding.provider: _plan_stats(
-                        specs,
-                        binding,
-                        system_prompt=protocol.reader_prompt,
-                        maximum_output_tokens=protocol.maximum_output_tokens_reader,
-                    )
+                    binding.provider: {
+                        **_plan_stats(
+                            specs,
+                            binding,
+                            system_prompt=protocol.reader_prompt,
+                            maximum_output_tokens=protocol.maximum_output_tokens_reader,
+                        ),
+                        "incremental_hard_cap_usd": (
+                            protocol.reader_incremental_hard_caps.get(binding.provider)
+                        ),
+                        "fixture_hard_cap_usd": protocol.reader_fixture_hard_caps.get(
+                            binding.provider
+                        ),
+                    }
                     for binding in protocol.readers
                 }
             else:
