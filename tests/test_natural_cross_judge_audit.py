@@ -130,6 +130,18 @@ def test_binary_bootstrap_is_reproducible() -> None:
     assert one["exact_agreement"][0] <= one["exact_agreement"][1]
 
 
+def test_report_groups_preserve_original_and_sequential_reader_panels() -> None:
+    rows = [
+        {"anchor_reader": "DeepSeek", "source": "rhelm", "anchor_arm": "global_dense"},
+        {"anchor_reader": "Gemini", "source": "rhelm", "anchor_arm": "global_dense"},
+        {"anchor_reader": "OpenAI", "source": "rhelm", "anchor_arm": "global_dense"},
+    ]
+    groups = {(kind, value): members for kind, value, members in audit._groups(rows)}
+
+    assert len(groups[("reader_panel", "original_two_reader")]) == 2
+    assert len(groups[("reader_panel", "sequential_gpt_reader")]) == 1
+
+
 def test_synthetic_fixture_uses_exact_gpt_pro_contract(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

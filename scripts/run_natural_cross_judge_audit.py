@@ -826,6 +826,17 @@ def _write_csv(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
 
 def _groups(rows: Sequence[dict[str, Any]]) -> list[tuple[str, str, list[dict[str, Any]]]]:
     groups = [("overall", "all", list(rows))]
+    groups.extend(
+        (
+            "reader_panel",
+            name,
+            [row for row in rows if row["anchor_reader"] in readers],
+        )
+        for name, readers in (
+            ("original_two_reader", {"DeepSeek", "Gemini"}),
+            ("sequential_gpt_reader", {"OpenAI"}),
+        )
+    )
     fields = {
         "reader": "anchor_reader",
         "source": "source",
@@ -998,6 +1009,16 @@ def analyze(
     _write_csv(output / "sample_profile.csv", profile)
 
     overall = agreement_rows[0]
+    original_panel = next(
+        row
+        for row in agreement_rows
+        if row["group_type"] == "reader_panel" and row["group_value"] == "original_two_reader"
+    )
+    gpt_panel = next(
+        row
+        for row in agreement_rows
+        if row["group_type"] == "reader_panel" and row["group_value"] == "sequential_gpt_reader"
+    )
     quality = quality_rows[0]
     passed = float(overall["exact_agreement"]) >= float(protocol.analysis["agreement_gate"])
     recovery_note = (
@@ -1018,6 +1039,11 @@ The blinded `{protocol.binding.model}` audit agreed with the frozen Claude Haiku
 **{float(overall["cohen_kappa"]):.3f}** and Gwet's AC1 was
 **{float(overall["gwet_ac1"]):.3f}**. The pre-existing continuation threshold of
 0.85 was **{"met" if passed else "not met"}**.
+
+The original DeepSeek--Gemini reader panel agreed on
+**{float(original_panel["exact_agreement"]):.3f}** of 134 sampled outputs; the later
+sequential GPT-reader subgroup agreed on **{float(gpt_panel["exact_agreement"]):.3f}**
+of 66. These subgroup estimates are diagnostic and their intervals are wide.
 
 For the 0--10 answer-quality score, exact agreement was
 **{float(quality["exact_agreement"]):.3f}**, agreement within one point was
