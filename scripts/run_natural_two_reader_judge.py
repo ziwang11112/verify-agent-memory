@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 from collections.abc import Iterator, Mapping
@@ -25,7 +26,7 @@ DEFAULT_JUDGE_PROTOCOL = ROOT / "experiments" / "natural_end_to_end_two_reader_j
 DEFAULT_EXECUTION_PROTOCOL = ROOT / "experiments" / "natural_end_to_end_two_reader_protocol.json"
 DEFAULT_CASES = ROOT / "tmp" / "natural_end_to_end" / "cases.jsonl.gz"
 DEFAULT_SOURCE_RUNTIME = ROOT / "tmp" / "natural_end_to_end" / "two_reader_runtime"
-DEFAULT_RUNTIME = ROOT / "tmp" / "natural_end_to_end" / "two_reader_judge_runtime"
+DEFAULT_RUNTIME = ROOT / "tmp" / "natural_end_to_end" / "two_reader_judge_runtime_v2"
 DEFAULT_OUTPUT = ROOT / "results" / "natural_end_to_end_two_reader_judged"
 DEFAULT_DOTENV = ROOT.parent / "bomi-codex-starter" / ".env"
 CONTRACT_PATHS = (
@@ -66,6 +67,7 @@ class JudgeProtocol:
     sha256: str
     source: dict[str, Any]
     gate: dict[str, Any]
+    recovery: dict[str, Any]
     sampling: dict[str, Any]
     judge: dict[str, Any]
     budget: dict[str, Any]
@@ -87,6 +89,13 @@ class JudgeProtocol:
         return _number(
             self.budget["total_incremental_hard_cap_usd"],
             "total_incremental_hard_cap_usd",
+        )
+
+    @property
+    def max_token_recovery(self) -> dict[str, Any]:
+        return _mapping(
+            self.recovery["max_token_recovery"],
+            "provider_contract_recovery.max_token_recovery",
         )
 
 
@@ -114,9 +123,7 @@ def load_judge_protocol(path: Path) -> JudgeProtocol:
         raise ValueError("judge protocol schema drifted")
     if raw["protocol_id"] != "natural-heldout-two-reader-semantic-judge-v1":
         raise ValueError("judge protocol identity drifted")
-    if raw["status"] != (
-        "frozen_after_zero_data_fixture_contract_recovery_before_semantic_outcome"
-    ):
+    if raw["status"] != "frozen_after_output_ceiling_recovery_before_semantic_scoring":
         raise ValueError("judge protocol is not frozen before semantic scoring")
     if raw["official_rhelm_or_memops_claim"] is not False:
         raise ValueError("judge protocol cannot authorize an official benchmark claim")
@@ -151,12 +158,33 @@ def load_judge_protocol(path: Path) -> JudgeProtocol:
         raise ValueError("failed provider fixture must remain synthetic")
     if recovery.get("sample_prompt_schema_metrics_and_budget_unchanged") is not True:
         raise ValueError("provider recovery changed the scientific contract")
+    token_recovery = _mapping(
+        recovery.get("max_token_recovery"),
+        "provider_contract_recovery.max_token_recovery",
+    )
+    if token_recovery.get("prior_maximum_output_tokens") != 256:
+        raise ValueError("prior judge output ceiling drifted")
+    if token_recovery.get("recovered_maximum_output_tokens") != 512:
+        raise ValueError("recovered judge output ceiling drifted")
+    if token_recovery.get("accepted_response_count") != 168:
+        raise ValueError("accepted pre-recovery response count drifted")
+    if token_recovery.get("failure_count") != 2:
+        raise ValueError("pre-recovery failure count drifted")
+    for key in (
+        "accepted_responses_reused_only_after_end_turn_and_schema_validation",
+        "response_content_must_remain_unchanged",
+        "selection_uses_contract_completion_only_not_performance",
+        "old_runtime_preserved_byte_for_byte",
+    ):
+        if token_recovery.get(key) is not True:
+            raise ValueError(f"max-token recovery contract drifted: {key}")
     protocol = JudgeProtocol(
         raw=raw,
         path=path,
         sha256=base._sha256_file(path),
         source=source,
         gate=gate,
+        recovery=recovery,
         sampling=sampling,
         judge=judge,
         budget=budget,
@@ -164,7 +192,7 @@ def load_judge_protocol(path: Path) -> JudgeProtocol:
     )
     if protocol.fixture_cap_usd != 0.01:
         raise ValueError("judge fixture cap drifted")
-    if protocol.plan_cap_usd != 45.0 or protocol.total_cap_usd != 60.0:
+    if protocol.plan_cap_usd != 55.1 or protocol.total_cap_usd != 60.0:
         raise ValueError("semantic judge budget drifted")
     return protocol
 
@@ -186,7 +214,15 @@ def bind_recovered_judge(
             "effort": _string(protocol.judge["effort"], "recovered effort"),
         },
     )
-    return replace(source, judge=binding)
+    recovered_maximum = _integer(
+        protocol.max_token_recovery["recovered_maximum_output_tokens"],
+        "recovered maximum output tokens",
+    )
+    return replace(
+        source,
+        judge=binding,
+        maximum_output_tokens_judge=recovered_maximum,
+    )
 
 
 def _anthropic_haiku_request(
@@ -460,6 +496,201 @@ def _sample_completion_path(runtime: Path) -> Path:
     return runtime / "sample_completion.json"
 
 
+def _import_receipt_path(runtime: Path) -> Path:
+    return runtime / "recovery_import.json"
+
+
+def _file_set_sha256(paths: list[Path]) -> str:
+    return base._sha256_object(
+        [{"name": path.name, "sha256": base._sha256_file(path)} for path in sorted(paths)]
+    )
+
+
+def import_prior_checkpoint(
+    *,
+    judge_protocol: JudgeProtocol,
+    execution_protocol: base.Protocol,
+    cases_path: Path,
+    source_runtime: Path,
+    runtime: Path,
+) -> dict[str, object]:
+    """Import only schema-valid end-turn responses from the frozen 256-token attempt."""
+    implementation_commit = _require_clean_contract(judge_protocol)
+    _validate_source(
+        judge_protocol,
+        execution_protocol,
+        cases_path=cases_path,
+        source_runtime=source_runtime,
+    )
+    _selected, specs, *_ = _build_plan(
+        judge_protocol=judge_protocol,
+        execution_protocol=execution_protocol,
+        cases_path=cases_path,
+        source_runtime=source_runtime,
+    )
+    recovery = judge_protocol.max_token_recovery
+    prior_runtime = ROOT / _string(recovery["source_runtime"], "prior judge runtime")
+    expected_target = ROOT / _string(recovery["target_runtime"], "target judge runtime")
+    if runtime.resolve() != expected_target.resolve():
+        raise ValueError("recovered judge target runtime drifted")
+    prior_root = base._stage_root(prior_runtime, "judge", execution_protocol.judge)
+    response_paths = sorted((prior_root / "responses").glob("*.json"))
+    failure_paths = sorted((prior_root / "failures").glob("*.json"))
+    if len(response_paths) != _integer(recovery["accepted_response_count"], "response count"):
+        raise ValueError("pre-recovery accepted response count drifted")
+    if _file_set_sha256(response_paths) != recovery["accepted_response_file_set_sha256"]:
+        raise ValueError("pre-recovery accepted response file set drifted")
+    if len(failure_paths) != _integer(recovery["failure_count"], "failure count"):
+        raise ValueError("pre-recovery failure count drifted")
+    if _file_set_sha256(failure_paths) != recovery["failure_file_set_sha256"]:
+        raise ValueError("pre-recovery failure file set drifted")
+
+    prior_commit = _string(
+        recovery["execution_implementation_commit"],
+        "pre-recovery implementation commit",
+    )
+    imported_paths = []
+    content_rows = []
+    response_cost = 0.0
+    for path in response_paths:
+        request_id = path.stem
+        spec = specs.get(request_id)
+        if spec is None:
+            raise ValueError("pre-recovery response is outside the frozen request set")
+        record = base._load_record(
+            path,
+            protocol=execution_protocol,
+            stage="judge",
+            binding=execution_protocol.judge,
+            spec=spec,
+            parser=base._judge_parser,
+            implementation_commit=prior_commit,
+        )
+        response_cost += base._record_cost(record)
+        imported = {
+            **record,
+            "implementation_commit": implementation_commit,
+            "compatibility_source": {
+                "source_file_sha256": base._sha256_file(path),
+                "source_implementation_commit": prior_commit,
+                "source_maximum_output_tokens": recovery["prior_maximum_output_tokens"],
+                "response_content_unchanged": True,
+            },
+        }
+        target = base._response_path(runtime, "judge", execution_protocol.judge, request_id)
+        if target.is_file():
+            if base._read_json(target) != imported:
+                raise ValueError("recovered response import target drifted")
+        else:
+            base._write_json(target, imported)
+        imported_paths.append(target)
+        content_rows.append(
+            {
+                "request_id": request_id,
+                "response_sha256": base._sha256_object(record["response"]),
+            }
+        )
+    if (
+        base._sha256_object(sorted(content_rows, key=lambda row: row["request_id"]))
+        != (recovery["accepted_response_content_set_sha256"])
+    ):
+        raise ValueError("recovered response content changed during import")
+    if not abs(response_cost - _number(recovery["accepted_response_cost_usd"], "cost")) < 1e-12:
+        raise ValueError("pre-recovery accepted response cost drifted")
+
+    target_failures = base._stage_root(runtime, "judge", execution_protocol.judge) / "failures"
+    copied_failure_paths = []
+    failure_cost = 0.0
+    for path in failure_paths:
+        failure = _mapping(base._read_json(path), "pre-recovery failure")
+        expected_failure = {
+            "protocol_sha256": execution_protocol.protocol_sha256,
+            "implementation_commit": prior_commit,
+            "stage": "judge",
+            "provider": execution_protocol.judge.provider,
+            "model": execution_protocol.judge.model,
+            "failure_class": "model_contract",
+            "response_accepted": False,
+            "retry_eligible": True,
+        }
+        for key, value in expected_failure.items():
+            if failure.get(key) != value:
+                raise ValueError(f"pre-recovery failure drifted: {key}")
+        if failure.get("request_id") not in specs:
+            raise ValueError("pre-recovery failure is outside the frozen request set")
+        failure_cost += _number(failure["cost_bound_usd"], "failure cost")
+        target = target_failures / path.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.is_file():
+            if base._sha256_file(target) != base._sha256_file(path):
+                raise ValueError("recovered failure import target drifted")
+        else:
+            shutil.copyfile(path, target)
+        copied_failure_paths.append(target)
+    if not abs(failure_cost - _number(recovery["failure_cost_bound_usd"], "failure cost")) < (
+        1e-12
+    ):
+        raise ValueError("pre-recovery failure cost drifted")
+
+    receipt = {
+        "schema_version": 1,
+        "judge_protocol_sha256": judge_protocol.sha256,
+        "execution_protocol_sha256": execution_protocol.protocol_sha256,
+        "implementation_commit": implementation_commit,
+        "provider_calls_made": 0,
+        "source_runtime": recovery["source_runtime"],
+        "source_response_file_set_sha256": recovery["accepted_response_file_set_sha256"],
+        "source_failure_file_set_sha256": recovery["failure_file_set_sha256"],
+        "imported_response_count": len(imported_paths),
+        "imported_response_file_set_sha256": _file_set_sha256(imported_paths),
+        "imported_response_content_set_sha256": recovery["accepted_response_content_set_sha256"],
+        "imported_response_cost_usd": response_cost,
+        "copied_failure_count": len(copied_failure_paths),
+        "copied_failure_file_set_sha256": _file_set_sha256(copied_failure_paths),
+        "copied_failure_cost_bound_usd": failure_cost,
+        "prior_fixture_cost_usd": recovery["fixture_cost_usd"],
+        "response_content_changed": False,
+    }
+    base._write_json(_import_receipt_path(runtime), receipt)
+    return receipt
+
+
+def _require_import(
+    *,
+    judge_protocol: JudgeProtocol,
+    execution_protocol: base.Protocol,
+    runtime: Path,
+    implementation_commit: str,
+) -> dict[str, object]:
+    path = _import_receipt_path(runtime)
+    if not path.is_file():
+        raise RuntimeError("import the frozen 256-token checkpoint before recovery execution")
+    receipt = _mapping(base._read_json(path), "recovery import receipt")
+    recovery = judge_protocol.max_token_recovery
+    response_paths = sorted(
+        (base._stage_root(runtime, "judge", execution_protocol.judge) / "responses").glob("*.json")
+    )
+    failure_paths = sorted(
+        (base._stage_root(runtime, "judge", execution_protocol.judge) / "failures").glob("*.json")
+    )
+    expected = {
+        "judge_protocol_sha256": judge_protocol.sha256,
+        "execution_protocol_sha256": execution_protocol.protocol_sha256,
+        "implementation_commit": implementation_commit,
+        "provider_calls_made": 0,
+        "imported_response_count": recovery["accepted_response_count"],
+        "imported_response_file_set_sha256": _file_set_sha256(response_paths),
+        "imported_response_content_set_sha256": recovery["accepted_response_content_set_sha256"],
+        "copied_failure_count": recovery["failure_count"],
+        "copied_failure_file_set_sha256": _file_set_sha256(failure_paths),
+        "response_content_changed": False,
+    }
+    for key, value in expected.items():
+        if receipt.get(key) != value:
+            raise ValueError(f"recovery import receipt drifted: {key}")
+    return receipt
+
+
 def write_plan(
     *,
     judge_protocol: JudgeProtocol,
@@ -581,6 +812,12 @@ def run_fixture(
         runtime=runtime,
         implementation_commit=implementation_commit,
     )
+    _require_import(
+        judge_protocol=judge_protocol,
+        execution_protocol=execution_protocol,
+        runtime=runtime,
+        implementation_commit=implementation_commit,
+    )
     bound = base._conservative_call_cost(
         _fixture_spec(execution_protocol),
         execution_protocol.judge,
@@ -607,6 +844,7 @@ def run_fixture(
         "execution_protocol_sha256": execution_protocol.protocol_sha256,
         "implementation_commit": implementation_commit,
         "plan_sha256": base._sha256_file(_plan_path(runtime)),
+        "recovery_import_sha256": base._sha256_file(_import_receipt_path(runtime)),
         "fixture_sha256": base._sha256_file(fixture_path),
         "fixture_conservative_bound_usd": bound,
         "fixture_cost_usd": cost,
@@ -634,6 +872,7 @@ def _require_fixture(
         "execution_protocol_sha256": execution_protocol.protocol_sha256,
         "implementation_commit": implementation_commit,
         "plan_sha256": base._sha256_file(_plan_path(runtime)),
+        "recovery_import_sha256": base._sha256_file(_import_receipt_path(runtime)),
         "fixture_sha256": base._sha256_file(fixture_path),
         "fixture_hard_cap_usd": judge_protocol.fixture_cap_usd,
     }
@@ -678,6 +917,12 @@ def execute(
         runtime=runtime,
         implementation_commit=implementation_commit,
     )
+    imported = _require_import(
+        judge_protocol=judge_protocol,
+        execution_protocol=execution_protocol,
+        runtime=runtime,
+        implementation_commit=implementation_commit,
+    )
     fixture = _require_fixture(
         judge_protocol=judge_protocol,
         execution_protocol=execution_protocol,
@@ -685,7 +930,13 @@ def execute(
         implementation_commit=implementation_commit,
     )
     fixture_cost = _number(fixture["fixture_cost_usd"], "fixture cost")
-    response_cap = judge_protocol.total_cap_usd - fixture_cost
+    prior_fixture_cost = _number(imported["prior_fixture_cost_usd"], "prior fixture cost")
+    imported_response_cost = _number(
+        imported["imported_response_cost_usd"], "imported response cost"
+    )
+    response_cap = (
+        judge_protocol.total_cap_usd - prior_fixture_cost - imported_response_cost - fixture_cost
+    )
     with _recovered_anthropic_adapter():
         completion = base._execute_specs(
             protocol=execution_protocol,
@@ -701,7 +952,7 @@ def execute(
             incremental_cost_cap_usd=response_cap,
         )
     failure_cost = _failure_cost(runtime, execution_protocol)
-    total_cost = fixture_cost + float(completion["cost_usd"]) + failure_cost
+    total_cost = prior_fixture_cost + fixture_cost + float(completion["cost_usd"]) + failure_cost
     if total_cost > judge_protocol.total_cap_usd:
         raise RuntimeError("semantic-judge total cost exceeded its hard cap")
     completion_path = base._completion_path(runtime, "judge", execution_protocol.judge)
@@ -711,12 +962,15 @@ def execute(
         "execution_protocol_sha256": execution_protocol.protocol_sha256,
         "implementation_commit": implementation_commit,
         "plan_sha256": base._sha256_file(_plan_path(runtime)),
+        "recovery_import_sha256": base._sha256_file(_import_receipt_path(runtime)),
         "fixture_attestation_sha256": base._sha256_file(_fixture_attestation_path(runtime)),
         "provider_completion_sha256": base._sha256_file(completion_path),
         "sample_case_count": judge_protocol.sampling["sample_case_count"],
         "request_count": completion["request_count"],
         "request_id_set_sha256": judge_protocol.judge["expected_request_id_set_sha256"],
+        "prior_fixture_cost_usd": prior_fixture_cost,
         "fixture_cost_usd": fixture_cost,
+        "imported_response_cost_usd": imported_response_cost,
         "response_cost_usd": completion["cost_usd"],
         "conservative_failure_cost_usd": failure_cost,
         "total_budget_consumption_usd": total_cost,
@@ -743,6 +997,7 @@ def _require_sample_completion(
         "judge_protocol_sha256": judge_protocol.sha256,
         "execution_protocol_sha256": execution_protocol.protocol_sha256,
         "provider_completion_sha256": base._sha256_file(completion_path),
+        "recovery_import_sha256": base._sha256_file(_import_receipt_path(runtime)),
         "sample_case_count": judge_protocol.sampling["sample_case_count"],
         "request_count": judge_protocol.judge["expected_unique_request_count"],
         "request_id_set_sha256": judge_protocol.judge["expected_request_id_set_sha256"],
@@ -940,7 +1195,10 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--dotenv", type=Path, default=DEFAULT_DOTENV)
     parser.add_argument("--workers", type=int, default=4)
-    parser.add_argument("command", choices=("validate", "plan", "fixture", "execute", "score"))
+    parser.add_argument(
+        "command",
+        choices=("validate", "import", "plan", "fixture", "execute", "score"),
+    )
     args = parser.parse_args()
 
     judge_protocol = load_judge_protocol(args.judge_protocol)
@@ -962,6 +1220,14 @@ def main() -> None:
             "sample_case_count": len(selected),
             "provider_calls_made": 0,
         }
+    elif args.command == "import":
+        result = import_prior_checkpoint(
+            judge_protocol=judge_protocol,
+            execution_protocol=execution_protocol,
+            cases_path=args.cases,
+            source_runtime=args.source_runtime,
+            runtime=args.runtime,
+        )
     elif args.command == "plan":
         result = write_plan(
             judge_protocol=judge_protocol,

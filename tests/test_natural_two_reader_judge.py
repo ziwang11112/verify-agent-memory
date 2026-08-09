@@ -39,11 +39,12 @@ def _protocol_for_cases(cases: list[SimpleNamespace]) -> judge.JudgeProtocol:
         sha256="protocol-sha",
         source={},
         gate={},
+        recovery={},
         sampling=sampling,
         judge={},
         budget={
             "fixture_hard_cap_usd": 0.01,
-            "planned_calls_conservative_cap_usd": 45.0,
+            "planned_calls_conservative_cap_usd": 55.1,
             "total_incremental_hard_cap_usd": 60.0,
         },
         outputs={},
@@ -54,7 +55,7 @@ def test_frozen_sampled_judge_protocol_loads() -> None:
     protocol = judge.load_judge_protocol(judge.DEFAULT_JUDGE_PROTOCOL)
 
     assert protocol.fixture_cap_usd == 0.01
-    assert protocol.plan_cap_usd == 45.0
+    assert protocol.plan_cap_usd == 55.1
     assert protocol.total_cap_usd == 60.0
     assert protocol.sampling["outcome_or_route_dependent_selection"] is False
     assert protocol.sampling["arms"] == list(base.ARMS)
@@ -94,6 +95,7 @@ def test_fixture_plan_uses_the_frozen_judge_schema() -> None:
 
     assert execution.judge.model == "claude-haiku-4-5-20251001"
     assert execution.judge.controls == {"thinking": "disabled", "effort": "omitted"}
+    assert execution.maximum_output_tokens_judge == 512
     assert spec.schema == base.judge_response_schema()
     assert spec.request_id == "synthetic-natural-end-to-end-fixture"
     assert "global_dense" not in spec.payload
@@ -149,7 +151,7 @@ def test_recovered_haiku_adapter_omits_only_effort(
         system_prompt="judge",
         user_prompt="payload",
         schema=base.judge_response_schema(),
-        max_output_tokens=256,
+        max_output_tokens=512,
         timeout_seconds=30,
         max_retries=0,
     )

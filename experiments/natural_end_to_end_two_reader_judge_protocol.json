@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "protocol_id": "natural-heldout-two-reader-semantic-judge-v1",
-  "status": "frozen_after_zero_data_fixture_contract_recovery_before_semantic_outcome",
+  "status": "frozen_after_output_ceiling_recovery_before_semantic_scoring",
   "frozen_date": "2026-08-08",
   "objective": "estimate_semantic_answer_outcomes_for_the_complete_paired_route_panel_within_the_approved_judge_budget",
   "source_execution": {
@@ -37,7 +37,30 @@
     "semantic_judge_response_count_before_recovery": 0,
     "diagnosis": "claude_haiku_4_5_does_not_support_output_config_effort",
     "recovery": "pin_the_dated_haiku_snapshot_and_omit_only_the_unsupported_effort_field",
-    "sample_prompt_schema_metrics_and_budget_unchanged": true
+    "sample_prompt_schema_metrics_and_budget_unchanged": true,
+    "max_token_recovery": {
+      "previous_protocol_sha256": "2ba5b2d153eb252b64789610ef8b661625082ca415499ab15cb4dcd4e54ab6c0",
+      "execution_implementation_commit": "6284018e6425f830d914788d88c7912b20622b5e",
+      "source_runtime": "tmp/natural_end_to_end/two_reader_judge_runtime",
+      "target_runtime": "tmp/natural_end_to_end/two_reader_judge_runtime_v2",
+      "prior_maximum_output_tokens": 256,
+      "recovered_maximum_output_tokens": 512,
+      "accepted_response_count": 168,
+      "accepted_response_file_set_sha256": "515e5777e1d866e0afee2d6d57cedb70a12f4acc31e8733af95fa16dbeda2302",
+      "accepted_response_content_set_sha256": "d7c39f2ceb421522ac80f7f97aeb731d8eb64e26261a782e25b28e97d64d5717",
+      "accepted_response_cost_usd": 0.295295,
+      "failure_count": 2,
+      "failure_file_set_sha256": "9bd1ffb46434082fa028a97935161551b1bccd0d467efee4964bf23269e87b53",
+      "failure_cost_bound_usd": 0.013165,
+      "fixture_sha256": "6475ac9ae71e661a6e12c1ad84ab6a6709a7e12c39afb6aee809dd10f92b2427",
+      "fixture_attestation_sha256": "077348f4a40bf0970eb5ebd22682c784d5f3ea165d9865bf4eeccd6ef90a230a",
+      "fixture_cost_usd": 0.00105,
+      "plan_sha256": "437d9736753b4e277957f81ab222f6bda3ece6a7ecc7d896c4bda7d10800ce2b",
+      "accepted_responses_reused_only_after_end_turn_and_schema_validation": true,
+      "response_content_must_remain_unchanged": true,
+      "selection_uses_contract_completion_only_not_performance": true,
+      "old_runtime_preserved_byte_for_byte": true
+    }
   },
   "sampling": {
     "selection_stage": "before_any_semantic_judge_call_or_outcome",
@@ -85,7 +108,7 @@
     "exact_prompt_deduplication": true,
     "expected_unique_request_count": 8790,
     "expected_request_id_set_sha256": "0725e15d54c7fd280361f0d3648d7ffe50c4d772b9d6580cbaffd56bbe280ac9",
-    "maximum_output_tokens": 256,
+    "maximum_output_tokens": 512,
     "semantic_or_output_repair": false,
     "selective_rerun": false,
     "reader_estimates_pooled": false
@@ -93,7 +116,7 @@
   "budget": {
     "currency": "USD",
     "fixture_hard_cap_usd": 0.01,
-    "planned_calls_conservative_cap_usd": 45.0,
+    "planned_calls_conservative_cap_usd": 55.1,
     "total_incremental_hard_cap_usd": 60.0,
     "fixture_success_and_conservative_failure_reservations_all_count_toward_total": true
   },
@@ -104,7 +127,7 @@
     "source_specific_and_equal_source_macro": true
   },
   "outputs": {
-    "runtime": "tmp/natural_end_to_end/two_reader_judge_runtime",
+    "runtime": "tmp/natural_end_to_end/two_reader_judge_runtime_v2",
     "directory": "results/natural_end_to_end_two_reader_judged"
   },
   "official_rhelm_or_memops_claim": false
