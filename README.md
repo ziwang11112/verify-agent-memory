@@ -115,6 +115,12 @@ and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
   over-refusal.
 - Trusted released namespaces improve recall and feasible rate while reducing the
   preregistered penalized non-usable upper risk on the public-source evaluation.
+- On the same frozen natural sample, namespace dense also improves judged answer
+  accuracy separately for Gemini, DeepSeek, and GPT-5.6 Luna. The GPT replication
+  changes accuracy by `+0.0659` (95% CI `[+0.0390, +0.0961]`), lowers penalized risk
+  by `-0.0847`, and lowers over-refusal by `-0.0381`. Its protected- and stale-
+  disclosure intervals include zero, so this is a utility-risk replication rather
+  than a general disclosure-safety claim.
 - The evaluated threshold and cluster routers do not establish incremental utility
   beyond namespace support.
 - Corrected v2 attribution shows that released policy metadata drives the incremental

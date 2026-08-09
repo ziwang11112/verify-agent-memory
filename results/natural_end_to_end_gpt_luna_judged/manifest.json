@@ -1,0 +1,22 @@
+{
+  "arms": [
+    "global_dense",
+    "namespace_dense",
+    "namespace_policy_gate"
+  ],
+  "artifacts": {
+    "execution_receipt.json": "678a9d0c01c62e0c7c96a86d0500f803f498897a58556c0a34f757c0f6e8d442",
+    "main_table.csv": "34cea4e5d0c91c5815608d7fa68792238422f8d8e38d65d281979a8716b1e431",
+    "paired_deltas.csv": "4d303256226c4e59da9f6ca444633e84cc0af1e36224f78c8c377d39ca6b0236",
+    "summary.md": "34e91e3a1c79573f3256c464dd380812011f24405de83dc2d8dce7f699848f49"
+  },
+  "judge_protocol_sha256": "2067d0fdb3b11500397ee989c8330e3950aa00565ed38f903ef69e8411a63c77",
+  "official_rhelm_or_memops_claim": false,
+  "reader_estimates_pooled": false,
+  "reader_protocol_sha256": "cec44c31c91f36cdb6ca4e2cff81af63d93a2d9f12602d9a4f2218dcefebd1ef",
+  "sample_case_count": 1523,
+  "schema_version": 1,
+  "status": "complete_nonofficial_gpt_luna_primary_route_replication",
+  "unique_judge_request_count": 3397,
+  "unique_reader_request_count": 3157
+}

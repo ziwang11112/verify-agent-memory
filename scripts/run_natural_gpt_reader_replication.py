@@ -913,6 +913,9 @@ def score_judge(
             f"- Released-policy gate versus namespace dense: answer accuracy "
             f"{_delta_text(policy_accuracy)}; penalized admissibility upper risk "
             f"{_delta_text(policy_risk)}.",
+            "- Namespace effects on protected disclosure and stale disclosure have 95% "
+            "intervals that include zero; this replication does not establish a general "
+            "disclosure reduction.",
             "- Confidence intervals use 10,000 paired namespace-group bootstrap replicates "
             "with equal-source macro aggregation.",
             "",
@@ -953,6 +956,10 @@ def score_judge(
         "judge_response_cost_usd": judge_completion["cost_usd"],
         "judge_conservative_failure_cost_usd": failure_cost,
         "judge_total_cost_usd": fixture_cost + float(judge_completion["cost_usd"]) + failure_cost,
+        "combined_reader_and_judge_cost_usd": float(reader_completion["total_incremental_cost_usd"])
+        + fixture_cost
+        + float(judge_completion["cost_usd"])
+        + failure_cost,
         "sample_case_count": judge_protocol.sample["case_count"],
         "complete_bundle": True,
         "benchmark_payload_or_response_content_included": False,

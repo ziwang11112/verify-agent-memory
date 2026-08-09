@@ -46,3 +46,23 @@ This is a non-official robustness replication, not an official RHELM or MemOps r
 Claude Haiku is used only as the same blinded cross-provider scorer used for the
 Gemini/DeepSeek panel; it is not a reader arm. Its exact request set is frozen only
 after the complete GPT response bundle exists.
+
+## Completed result
+
+The reader completed 3,157/3,157 unique requests with no failures for `$15.878671`.
+The cross-provider judge completed 3,397/3,397 unique requests with no failures for
+`$5.899861`. Combined incremental cost was `$21.778532`.
+
+At equal-source macro aggregation, namespace dense versus global dense changes:
+
+- judged answer accuracy by `+0.0659` (95% CI `[+0.0390, +0.0961]`);
+- evidence recall by `+0.1040` (`[+0.0832, +0.1246]`);
+- penalized admissibility upper risk by `-0.0847` (`[-0.1068, -0.0622]`); and
+- over-refusal by `-0.0381` (`[-0.0589, -0.0148]`).
+
+The released-policy gate reduces route risk by `-0.0192`
+(`[-0.0230, -0.0156]`) relative to namespace dense, but its answer-accuracy change
+is `-0.0055` (`[-0.0178, +0.0064]`). Protected- and stale-disclosure intervals
+include zero. The GPT result therefore replicates the namespace utility-risk effect
+without establishing a general disclosure improvement or an incremental utility gain
+from the additional policy deletion gate.

@@ -7,6 +7,15 @@ Date: 2026-08-08
 
 Repository baseline: `8432abe7a34c1b44c4a943bcdd150858ad43f6b9`
 
+Execution update (2026-08-09): the staged Gemini/DeepSeek panel and blinded judge
+completed first. A subsequent GPT-only amendment then ran `gpt-5.6-luna` on the same
+frozen 1,523-case judge sample and three primary routes. Claude Haiku remained the
+cross-provider judge and was not added as a reader. The GPT reader plus judge cost
+`$21.778532`; results are under
+[`results/natural_end_to_end_gpt_luna_judged/`](../results/natural_end_to_end_gpt_luna_judged/).
+The Stage 3 Luna-plus-Haiku-reader text below is retained as the historical planning
+boundary and was not executed as written.
+
 ## 1. Decision summary
 
 The same-population natural route-to-reader question remains scientifically useful,

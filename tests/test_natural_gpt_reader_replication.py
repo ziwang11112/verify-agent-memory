@@ -42,6 +42,26 @@ def test_gpt_judge_protocol_is_cross_provider_and_exactly_bound() -> None:
     assert protocol.outputs["official_rhelm_or_memops_claim"] is False
 
 
+def test_public_gpt_result_package_is_hash_bound_and_content_free() -> None:
+    output = gpt.DEFAULT_OUTPUT
+    manifest = base._read_json(output / "manifest.json")
+    receipt = base._read_json(output / "execution_receipt.json")
+
+    assert manifest["status"] == "complete_nonofficial_gpt_luna_primary_route_replication"
+    assert manifest["reader_estimates_pooled"] is False
+    assert manifest["official_rhelm_or_memops_claim"] is False
+    assert manifest["sample_case_count"] == 1523
+    assert manifest["unique_reader_request_count"] == 3157
+    assert manifest["unique_judge_request_count"] == 3397
+    for name, expected_hash in manifest["artifacts"].items():
+        assert base._sha256_file(output / name) == expected_hash
+
+    assert receipt["complete_bundle"] is True
+    assert receipt["benchmark_payload_or_response_content_included"] is False
+    assert receipt["official_benchmark_result"] is False
+    assert receipt["combined_reader_and_judge_cost_usd"] == pytest.approx(21.778532)
+
+
 def test_gpt_reader_plan_reuses_frozen_sample_and_only_primary_routes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
