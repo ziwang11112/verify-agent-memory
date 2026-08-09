@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from types import SimpleNamespace
+
+import pytest
 
 from scripts import run_natural_end_to_end_experiment as base
 from scripts import run_natural_two_reader_judge as judge
@@ -56,6 +59,8 @@ def test_frozen_sampled_judge_protocol_loads() -> None:
     assert protocol.sampling["outcome_or_route_dependent_selection"] is False
     assert protocol.sampling["arms"] == list(base.ARMS)
     assert protocol.judge["expected_unique_request_count"] == 8790
+    assert protocol.judge["model"] == "claude-haiku-4-5-20251001"
+    assert protocol.judge["effort"] == "omitted"
 
 
 def test_case_sampling_is_deterministic_and_ignores_outcomes() -> None:
@@ -80,9 +85,15 @@ def test_case_sampling_is_deterministic_and_ignores_outcomes() -> None:
 
 
 def test_fixture_plan_uses_the_frozen_judge_schema() -> None:
-    execution = base.load_protocol(judge.DEFAULT_EXECUTION_PROTOCOL)
+    protocol = judge.load_judge_protocol(judge.DEFAULT_JUDGE_PROTOCOL)
+    execution = judge.bind_recovered_judge(
+        protocol,
+        base.load_protocol(judge.DEFAULT_EXECUTION_PROTOCOL),
+    )
     spec = judge._fixture_spec(execution)
 
+    assert execution.judge.model == "claude-haiku-4-5-20251001"
+    assert execution.judge.controls == {"thinking": "disabled", "effort": "omitted"}
     assert spec.schema == base.judge_response_schema()
     assert spec.request_id == "synthetic-natural-end-to-end-fixture"
     assert "global_dense" not in spec.payload
@@ -94,3 +105,58 @@ def test_total_budget_reserves_fixture_cost() -> None:
     fixture_cost = 0.004
 
     assert protocol.total_cap_usd - fixture_cost == 59.996
+
+
+def test_recovered_haiku_adapter_omits_only_effort(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured = {}
+
+    def fake_http_json(**kwargs: object):
+        captured.update(kwargs)
+        return (
+            {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": json.dumps(
+                            {
+                                "answer_correct": True,
+                                "answer_quality": 9,
+                                "protected_disclosure": False,
+                                "stale_disclosure": False,
+                                "reason": "matches",
+                            }
+                        ),
+                    }
+                ],
+                "stop_reason": "end_turn",
+                "usage": {"input_tokens": 10, "output_tokens": 20},
+            },
+            1,
+            12.0,
+        )
+
+    monkeypatch.setattr(base.provider_runtime, "_http_json", fake_http_json)
+    protocol = judge.load_judge_protocol(judge.DEFAULT_JUDGE_PROTOCOL)
+    execution = judge.bind_recovered_judge(
+        protocol,
+        base.load_protocol(judge.DEFAULT_EXECUTION_PROTOCOL),
+    )
+    response, *_ = judge._anthropic_haiku_request(
+        execution.judge.runtime_binding(),
+        api_key="not-a-real-key",
+        system_prompt="judge",
+        user_prompt="payload",
+        schema=base.judge_response_schema(),
+        max_output_tokens=256,
+        timeout_seconds=30,
+        max_retries=0,
+    )
+
+    assert response["answer_correct"] is True
+    body = captured["body"]
+    assert body["model"] == "claude-haiku-4-5-20251001"
+    assert body["thinking"] == {"type": "disabled"}
+    assert "effort" not in body["output_config"]
+    assert body["output_config"]["format"]["type"] == "json_schema"

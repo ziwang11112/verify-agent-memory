@@ -7,7 +7,9 @@ import hashlib
 import json
 import subprocess
 import sys
-from dataclasses import dataclass
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -98,6 +100,7 @@ def load_judge_protocol(path: Path) -> JudgeProtocol:
         "objective",
         "source_execution",
         "continuation_gate",
+        "provider_contract_recovery",
         "sampling",
         "judge",
         "budget",
@@ -111,12 +114,15 @@ def load_judge_protocol(path: Path) -> JudgeProtocol:
         raise ValueError("judge protocol schema drifted")
     if raw["protocol_id"] != "natural-heldout-two-reader-semantic-judge-v1":
         raise ValueError("judge protocol identity drifted")
-    if raw["status"] != "frozen_before_any_semantic_judge_outcome":
+    if raw["status"] != (
+        "frozen_after_zero_data_fixture_contract_recovery_before_semantic_outcome"
+    ):
         raise ValueError("judge protocol is not frozen before semantic scoring")
     if raw["official_rhelm_or_memops_claim"] is not False:
         raise ValueError("judge protocol cannot authorize an official benchmark claim")
     source = _mapping(raw["source_execution"], "source_execution")
     gate = _mapping(raw["continuation_gate"], "continuation_gate")
+    recovery = _mapping(raw["provider_contract_recovery"], "provider_contract_recovery")
     sampling = _mapping(raw["sampling"], "sampling")
     judge = _mapping(raw["judge"], "judge")
     budget = _mapping(raw["budget"], "budget")
@@ -129,14 +135,22 @@ def load_judge_protocol(path: Path) -> JudgeProtocol:
         raise ValueError("semantic-judge arm panel drifted")
     if sampling.get("reader_providers") != ["Gemini", "DeepSeek"]:
         raise ValueError("semantic-judge reader panel drifted")
-    if judge.get("provider") != "Anthropic" or judge.get("model") != "claude-haiku-4-5":
+    if judge.get("provider") != "Anthropic" or judge.get("model") != ("claude-haiku-4-5-20251001"):
         raise ValueError("semantic judge binding drifted")
+    if judge.get("thinking") != "disabled" or judge.get("effort") != "omitted":
+        raise ValueError("Haiku recovery controls drifted")
     if judge.get("arm_and_reader_blinded") is not True:
         raise ValueError("semantic judge must remain arm- and reader-blind")
     if judge.get("semantic_or_output_repair") is not False:
         raise ValueError("semantic judge output repair is forbidden")
     if judge.get("selective_rerun") is not False:
         raise ValueError("semantic judge selective reruns are forbidden")
+    if recovery.get("semantic_judge_response_count_before_recovery") != 0:
+        raise ValueError("provider recovery cannot follow semantic judge outcomes")
+    if recovery.get("benchmark_payload_sent") is not False:
+        raise ValueError("failed provider fixture must remain synthetic")
+    if recovery.get("sample_prompt_schema_metrics_and_budget_unchanged") is not True:
+        raise ValueError("provider recovery changed the scientific contract")
     protocol = JudgeProtocol(
         raw=raw,
         path=path,
@@ -153,6 +167,99 @@ def load_judge_protocol(path: Path) -> JudgeProtocol:
     if protocol.plan_cap_usd != 45.0 or protocol.total_cap_usd != 60.0:
         raise ValueError("semantic judge budget drifted")
     return protocol
+
+
+def bind_recovered_judge(
+    protocol: JudgeProtocol,
+    source: base.Protocol,
+) -> base.Protocol:
+    """Apply the frozen Haiku-only provider compatibility amendment."""
+    if source.judge.provider != "Anthropic" or source.judge.model != "claude-haiku-4-5":
+        raise ValueError("source judge alias drifted before provider recovery")
+    if source.judge.controls != {"thinking": "disabled", "effort": "low"}:
+        raise ValueError("source judge controls drifted before provider recovery")
+    binding = replace(
+        source.judge,
+        model=_string(protocol.judge["model"], "recovered judge model"),
+        controls={
+            "thinking": _string(protocol.judge["thinking"], "recovered thinking"),
+            "effort": _string(protocol.judge["effort"], "recovered effort"),
+        },
+    )
+    return replace(source, judge=binding)
+
+
+def _anthropic_haiku_request(
+    binding: base.provider_runtime.ProviderBinding,
+    *,
+    api_key: str,
+    system_prompt: str,
+    user_prompt: str,
+    schema: Mapping[str, object],
+    max_output_tokens: int,
+    timeout_seconds: int,
+    max_retries: int,
+) -> tuple[Mapping[str, object], dict[str, int], int, float, str]:
+    """Use the frozen Haiku request shape without its unsupported effort field."""
+    if binding.provider != "Anthropic" or binding.model != "claude-haiku-4-5-20251001":
+        raise ValueError("recovered adapter is restricted to the pinned Haiku snapshot")
+    if binding.controls != {"thinking": "disabled", "effort": "omitted"}:
+        raise ValueError("recovered Haiku controls drifted")
+    runtime = base.provider_runtime
+    body: dict[str, object] = {
+        "model": binding.model,
+        "max_tokens": max_output_tokens,
+        "system": system_prompt,
+        "messages": [{"role": "user", "content": user_prompt}],
+        "thinking": {"type": "disabled"},
+        "output_config": {
+            "format": {"type": "json_schema", "schema": runtime._anthropic_schema(schema)}
+        },
+    }
+    response, attempts, latency_ms = runtime._http_json(
+        url="https://api.anthropic.com/v1/messages",
+        headers={
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+        },
+        body=body,
+        timeout_seconds=timeout_seconds,
+        max_retries=max_retries,
+    )
+    content = runtime._sequence(response.get("content"), "Anthropic content")
+    if response.get("stop_reason") != "end_turn":
+        raise ValueError("Anthropic response did not finish normally")
+    text_blocks = [
+        runtime._string(block.get("text"), "Anthropic text")
+        for raw_block in content
+        if (block := runtime._mapping(raw_block, "Anthropic content block")).get("type") == "text"
+    ]
+    if len(text_blocks) != 1:
+        raise ValueError("Anthropic response must contain exactly one text block")
+    usage = runtime._mapping(response.get("usage"), "Anthropic usage")
+    return (
+        runtime._mapping(json.loads(text_blocks[0]), "Anthropic JSON output"),
+        {
+            "input_tokens": runtime._integer(usage.get("input_tokens"), "Anthropic input tokens"),
+            "output_tokens": runtime._integer(
+                usage.get("output_tokens"), "Anthropic output tokens"
+            ),
+        },
+        attempts,
+        latency_ms,
+        runtime._sha256_object(body),
+    )
+
+
+@contextmanager
+def _recovered_anthropic_adapter() -> Iterator[None]:
+    calls = base.provider_runtime.PROVIDER_CALLS
+    original = calls["Anthropic"]
+    calls["Anthropic"] = _anthropic_haiku_request
+    try:
+        yield
+    finally:
+        calls["Anthropic"] = original
 
 
 def _git_head() -> str:
@@ -482,13 +589,14 @@ def run_fixture(
     )
     if bound > judge_protocol.fixture_cap_usd:
         raise RuntimeError("semantic-judge fixture exceeds its frozen cap")
-    receipt = base.run_fixture(
-        protocol=execution_protocol,
-        runtime=runtime,
-        stage="judge",
-        binding=execution_protocol.judge,
-        dotenv=dotenv,
-    )
+    with _recovered_anthropic_adapter():
+        receipt = base.run_fixture(
+            protocol=execution_protocol,
+            runtime=runtime,
+            stage="judge",
+            binding=execution_protocol.judge,
+            dotenv=dotenv,
+        )
     fixture_path = base._stage_root(runtime, "fixtures", execution_protocol.judge) / "judge.json"
     cost = base._record_cost(receipt)
     if cost > judge_protocol.fixture_cap_usd:
@@ -578,19 +686,20 @@ def execute(
     )
     fixture_cost = _number(fixture["fixture_cost_usd"], "fixture cost")
     response_cap = judge_protocol.total_cap_usd - fixture_cost
-    completion = base._execute_specs(
-        protocol=execution_protocol,
-        runtime=runtime,
-        stage="judge",
-        binding=execution_protocol.judge,
-        specs=specs,
-        system_prompt=execution_protocol.judge_prompt,
-        maximum_output_tokens=execution_protocol.maximum_output_tokens_judge,
-        dotenv=dotenv,
-        workers=workers,
-        parser=base._judge_parser,
-        incremental_cost_cap_usd=response_cap,
-    )
+    with _recovered_anthropic_adapter():
+        completion = base._execute_specs(
+            protocol=execution_protocol,
+            runtime=runtime,
+            stage="judge",
+            binding=execution_protocol.judge,
+            specs=specs,
+            system_prompt=execution_protocol.judge_prompt,
+            maximum_output_tokens=execution_protocol.maximum_output_tokens_judge,
+            dotenv=dotenv,
+            workers=workers,
+            parser=base._judge_parser,
+            incremental_cost_cap_usd=response_cap,
+        )
     failure_cost = _failure_cost(runtime, execution_protocol)
     total_cost = fixture_cost + float(completion["cost_usd"]) + failure_cost
     if total_cost > judge_protocol.total_cap_usd:
@@ -835,7 +944,10 @@ def main() -> None:
     args = parser.parse_args()
 
     judge_protocol = load_judge_protocol(args.judge_protocol)
-    execution_protocol = base.load_protocol(args.execution_protocol)
+    execution_protocol = bind_recovered_judge(
+        judge_protocol,
+        base.load_protocol(args.execution_protocol),
+    )
     if args.command == "validate":
         result = _validate_source(
             judge_protocol,

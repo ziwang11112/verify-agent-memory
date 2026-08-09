@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "protocol_id": "natural-heldout-two-reader-semantic-judge-v1",
-  "status": "frozen_before_any_semantic_judge_outcome",
+  "status": "frozen_after_zero_data_fixture_contract_recovery_before_semantic_outcome",
   "frozen_date": "2026-08-08",
   "objective": "estimate_semantic_answer_outcomes_for_the_complete_paired_route_panel_within_the_approved_judge_budget",
   "source_execution": {
@@ -25,6 +25,19 @@
     "runtime_gate_sha256": "e4a354e2941b658585a71aa46f6d73fe4eee50b7aba883e6c4951a84b834cb40",
     "required_status": "deterministic_gate_passed",
     "provider_calls_in_gate": 0
+  },
+  "provider_contract_recovery": {
+    "previous_protocol_sha256": "93bd92d8f677220a0ca931257d4a85ba462dda18c02a9b3a9eb175f6c74831cc",
+    "failed_fixture_implementation_commit": "3912b7d08e1153d7796e1cc1da80d2276978a49e",
+    "failed_fixture_stage": "synthetic_fixture_only",
+    "failed_fixture_http_status": 400,
+    "failed_fixture_response_accepted": false,
+    "failed_fixture_cost_recorded_usd": null,
+    "benchmark_payload_sent": false,
+    "semantic_judge_response_count_before_recovery": 0,
+    "diagnosis": "claude_haiku_4_5_does_not_support_output_config_effort",
+    "recovery": "pin_the_dated_haiku_snapshot_and_omit_only_the_unsupported_effort_field",
+    "sample_prompt_schema_metrics_and_budget_unchanged": true
   },
   "sampling": {
     "selection_stage": "before_any_semantic_judge_call_or_outcome",
@@ -64,8 +77,10 @@
   },
   "judge": {
     "provider": "Anthropic",
-    "model": "claude-haiku-4-5",
+    "model": "claude-haiku-4-5-20251001",
     "prompt_sha256": "7f6a306e87c972e8a4c06bc68df724351d7da70fee3ef460e091516be0f0c412",
+    "thinking": "disabled",
+    "effort": "omitted",
     "arm_and_reader_blinded": true,
     "exact_prompt_deduplication": true,
     "expected_unique_request_count": 8790,
