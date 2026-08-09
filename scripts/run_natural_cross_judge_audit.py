@@ -860,6 +860,12 @@ def _groups(rows: Sequence[dict[str, Any]]) -> list[tuple[str, str, list[dict[st
     return groups
 
 
+def _group_bootstrap_seed(rows: Sequence[Mapping[str, Any]], base_seed: int) -> int:
+    request_ids = sorted(_string(row.get("request_id"), "bootstrap request ID") for row in rows)
+    digest = hashlib.sha256("\x1f".join(request_ids).encode("utf-8")).hexdigest()
+    return base_seed + int(digest[:8], 16)
+
+
 def analyze(
     protocol: AuditProtocol,
     *,
@@ -926,7 +932,7 @@ def analyze(
     quality_rows = []
     confusion_rows = []
     secondary_rows = []
-    for group_index, (group_type, group_value, group) in enumerate(_groups(paired)):
+    for group_type, group_value, group in _groups(paired):
         cheap = [bool(row["cheap_answer_correct"]) for row in group]
         strong = [bool(row["strong_answer_correct"]) for row in group]
         metrics = binary_agreement(cheap, strong)
@@ -934,7 +940,7 @@ def analyze(
             cheap,
             strong,
             iterations=bootstrap_iterations,
-            seed=bootstrap_seed + group_index,
+            seed=_group_bootstrap_seed(group, bootstrap_seed),
         )
         agreement_rows.append(
             {

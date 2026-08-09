@@ -142,6 +142,17 @@ def test_report_groups_preserve_original_and_sequential_reader_panels() -> None:
     assert len(groups[("reader_panel", "sequential_gpt_reader")]) == 1
 
 
+def test_group_bootstrap_seed_depends_only_on_request_ids() -> None:
+    rows = [{"request_id": "request-b"}, {"request_id": "request-a"}]
+
+    assert audit._group_bootstrap_seed(rows, 2026) == audit._group_bootstrap_seed(
+        list(reversed(rows)), 2026
+    )
+    assert audit._group_bootstrap_seed(rows, 2026) != audit._group_bootstrap_seed(
+        [{"request_id": "request-a"}, {"request_id": "request-c"}], 2026
+    )
+
+
 def test_synthetic_fixture_uses_exact_gpt_pro_contract(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
