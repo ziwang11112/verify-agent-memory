@@ -10,7 +10,7 @@
 - Main text ends: page 9.
 - References begin: page 10.
 - Appendices begin: page 11, after the references.
-- NeurIPS checklist begins: page 17.
+- NeurIPS checklist begins: page 18.
 - Content length: within the workshop's 4-9 page limit, excluding references and
   appendices.
 
@@ -19,7 +19,7 @@
 - All 24 pages were rendered at inspection resolution during the artifact audit. The
   current evidence-closure build additionally rechecked pages 1, 2, 7--10: the
   conclusion ends on page 9, references begin on page 10, and Appendix A begins on
-  page 11. The checklist begins on page 17.
+  page 11. The checklist begins on page 18.
 - No clipped text, overlapping elements, broken tables, or unreadable figures were
   observed.
 - Section 4 now exposes the datasets and splits, retrieval and reader model
