@@ -521,6 +521,45 @@ def _evidence_rows(rows: Sequence[Row]) -> dict[str, Row]:
                 contrast=contrast,
                 metric=metric,
             )
+    for source, reader in (
+        ("deepseek-v4-pro", "deepseek"),
+        ("gemini-3.6-flash", "gemini"),
+        ("gpt-5.6-luna", "gpt_luna"),
+    ):
+        for metric in (
+            "evidence_recall",
+            "feasible",
+            "penalized_admissibility_upper_risk",
+            "answer_correct",
+            "answer_quality",
+            "over_refusal",
+            "protected_disclosure",
+            "stale_disclosure",
+        ):
+            selected[f"c13_{reader}_namespace_{metric}"] = _one(
+                rows,
+                claim_id="C13",
+                source=source,
+                contrast="namespace_dense_minus_global_dense",
+                metric=metric,
+            )
+        for metric in ("penalized_admissibility_upper_risk", "answer_correct"):
+            selected[f"c13_{reader}_policy_{metric}"] = _one(
+                rows,
+                claim_id="C13",
+                source=source,
+                contrast="namespace_policy_gate_minus_namespace_dense",
+                metric=metric,
+            )
+        if source != "gpt-5.6-luna":
+            for metric in ("penalized_admissibility_upper_risk", "answer_correct"):
+                selected[f"c13_{reader}_text_{metric}"] = _one(
+                    rows,
+                    claim_id="C13",
+                    source=source,
+                    contrast="namespace_text_verifier_minus_namespace_dense",
+                    metric=metric,
+                )
     return selected
 
 
@@ -1012,6 +1051,55 @@ def _write_numbers(path: Path, selected: Mapping[str, Row]) -> None:
             macros.append(
                 _macro(f"{label}{suffix}", _plain(_number(selected[f"c11_{contrast}_{metric}"])))
             )
+    for reader, label in (
+        ("deepseek", "DeepSeekNatural"),
+        ("gemini", "GeminiNatural"),
+        ("gpt_luna", "GPTLunaNatural"),
+    ):
+        for metric, suffix in (
+            ("answer_correct", "AccuracyDelta"),
+            ("answer_quality", "QualityDelta"),
+            ("over_refusal", "OverRefusalDelta"),
+            ("protected_disclosure", "ProtectedDisclosureDelta"),
+            ("stale_disclosure", "StaleDisclosureDelta"),
+        ):
+            row = selected[f"c13_{reader}_namespace_{metric}"]
+            macros.extend(
+                (
+                    _macro(f"{label}{suffix}", _signed(_number(row))),
+                    _macro(f"{label}{suffix}CI", _ci(row)),
+                )
+            )
+        policy = selected[f"c13_{reader}_policy_answer_correct"]
+        macros.extend(
+            (
+                _macro(f"{label}PolicyAccuracyDelta", _signed(_number(policy))),
+                _macro(f"{label}PolicyAccuracyDeltaCI", _ci(policy)),
+            )
+        )
+    for metric, suffix in (
+        ("evidence_recall", "RecallDelta"),
+        ("feasible", "FeasibleDelta"),
+        ("penalized_admissibility_upper_risk", "AdmRiskDelta"),
+    ):
+        row = selected[f"c13_deepseek_namespace_{metric}"]
+        macros.extend(
+            (
+                _macro(f"NaturalEndToEnd{suffix}", _signed(_number(row))),
+                _macro(f"NaturalEndToEnd{suffix}CI", _ci(row)),
+            )
+        )
+    policy_risk = selected["c13_deepseek_policy_penalized_admissibility_upper_risk"]
+    text_risk = selected["c13_deepseek_text_penalized_admissibility_upper_risk"]
+    macros.extend(
+        (
+            _macro("NaturalPolicyAdmRiskDelta", _signed(_number(policy_risk))),
+            _macro("NaturalPolicyAdmRiskDeltaCI", _ci(policy_risk)),
+            _macro("NaturalTextVerifierAdmRiskDelta", _signed(_number(text_risk), digits=4)),
+            _macro("NaturalTextVerifierAdmRiskDeltaCI", _ci(text_risk, digits=4)),
+            _macro("NaturalEndToEndCaseCount", "1{,}523"),
+        )
+    )
     _write_ascii_lines(path, macros)
 
 
@@ -1096,6 +1184,27 @@ def _write_main_table(path: Path, selected: Mapping[str, Row]) -> None:
     ]
     for contrast, metric, estimate, interval, claim_id in entries:
         lines.append(f"{contrast} & {metric} & {estimate} & {interval} & {claim_id} \\\\")
+    lines.extend((r"\bottomrule", r"\end{tabular}"))
+    _write_ascii_lines(path, lines)
+
+
+def _write_natural_end_to_end_table(path: Path, selected: Mapping[str, Row]) -> None:
+    lines = [
+        r"\begin{tabular}{lrrr}",
+        r"\toprule",
+        r"Reader & $\Delta$ answer accuracy & $\Delta$ answer quality & $\Delta$ over-refusal \\",
+        r"\midrule",
+    ]
+    for reader, label in (
+        ("deepseek", "DeepSeek V4 Pro"),
+        ("gemini", "Gemini 3.6 Flash"),
+        ("gpt_luna", r"GPT-5.6 Luna$^{\dagger}$"),
+    ):
+        cells = []
+        for metric in ("answer_correct", "answer_quality", "over_refusal"):
+            row = selected[f"c13_{reader}_namespace_{metric}"]
+            cells.append(f"{_signed(_number(row))} {_ci(row)}")
+        lines.append(f"{label} & " + " & ".join(cells) + r" \\")
     lines.extend((r"\bottomrule", r"\end{tabular}"))
     _write_ascii_lines(path, lines)
 
@@ -1582,7 +1691,7 @@ def _write_verification_examples_figure(path: Path, cases: Sequence[FigureCase])
     axis.text(
         0.150,
         0.038,
-        "Known violation: exclude | unresolved: report unknown | "
+        "Violation: exclude | evaluator unresolved -> verifier may return unknown | "
         "old state: keep only when query-compatible",
         ha="left",
         va="center",
@@ -2151,10 +2260,12 @@ def _write_pipeline_figure(
     cases: Sequence[FigureCase],
     selected: Mapping[str, Row],
 ) -> None:
-    """Render the compact example matrix and the three-population evidence map."""
+    """Render audited examples and the stage-localized evaluation framework."""
     _configure_matplotlib()
     import matplotlib.pyplot as plt
     from matplotlib.patches import FancyBboxPatch
+
+    del selected
 
     figure, axis = plt.subplots(figsize=(7.2, 3.65))
     axis.set_xlim(0, 1)
@@ -2201,6 +2312,21 @@ def _write_pipeline_figure(
             )
         )
 
+    def arrow(x_start: float, y_start: float, x_end: float, y_end: float) -> None:
+        axis.annotate(
+            "",
+            xy=(x_end, y_end),
+            xytext=(x_start, y_start),
+            arrowprops={
+                "arrowstyle": "-|>",
+                "color": colors["muted"],
+                "linewidth": 0.8,
+                "mutation_scale": 7,
+                "shrinkA": 1,
+                "shrinkB": 1,
+            },
+        )
+
     case_by_id = {str(case["case_id"]): case for case in cases}
     scope_case = case_by_id["wrong_namespace_market"]
     lifecycle_case = case_by_id["superseded_lisbon_date"]
@@ -2225,7 +2351,7 @@ def _write_pipeline_figure(
     axis.text(
         0.043,
         0.985,
-        "A topical candidate still needs a query-conditioned eligibility check",
+        "Relevant candidates can still be inadmissible",
         fontsize=9.0,
         weight="bold",
         va="top",
@@ -2241,10 +2367,10 @@ def _write_pipeline_figure(
     )
 
     columns = (
-        (0.020, 0.205, "QUERY + INTENT"),
-        (0.230, 0.255, "RETRIEVED CANDIDATE"),
-        (0.490, 0.125, "FAILED AXIS"),
-        (0.620, 0.075, "VERDICT"),
+        (0.020, 0.165, "QUERY + INTENT"),
+        (0.190, 0.225, "RETRIEVED CANDIDATE"),
+        (0.420, 0.100, "CHECK"),
+        (0.525, 0.070, "VERDICT"),
     )
     for x, width, label in columns:
         box(x, 0.850, width, 0.052, facecolor="#E9EDF1", edgecolor="#E9EDF1")
@@ -2321,7 +2447,7 @@ def _write_pipeline_figure(
         row_color,
         decision_color,
     ) in example_rows:
-        box(0.020, y, 0.675, 0.175, facecolor=row_color)
+        box(0.020, y, 0.575, 0.175, facecolor=row_color)
         axis.plot([0.022, 0.022], [y + 0.010, y + 0.165], color=check_color, linewidth=3.0)
         axis.text(
             0.036,
@@ -2335,147 +2461,235 @@ def _write_pipeline_figure(
         axis.text(
             0.036,
             y + 0.087,
-            textwrap.fill(textwrap.shorten(query, width=72, placeholder="..."), width=27),
-            fontsize=7.0,
+            textwrap.fill(textwrap.shorten(query, width=62, placeholder="..."), width=22),
+            fontsize=6.7,
             color=colors["ink"],
             va="center",
             linespacing=1.08,
         )
-        axis.plot([0.225, 0.225], [y + 0.010, y + 0.165], color=colors["line"], linewidth=0.6)
+        axis.plot([0.185, 0.185], [y + 0.010, y + 0.165], color=colors["line"], linewidth=0.6)
         axis.text(
-            0.240,
+            0.200,
             y + 0.088,
             textwrap.fill(
-                f'"{textwrap.shorten(candidate, width=72, placeholder="...")}"',
-                width=28,
+                f'"{textwrap.shorten(candidate, width=64, placeholder="...")}"',
+                width=25,
             ),
-            fontsize=7.0,
+            fontsize=6.7,
             color=colors["ink"],
             va="center",
             linespacing=1.08,
         )
-        axis.plot([0.485, 0.485], [y + 0.010, y + 0.165], color=colors["line"], linewidth=0.6)
+        axis.plot([0.415, 0.415], [y + 0.010, y + 0.165], color=colors["line"], linewidth=0.6)
         axis.text(
-            0.552,
+            0.470,
             y + 0.112,
             check,
-            fontsize=7.2,
+            fontsize=6.8,
             weight="bold",
             color=check_color,
             ha="center",
         )
         axis.text(
-            0.552,
+            0.470,
             y + 0.057,
             textwrap.fill(reason, width=19),
-            fontsize=6.8,
+            fontsize=6.2,
             color=colors["muted"],
             ha="center",
             va="center",
         )
-        axis.plot([0.615, 0.615], [y + 0.010, y + 0.165], color=colors["line"], linewidth=0.6)
+        axis.plot([0.520, 0.520], [y + 0.010, y + 0.165], color=colors["line"], linewidth=0.6)
         axis.text(
-            0.657,
+            0.558,
             y + 0.088,
             decision,
-            fontsize=8.0,
+            fontsize=7.2,
             weight="bold",
             color=decision_color,
             ha="center",
             va="center",
         )
 
-    axis.plot([0.715, 0.715], [0.055, 0.965], color="#D7DCE1", linewidth=0.8)
-    axis.text(0.735, 0.985, "b", fontsize=9.5, weight="bold", va="top")
+    axis.plot([0.615, 0.615], [0.055, 0.965], color="#D7DCE1", linewidth=0.8)
+    axis.text(0.635, 0.985, "b", fontsize=9.5, weight="bold", va="top")
     axis.text(
-        0.763,
+        0.663,
         0.985,
-        "Three tests, three populations",
+        "What the framework verifies",
         fontsize=8.8,
         weight="bold",
         va="top",
         color=colors["ink"],
     )
     axis.text(
-        0.735,
+        0.635,
         0.935,
-        "Related questions; no pooled path estimate",
+        "Relevant candidates are checked before prompt assembly",
         fontsize=7.0,
         color=colors["muted"],
         va="top",
     )
 
-    recall_delta = 100 * _number(selected["c9_k20_evidence_recall_delta"])
-    risk_delta = 100 * _number(selected["c9_k20_penalized_admissibility_upper_risk_delta"])
-    oracle_risk_delta = 100 * _number(
-        selected["c11_released_oracle_penalized_admissibility_upper_risk_delta"]
+    box(0.635, 0.790, 0.350, 0.100, facecolor=colors["pale_gray"])
+    axis.text(
+        0.810,
+        0.852,
+        "QUERY CONTEXT + TOPICAL CANDIDATE",
+        fontsize=7.0,
+        weight="bold",
+        color=colors["ink"],
+        ha="center",
+        va="center",
     )
-    exposure_delta = 100 * _number(selected["deepseek_exposure_inadmissible"])
-    evidence_rows = (
-        (
-            0.635,
-            "NATURAL SUPPORT",
-            "87 groups | 3,767 queries",
-            "Namespace vs global dense, k=20",
-            f"Recall {recall_delta:+.1f} pp | risk {risk_delta:+.1f} pp",
-            colors["scope"],
-            colors["pale_blue"],
-        ),
-        (
-            0.360,
-            "NATURAL TEXT VERIFICATION",
-            "72 frozen analysis cases",
-            "Released fields expose route headroom",
-            f"Oracle risk delta {oracle_risk_delta:+.1f} pp",
-            colors["policy"],
-            colors["pale_purple"],
-        ),
-        (
-            0.085,
-            "PAIRED EXPOSURE",
-            "16 constructed scenarios per reader",
-            "Relevant-inadmissible literal marker",
-            f"DeepSeek exposure effect {exposure_delta:+.1f} pp",
-            colors["deny"],
-            colors["pale_red"],
-        ),
+    axis.text(
+        0.810,
+        0.815,
+        "query, intent, principal, time  |  memory m",
+        fontsize=6.2,
+        color=colors["muted"],
+        ha="center",
+        va="center",
     )
-    for y, heading, population, context, result, color, facecolor in evidence_rows:
-        box(0.735, y, 0.250, 0.215, facecolor=facecolor, edgecolor="#FFFFFF")
+
+    arrow(0.810, 0.785, 0.810, 0.745)
+    box(0.635, 0.585, 0.350, 0.155, facecolor="#FFFFFF")
+    axis.text(
+        0.650,
+        0.712,
+        "RECORD CHECK",
+        fontsize=7.0,
+        weight="bold",
+        color=colors["ink"],
+        va="center",
+    )
+    check_labels = (
+        (0.670, "R", "relevant", colors["allow"], colors["pale_green"]),
+        (0.750, "N", "scope", colors["scope"], colors["pale_blue"]),
+        (0.830, "P", "policy", colors["policy"], colors["pale_purple"]),
+        (0.910, "L", "lifecycle", colors["lifecycle"], colors["pale_gold"]),
+    )
+    for x, symbol, label, color, facecolor in check_labels:
+        box(x - 0.029, 0.625, 0.058, 0.060, facecolor=facecolor, edgecolor=color)
         axis.text(
-            0.750,
-            y + 0.180,
-            heading,
+            x,
+            0.661,
+            symbol,
             fontsize=7.3,
             weight="bold",
             color=color,
+            ha="center",
             va="center",
         )
         axis.text(
-            0.750,
-            y + 0.137,
-            population,
-            fontsize=6.8,
-            weight="bold",
-            color=colors["ink"],
-            va="center",
-        )
-        axis.text(
-            0.750,
-            y + 0.092,
-            textwrap.fill(context, width=35),
-            fontsize=6.8,
+            x,
+            0.637,
+            label,
+            fontsize=5.4,
             color=colors["muted"],
+            ha="center",
             va="center",
         )
+    axis.text(
+        0.810,
+        0.598,
+        r"labels $\in\{1,0,?\}$; usable iff all four are 1",
+        fontsize=6.2,
+        color=colors["ink"],
+        ha="center",
+        va="center",
+    )
+
+    arrow(0.810, 0.580, 0.810, 0.540)
+    box(0.635, 0.440, 0.350, 0.095, facecolor=colors["pale_green"], edgecolor="#AFC8B9")
+    axis.text(
+        0.810,
+        0.503,
+        "PRE-PROMPT DECISION",
+        fontsize=7.0,
+        weight="bold",
+        color=colors["ink"],
+        ha="center",
+        va="center",
+    )
+    axis.text(
+        0.810,
+        0.466,
+        "ADMIT  |  EXCLUDE + reason  |  UNRESOLVED",
+        fontsize=6.3,
+        color=colors["muted"],
+        ha="center",
+        va="center",
+    )
+
+    arrow(0.770, 0.435, 0.727, 0.395)
+    arrow(0.850, 0.435, 0.893, 0.395)
+    box(0.635, 0.290, 0.175, 0.100, facecolor=colors["pale_blue"])
+    axis.text(
+        0.723, 0.362, "ROUTE LEVEL", fontsize=6.8, weight="bold", color=colors["scope"], ha="center"
+    )
+    axis.text(
+        0.723, 0.329, r"min prefix at $\tau=.8$", fontsize=6.1, color=colors["ink"], ha="center"
+    )
+    axis.text(
+        0.723,
+        0.302,
+        r"recall, feasibility, $\mathrm{PCR}^{A}$",
+        fontsize=5.9,
+        color=colors["muted"],
+        ha="center",
+    )
+
+    box(0.820, 0.290, 0.165, 0.100, facecolor=colors["pale_purple"])
+    axis.text(
+        0.903,
+        0.362,
+        "READER BOUNDARY",
+        fontsize=6.8,
+        weight="bold",
+        color=colors["policy"],
+        ha="center",
+    )
+    axis.text(0.903, 0.329, "retrieved -> exposed", fontsize=6.1, color=colors["ink"], ha="center")
+    axis.text(0.903, 0.302, "-> disclosed", fontsize=6.1, color=colors["muted"], ha="center")
+
+    axis.text(
+        0.810,
+        0.245,
+        "NATURAL CLOSURE + CONTROLLED INTERVENTION\n(reader estimates never pooled)",
+        fontsize=5.9,
+        weight="bold",
+        color=colors["muted"],
+        ha="center",
+        va="center",
+        linespacing=1.05,
+    )
+    evidence_cards = (
+        (0.635, "SUPPORT", "87 groups\n3,767 queries", colors["scope"], colors["pale_blue"]),
+        (0.755, "END-TO-END", "1,523 cases\n3 readers", colors["policy"], colors["pale_purple"]),
+        (0.875, "EXPOSURE", "16 scenarios\n4 readers", colors["deny"], colors["pale_red"]),
+    )
+    for x, heading, population, color, facecolor in evidence_cards:
+        box(x, 0.065, 0.110, 0.145, facecolor=facecolor, edgecolor=color)
         axis.text(
-            0.750,
-            y + 0.035,
-            result,
-            fontsize=7.1,
+            x + 0.055,
+            0.173,
+            heading,
+            fontsize=6.4,
             weight="bold",
             color=color,
+            ha="center",
             va="center",
+        )
+        axis.text(
+            x + 0.055,
+            0.112,
+            population,
+            fontsize=5.9,
+            color=colors["ink"],
+            ha="center",
+            va="center",
+            linespacing=1.15,
         )
 
     figure.tight_layout(pad=0.15)
@@ -3372,12 +3586,14 @@ def build(repository_root: Path) -> tuple[Path, ...]:
     full_arm_table_path = output_root / "full_arm_results.tex"
     matched_prefix_table_path = output_root / "matched_prefix_diagnostics.tex"
     smoke_table_path = output_root / "mechanism_smoke.tex"
+    natural_end_to_end_table_path = output_root / "natural_end_to_end_results.tex"
     outputs = (
         numbers_path,
         main_table_path,
         full_arm_table_path,
         matched_prefix_table_path,
         smoke_table_path,
+        natural_end_to_end_table_path,
         output_root / "verification_pipeline.pdf",
         output_root / "verification_pipeline.png",
         output_root / "verification_pipeline.svg",
@@ -3402,6 +3618,7 @@ def build(repository_root: Path) -> tuple[Path, ...]:
     _write_full_arm_table(full_arm_table_path, rows)
     _write_matched_prefix_table(matched_prefix_table_path, selected)
     _write_smoke_table(smoke_table_path, selected)
+    _write_natural_end_to_end_table(natural_end_to_end_table_path, selected)
     _write_pipeline_figure(output_root / "verification_pipeline", figure_examples, selected)
     _write_verification_examples_figure(output_root / "verification_examples", figure_examples)
     _write_evidence_figure(output_root / "evidence_summary", selected)

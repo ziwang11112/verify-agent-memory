@@ -232,6 +232,44 @@ def test_opus_replication_claim_requires_no_pooling_boundary() -> None:
     assert "C12 must include a no-pooling limitation" in validate(data)
 
 
+def test_natural_end_to_end_claim_requires_no_pooling_boundary() -> None:
+    data = load_valid_contract()
+    natural = claim(data, "C13")
+    natural["known_limitations"] = [
+        item for item in natural["known_limitations"] if "never pooled" not in item.lower()
+    ]
+    assert "C13 must preserve the no-pooling boundary" in validate(data)
+
+
+def test_natural_end_to_end_claim_requires_shared_judge_boundary() -> None:
+    data = load_valid_contract()
+    natural = claim(data, "C13")
+    natural["known_limitations"] = [
+        item for item in natural["known_limitations"] if "share one blinded" not in item.lower()
+    ]
+    assert "C13 must preserve the shared-judge boundary" in validate(data)
+
+
+def test_natural_end_to_end_claim_requires_sequential_replication_boundary() -> None:
+    data = load_valid_contract()
+    natural = claim(data, "C13")
+    natural["known_limitations"] = [
+        item for item in natural["known_limitations"] if "sequential reader" not in item.lower()
+    ]
+    assert "C13 must preserve the sequential-replication boundary" in validate(data)
+
+
+def test_natural_end_to_end_claim_forbids_general_disclosure_gain() -> None:
+    data = load_valid_contract()
+    natural = claim(data, "C13")
+    natural["known_limitations"] = [
+        item
+        for item in natural["known_limitations"]
+        if "no general disclosure reduction" not in item.lower()
+    ]
+    assert "C13 must preserve the disclosure null-result boundary" in validate(data)
+
+
 def test_readable_contract_must_render_every_claim() -> None:
     data = load_valid_contract()
     assert "CLAIM_CONTRACT.md does not render C7" in validate_contract(data, "### C1: only")

@@ -1,5 +1,5 @@
 schema_version: 1
-title: "The Wrong Memory at the Right Time: Metadata Reliability and Enforcement Boundaries in Long-Term Agent Memory"
+title: "The Wrong Memory at the Right Time: Evaluating Retrieval Admissibility in Long-Term Agents"
 claims:
   - id: C1
     status: definition
@@ -103,9 +103,9 @@ claims:
       - "Reader estimates are reported separately and are never pooled."
       - "The result is open-label and is not an official GateMem benchmark submission."
     paper_locations:
-      - "Exposure and Utility"
-      - "Figure 2"
-      - "Abstract"
+      - "Four Observable Stages"
+      - "Appendix Figure 7"
+      - "Limitations"
     verification_tests:
       - "test_gatemem_claim_requires_non_causal_limitation"
       - "test_gatemem_claim_requires_same_provider_limitation"
@@ -155,8 +155,8 @@ claims:
       - "Leakage and bounded utility use different eligible checkpoint populations."
       - "Utility accuracy is benchmark-bounded and is not a complete measure of user value."
     paper_locations:
-      - "Exposure and Utility"
-      - "Figure 2"
+      - "Four Observable Stages"
+      - "Appendix Figure 7"
       - "Discussion"
     verification_tests:
       - "test_gatemem_claim_requires_non_causal_limitation"
@@ -311,22 +311,23 @@ claims:
       - "Descriptively, the resolved non-usable rate and lower bound were smaller inside feasible matched prefixes, but non-usable label coverage was also lower and the conditional upper bound remained high."
     forbidden_wording:
       - "This is an official RHELM or MemOps benchmark submission."
-      - "Namespace support improves downstream answer quality."
+      - "C5 alone establishes a downstream answer-quality improvement."
       - "The result generalizes to noisy or inferred namespaces."
       - "The non-usable upper bound is a pure admissibility-violation estimate."
       - "The penalized non-usable upper risk is a pure conditional contamination estimate."
       - "Namespace support reduced the conditional matched-prefix upper bound."
     known_limitations:
       - "This is a public-source evaluation, not an official RHELM or MemOps leaderboard result."
-      - "There is no downstream reader outcome for this population."
+      - "The full 3,767-query route population has no downstream reader outcome; C13 evaluates a frozen 1,523-case subset separately."
       - "The preregistered penalized non-usable upper risk assigns 1.0 to infeasible queries and feasible queries without a resolved non-usable label."
       - "Non-required same-namespace memories remain unresolved; the namespace-dense conditional matched-prefix label coverage is 0.3555 and its upper bound is 0.7782."
       - "The result applies to trusted released namespaces, not noisy or inferred scope."
       - "Confidence intervals are source-macro bootstrap intervals."
     paper_locations:
-      - "Public-Source Audit"
-      - "Figure 3"
-      - "Main Results Table"
+      - "Experimental Setup"
+      - "Support Constraints Results"
+      - "Figure 2"
+      - "Appendix Figure 6"
     verification_tests:
       - "test_smoke_and_full_populations_are_distinct"
       - "test_confidence_intervals_contain_estimates"
@@ -383,8 +384,8 @@ claims:
       - "Local timing and candidate counts do not establish a production cost claim."
       - "The cluster-router contamination interval crosses zero."
     paper_locations:
-      - "Public-Source Audit"
-      - "Figure 3"
+      - "Support Constraints Results"
+      - "Appendix Figure 6"
       - "Discussion"
     verification_tests:
       - "test_confidence_intervals_contain_estimates"
@@ -440,8 +441,9 @@ claims:
       - "Historical queries can require records that are stale for current-state queries."
       - "The v1 arm applies released policy filtering only to current-state queries; corrected v2 attribution is reported separately."
     paper_locations:
-      - "Public-Source Audit"
-      - "Discussion"
+      - "Metadata Reliability Results"
+      - "Figure 2"
+      - "Appendix Figure 6"
       - "Limitations"
     verification_tests:
       - "test_confidence_intervals_contain_estimates"
@@ -568,10 +570,10 @@ claims:
       - "The result applies to the exact frozen prompts and model snapshots."
       - "Observed disclosure can occur even when the manipulated candidate is withheld; a zero paired effect is not a zero-risk claim."
     paper_locations:
-      - "Evaluating Retrieval Admissibility"
+      - "Four Observable Stages"
       - "Experimental Design"
       - "Controlled Exposure Results"
-      - "Figure 2"
+      - "Figure 3"
       - "Limitations"
     verification_tests:
       - "test_counterfactual_exposure_claim_requires_controlled_boundary"
@@ -857,8 +859,8 @@ claims:
       - "The controlled diagnostic uses 16 constructed scenarios and 32 focal pairs."
       - "The released-field oracle is an upper-bound diagnostic, not deployable inference."
     paper_locations:
-      - "Oracle-Inference Gap"
-      - "Figure 3"
+      - "Selective Verification Results"
+      - "Appendix Figure 5"
       - "Limitations"
     verification_tests:
       - "test_inference_gap_claim_requires_population_separation"
@@ -932,9 +934,246 @@ claims:
     paper_locations:
       - "Models and Comparison Systems"
       - "Controlled Exposure Results"
-      - "Figure 4"
+      - "Figure 3"
       - "Limitations"
     verification_tests:
       - "test_opus_replication_claim_requires_separate_execution_boundary"
       - "test_opus_replication_claim_requires_no_pooling_boundary"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C13
+    status: natural_same_population_route_to_reader_evaluation
+    claim: "On a frozen 1,523-case natural sample, trusted namespace support improved route utility-risk and judged answer utility relative to global dense for each of three separately reported readers; additional deletion gates did not establish a monotonic downstream benefit."
+    estimand: "Paired route-minus-reference deltas for retrieval, judged answer utility, over-refusal, and typed disclosure, with 10,000 paired namespace-group bootstrap replicates and equal-source macro aggregation."
+    population: "All 523 RHELM cases plus a frozen outcome-independent simple random sample of 1,000 of 3,244 MemOps cases; 1,523 paired cases spanning 87 namespace groups, with all 80 MemOps groups represented."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    execution_commit:
+      two_reader_source: "8432abe7a34c1b44c4a943bcdd150858ad43f6b9"
+      two_reader_judge: "561a857d21a1a7f447581247f3f8a93fff42eeea"
+      gpt_reader: "3eab4e37605595b56c4d63e7a06f387936c9c05d"
+      gpt_result_publication: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_artifacts:
+      - "results/natural_end_to_end_two_reader_judged/manifest.json"
+      - "results/natural_end_to_end_two_reader_judged/main_table.csv"
+      - "results/natural_end_to_end_two_reader_judged/paired_deltas.csv"
+      - "results/natural_end_to_end_two_reader_judged/execution_receipt.json"
+      - "results/natural_end_to_end_gpt_luna_judged/manifest.json"
+      - "results/natural_end_to_end_gpt_luna_judged/main_table.csv"
+      - "results/natural_end_to_end_gpt_luna_judged/paired_deltas.csv"
+      - "results/natural_end_to_end_gpt_luna_judged/execution_receipt.json"
+    exact_values:
+      deepseek_v4_pro:
+        namespace_dense_minus_global_dense:
+          answer_correct: 0.05251625239005736
+          answer_quality: 0.042591013384321225
+          evidence_recall: 0.10402099722298097
+          feasible: 0.07493307839388146
+          over_refusal: -0.04848852772466539
+          penalized_admissibility_upper_risk: -0.08474888331632655
+          protected_disclosure: -0.0063532401524777635
+          stale_disclosure: 0.008
+        namespace_policy_gate_minus_namespace_dense:
+          answer_correct: 0.0065
+          penalized_admissibility_upper_risk: -0.019200305740011622
+        namespace_text_verifier_minus_namespace_dense:
+          answer_correct: 0.009912045889101339
+          penalized_admissibility_upper_risk: 0.006754085054009838
+      gemini_3_6_flash:
+        namespace_dense_minus_global_dense:
+          answer_correct: 0.06763671128107074
+          answer_quality: 0.049923709369024856
+          evidence_recall: 0.10402099722298097
+          feasible: 0.07493307839388146
+          over_refusal: -0.04053250478011472
+          penalized_admissibility_upper_risk: -0.08474888331632655
+          protected_disclosure: 0.012706480304955527
+          stale_disclosure: 0.0
+        namespace_policy_gate_minus_namespace_dense:
+          answer_correct: -0.0045
+          penalized_admissibility_upper_risk: -0.019200305740011622
+        namespace_text_verifier_minus_namespace_dense:
+          answer_correct: -0.014868068833652008
+          penalized_admissibility_upper_risk: 0.006754085054009838
+      gpt_5_6_luna:
+        namespace_dense_minus_global_dense:
+          answer_correct: 0.06594455066921606
+          answer_quality: 0.047618355640535376
+          evidence_recall: 0.10402099722298097
+          feasible: 0.07493307839388146
+          over_refusal: -0.03813671128107075
+          penalized_admissibility_upper_risk: -0.08474888331632655
+          protected_disclosure: -0.007623888182973317
+          stale_disclosure: 0.004
+        namespace_policy_gate_minus_namespace_dense:
+          answer_correct: -0.0055
+          penalized_admissibility_upper_risk: -0.019200305740011622
+    confidence_intervals:
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__answer_correct
+        estimate: 0.05251625239005736
+        lower: 0.020302553796217655
+        upper: 0.08373816977940912
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__answer_quality
+        estimate: 0.042591013384321225
+        lower: 0.02268125753147638
+        upper: 0.06165575463488798
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__evidence_recall
+        estimate: 0.10402099722298097
+        lower: 0.08354954807258205
+        upper: 0.12427538066672583
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__feasible
+        estimate: 0.07493307839388146
+        lower: 0.055382597514562246
+        upper: 0.09632997651487461
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__over_refusal
+        estimate: -0.04848852772466539
+        lower: -0.06798477976709182
+        upper: -0.03051346908446869
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__penalized_admissibility_upper_risk
+        estimate: -0.08474888331632655
+        lower: -0.10674769062039698
+        upper: -0.0628211552725268
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__protected_disclosure
+        estimate: -0.0063532401524777635
+        lower: -0.02625
+        upper: 0.012622720897615708
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__stale_disclosure
+        estimate: 0.008
+        lower: -0.011549566891241578
+        upper: 0.030828516377649325
+      - metric: deepseek_v4_pro__namespace_policy_gate_minus_namespace_dense__answer_correct
+        estimate: 0.0065
+        lower: -0.00891089108910891
+        upper: 0.022035676810073453
+      - metric: deepseek_v4_pro__namespace_policy_gate_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: -0.019200305740011622
+        lower: -0.022935897976836643
+        upper: -0.015693928750944032
+      - metric: deepseek_v4_pro__namespace_text_verifier_minus_namespace_dense__answer_correct
+        estimate: 0.009912045889101339
+        lower: -0.003548954098404648
+        upper: 0.02255106198600853
+      - metric: deepseek_v4_pro__namespace_text_verifier_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: 0.006754085054009838
+        lower: 0.002383160884238606
+        upper: 0.011510807041683866
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__answer_correct
+        estimate: 0.06763671128107074
+        lower: 0.04670322741046881
+        upper: 0.09021352701258478
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__answer_quality
+        estimate: 0.049923709369024856
+        lower: 0.03629559488459981
+        upper: 0.06475457887065086
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__evidence_recall
+        estimate: 0.10402099722298097
+        lower: 0.08342454334136107
+        upper: 0.1243956022003487
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__feasible
+        estimate: 0.07493307839388146
+        lower: 0.0550117244527137
+        upper: 0.09610959866514446
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__over_refusal
+        estimate: -0.04053250478011472
+        lower: -0.05739330863956986
+        upper: -0.02489747947045475
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__penalized_admissibility_upper_risk
+        estimate: -0.08474888331632655
+        lower: -0.10663983746110495
+        upper: -0.06262257189573994
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__protected_disclosure
+        estimate: 0.012706480304955527
+        lower: -0.005076142131979695
+        upper: 0.030927835051546393
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__stale_disclosure
+        estimate: 0.0
+        lower: -0.011518324607329843
+        upper: 0.012084592145015106
+      - metric: gemini_3_6_flash__namespace_policy_gate_minus_namespace_dense__answer_correct
+        estimate: -0.0045
+        lower: -0.019956850053937433
+        upper: 0.011439466158245948
+      - metric: gemini_3_6_flash__namespace_policy_gate_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: -0.019200305740011622
+        lower: -0.022980833573497114
+        upper: -0.015690832511635923
+      - metric: gemini_3_6_flash__namespace_text_verifier_minus_namespace_dense__answer_correct
+        estimate: -0.014868068833652008
+        lower: -0.02826788870149825
+        upper: -0.0010581427390465691
+      - metric: gemini_3_6_flash__namespace_text_verifier_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: 0.006754085054009838
+        lower: 0.002406702503193534
+        upper: 0.011451048402700982
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__answer_correct
+        estimate: 0.06594455066921606
+        lower: 0.038953880676646895
+        upper: 0.0961025641025641
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__answer_quality
+        estimate: 0.047618355640535376
+        lower: 0.03104415584415585
+        upper: 0.06646392601163251
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__evidence_recall
+        estimate: 0.10402099722298097
+        lower: 0.0832315950259246
+        upper: 0.1245884851508086
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__feasible
+        estimate: 0.07493307839388146
+        lower: 0.05547275002844465
+        upper: 0.09596528896045804
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__over_refusal
+        estimate: -0.03813671128107075
+        lower: -0.0589171876821509
+        upper: -0.014836016696481812
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__penalized_admissibility_upper_risk
+        estimate: -0.08474888331632655
+        lower: -0.10684475523619832
+        upper: -0.062196236513653864
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__protected_disclosure
+        estimate: -0.007623888182973317
+        lower: -0.026854219948849106
+        upper: 0.012953367875647668
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__stale_disclosure
+        estimate: 0.004
+        lower: -0.013039117352056168
+        upper: 0.022115384615384617
+      - metric: gpt_5_6_luna__namespace_policy_gate_minus_namespace_dense__answer_correct
+        estimate: -0.0055
+        lower: -0.01780264496439471
+        upper: 0.006429277942631058
+      - metric: gpt_5_6_luna__namespace_policy_gate_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: -0.019200305740011622
+        lower: -0.022969620190249163
+        upper: -0.015570558942042526
+    allowed_wording:
+      - "On the frozen 1,523-case natural sample, namespace support improved judged answer accuracy, answer quality, and over-refusal relative to global dense for each separately reported reader."
+      - "Namespace support improved matched route recall and penalized admissibility upper risk on the same natural cases used for downstream reading."
+      - "The released-policy gate reduced route risk beyond namespace support, but its answer-accuracy intervals included zero for all three readers."
+      - "The text-only verifier increased route risk relative to namespace dense and did not provide a consistent answer-utility gain for the two readers on which it was evaluated."
+    forbidden_wording:
+      - "Reader estimates were pooled."
+      - "The three readers and the judge constitute independent cross-model replication."
+      - "GPT-5.6 Luna was an independently preregistered replication."
+      - "Namespace support or policy gating reduced protected or stale disclosure in general."
+      - "Progressively stricter filtering monotonically improves answer utility."
+      - "This is an official RHELM or MemOps benchmark result."
+    known_limitations:
+      - "Reader estimates are reported separately and never pooled."
+      - "All three readers share one blinded Claude Haiku judge; this is not cross-judge replication."
+      - "The GPT-5.6 Luna run is a sequential reader replication added after the positive two-reader continuation gate, not an independently preregistered replication."
+      - "The 1,523-case sample includes all RHELM cases but only a frozen outcome-independent 1,000-case sample of MemOps; it is not an official benchmark submission."
+      - "Protected-disclosure and stale-disclosure namespace intervals include zero for every reader, so this result establishes no general disclosure reduction."
+      - "The GPT replication evaluated three primary routes; text-verifier and released-field-oracle diagnostics were not rerun for GPT."
+      - "The released-field policy route uses trusted metadata and does not establish deployable inference of missing governance state."
+    paper_locations:
+      - "Abstract"
+      - "Experimental Design"
+      - "Natural End-to-End Results"
+      - "Table 2"
+      - "Limitations"
+    verification_tests:
+      - "test_natural_end_to_end_claim_requires_no_pooling_boundary"
+      - "test_natural_end_to_end_claim_requires_shared_judge_boundary"
+      - "test_natural_end_to_end_claim_requires_sequential_replication_boundary"
+      - "test_natural_end_to_end_claim_forbids_general_disclosure_gain"
       - "test_confidence_intervals_contain_estimates"

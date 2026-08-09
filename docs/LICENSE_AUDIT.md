@@ -44,4 +44,7 @@ package structure and preserves source-file identities in `SOURCE_ARTIFACTS.yaml
 - Content-free aggregate evidence may be normalized after hash verification.
 - Raw benchmark text, prompts, responses, embeddings, and checkpoints remain
   prohibited.
-- The new repository's own license remains pending an explicit owner choice.
+- The repository's original code and documentation are released under the MIT
+  License in the root `LICENSE` file. That license does not broaden any upstream data
+  right: raw benchmark text, prompts, responses, embeddings, and checkpoints remain
+  excluded, and third-party notices remain controlling for incorporated material.

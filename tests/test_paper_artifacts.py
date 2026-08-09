@@ -28,6 +28,29 @@ def test_paper_evidence_selectors_cover_primary_claims() -> None:
     assert selected["threshold_recall_delta"]["claim_id"] == "C6"
     assert selected["threshold_fallback_rate"]["metric"] == "fallback_rate"
     assert selected["lifecycle_contamination_delta"]["claim_id"] == "C7"
+    assert selected["c13_deepseek_namespace_answer_correct"]["claim_id"] == "C13"
+    assert selected["c13_gemini_namespace_answer_correct"]["claim_id"] == "C13"
+    assert selected["c13_gpt_luna_namespace_answer_correct"]["claim_id"] == "C13"
+
+
+def test_natural_end_to_end_table_uses_claim_bound_generated_values() -> None:
+    selected = _evidence_rows(_load_rows(ROOT))
+    assert selected["c13_deepseek_namespace_answer_quality"]["claim_id"] == "C13"
+    assert selected["c13_gemini_namespace_over_refusal"]["claim_id"] == "C13"
+    assert selected["c13_gpt_luna_policy_answer_correct"]["claim_id"] == "C13"
+
+    main = (ROOT / "paper" / "main.tex").read_text(encoding="utf-8")
+    for macro in (
+        r"\NaturalEndToEndRecallDelta",
+        r"\NaturalEndToEndAdmRiskDelta",
+        r"\NaturalPolicyAdmRiskDelta",
+        r"\NaturalTextVerifierAdmRiskDelta",
+        r"\DeepSeekNaturalAccuracyDelta",
+        r"\GeminiNaturalAccuracyDelta",
+        r"\GPTLunaNaturalAccuracyDelta",
+    ):
+        assert macro in main
+    assert r"\input{generated/natural_end_to_end_results.tex}" in main
 
 
 def test_paper_package_passes() -> None:

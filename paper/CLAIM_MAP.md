@@ -4,18 +4,19 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 
 | Claim | Paper location | Artifact | Required boundary |
 | --- | --- | --- | --- |
-| C1 | Introduction and Section 3.1 | Figure 1 and Appendix Figure A1 | An audited same-memory example plus additional abridged cases; not a latent-intent inference procedure or prevalence estimate |
-| C2 | Section 3.4 and Appendix | Appendix Figure A3a--b | Association only; same-provider readers; no pooled estimate |
-| C3 | Section 3.4 and Appendix | Appendix Figure A3c | Leakage reduction has bounded utility and over-refusal costs |
+| C1 | Introduction and Section 3.1 | Figure 1 and Appendix Figure 4 | Audited abridged cases; not a latent-intent inference procedure or prevalence estimate |
+| C2 | Section 3.4 and Appendix | Appendix Figure 7a--b | Association only; same-provider readers; no pooled estimate |
+| C3 | Section 3.4 and Appendix | Appendix Figure 7c | Leakage reduction has bounded utility and over-refusal costs |
 | C4 | Appendix | Mechanism-smoke table | Sixteen-packet implementation check, not a natural-corpus estimate |
-| C5 | Sections 3.3, 4, and 5.1 | Figure 2a and Appendix Figure A2 | Frozen v1 penalized non-usable risk remains separate from post-hoc v2 admissibility scoring; trusted namespaces |
-| C6 | Section 5.4 and Appendix | Appendix Figure A2 | Negative result for two frozen diagnostic routers only |
-| C7 | Sections 4 and 5.2, plus Appendix | Figure 2b and Appendix Figure A2 | Frozen historical v1 semantics remain distinct from corrected v2 attribution |
-| C8 | Sections 3.4, 4, and 5.4 | Figure 1b roadmap and Figure 4 | Assigned exposure under constructed query conditions; no isolated causal moderator; readers never pooled |
-| C9 | Sections 4 and 5.1 | Figure 1b roadmap and Figure 2a | Post-hoc v2 scoring on frozen rankings; no retuning; namespace-group intervals under equal-source macro-averaging |
-| C10 | Sections 4 and 5.2 | Figure 2b--c | Tested corruption mechanisms only; observed grid brackets are not population thresholds |
-| C11 | Sections 4 and 5.3 | Figure 1b roadmap and Figure 3 | Natural and controlled public-development diagnostics are separate and never pooled |
-| C12 | Sections 4 and 5.4 | Figure 4 | Independently executed Claude Opus 5 replication under the C8 construction; separate estimates, no pooling, and no model-leaderboard claim |
+| C5 | Sections 3.3, 4, and 5.2 | Figure 2a and Appendix Figure 6 | Frozen v1 penalized non-usable risk remains separate from post-hoc v2 admissibility scoring; trusted namespaces |
+| C6 | Section 5.2 and Appendix | Appendix Figure 6 | Negative result for two frozen diagnostic routers only |
+| C7 | Sections 4 and 5.3, plus Appendix | Figure 2b and Appendix Figure 6 | Frozen historical v1 semantics remain distinct from corrected v2 attribution |
+| C8 | Sections 3.4, 4, and 5.5 | Figure 1b and Figure 3 | Assigned exposure under constructed query conditions; no isolated causal moderator; readers never pooled |
+| C9 | Sections 4 and 5.2 | Figure 1b and Figure 2a | Post-hoc v2 scoring on frozen rankings; no retuning; namespace-group intervals under equal-source macro-averaging |
+| C10 | Sections 4 and 5.3 | Figure 2b--c | Tested corruption mechanisms only; observed grid brackets are not population thresholds |
+| C11 | Sections 4 and 5.4 | Appendix Figure 5 | Natural and controlled public-development diagnostics are separate and never pooled |
+| C12 | Sections 4 and 5.5 | Figure 3 | Independently executed Claude Opus 5 replication under the C8 construction; separate estimates, no pooling, and no model-leaderboard claim |
+| C13 | Sections 4 and 5.1 | Table 2 | Frozen 1,523-case natural subset; readers reported separately; one shared blinded judge; GPT is sequential; no general disclosure reduction or official benchmark claim |
 
 ## Paper-Level Claims
 
@@ -38,7 +39,12 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
    identifies a controlled prompt-level disclosure effect in a constructed population.
 9. The selectivity-gap pattern reproduces for an independently executed fourth
    provider, without pooling the replication with the original three-reader panel.
-10. Reader selectivity does not replace pre-prompt admissibility verification.
+10. Trusted namespace support improves judged answer utility for three separately
+    reported readers on the same frozen natural cases used for route comparison.
+11. Additional released-policy deletion lowers route risk without establishing an
+    answer-utility gain, and tested text-only verification is not a consistent
+    substitute for trusted namespace support.
+12. Reader selectivity does not replace pre-prompt admissibility verification.
 
 ## Claims Not Made
 
@@ -52,4 +58,7 @@ This map is a writing and review gate. `claims/claims.yaml` remains authoritativ
 - Cross-provider replication of the GateMem reader analysis.
 - A pooled reader effect or a capability leaderboard from the heterogeneous reader
   configurations.
+- Independent cross-judge replication or an independently preregistered GPT Luna
+  replication in the natural closure.
+- A general reduction in protected or stale disclosure from namespace support.
 - A deployable method for inferring intent, scope, or lifecycle state.

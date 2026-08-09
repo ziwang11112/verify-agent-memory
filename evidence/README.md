@@ -1,7 +1,7 @@
 # Evidence Package
 
 The `normalized/` directory contains content-free aggregate measurements for claims
-C2-C12. It does not contain benchmark conversations, query text, memory text, model
+C2-C13. It does not contain benchmark conversations, query text, memory text, model
 responses, embeddings, or per-query identifiers.
 
 The `examples/` directory contains four deliberately selected, abridged
@@ -22,6 +22,7 @@ identifiers are retained solely to make the qualitative examples auditable.
 | `normalized/metadata_reliability.csv` | Corrected axis attribution and observed metadata-corruption brackets |
 | `normalized/text_inferred_admissibility.csv` | Released-field oracle versus text-inferred filtering on fixed natural-development cases |
 | `normalized/controlled_selective_verification.csv` | Controlled focal flips, stable controls, and selective-verification error rates |
+| `normalized/natural_end_to_end.csv` | Reader-separated route-to-answer deltas on the frozen 1,523-case natural sample; GPT is sequential and all readers share one blinded judge |
 
 Every CSV uses the same schema:
 
@@ -64,6 +65,8 @@ source hashes, path traversal, non-finite values, malformed intervals, retired m
 labels, values or intervals that drift from `claims/claims.yaml`, and missing
 claim-specific interpretation boundaries. The original paired-exposure evidence and
 the Claude Opus 5 replication are each bound to their own exact execution commit and
-content-free publication manifest. Figure-example JSON is separately validated by
+content-free publication manifest. The natural end-to-end family is bound to both
+complete result bundles and preserves its no-pooling, shared-judge, and sequential-
+replication boundaries. Figure-example JSON is separately validated by
 the paper artifact builder and hash-bound in
 `paper/generated/artifact_manifest.json`.

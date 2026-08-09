@@ -8,20 +8,23 @@ The paper is a verification and evaluation paper, not a new memory-index proposa
 
 - Venue: NeurIPS 2026 workshop, *Who Verifies the Agents? Toward Reliable Agent
   Development*.
-- Working title: *The Wrong Memory at the Right Time: Metadata Reliability and
-  Enforcement Boundaries in Long-Term Agent Memory*.
+- Working title: *The Wrong Memory at the Right Time: Evaluating Retrieval
+  Admissibility in Long-Term Agents*.
 - Current build: the conclusion ends on page 9 and references begin on page 10; the
-  complete package has 23 pages including references, appendices, and the checklist.
-- Evidence contract: C1-C12, all backed by normalized content-free artifacts.
+  complete package has 24 pages including references, appendices, and the checklist.
+- Evidence contract: C1-C13, all backed by normalized content-free artifacts.
 - Main empirical chain:
 
 ```text
-Candidate support -> Metadata reliability -> Selective verification
-                  -> Prompt exposure -> Answer disclosure
+Candidate support -> Route quality -> Prompt exposure -> Judged answer
+       |                  same 1,523 natural cases
+       +-> Metadata reliability -> Selective verification
+                                  -> Controlled exposure
 ```
 
-This is a conceptual audit sequence. Its component estimates use distinct populations
-and are never pooled into an end-to-end effect.
+The natural closure estimates support and downstream answers on the same frozen
+1,523-case sample. Metadata reliability, natural verification, controlled verification,
+paired exposure, and GateMem remain distinct populations and are never pooled.
 
 ## Central Claim
 
@@ -50,14 +53,15 @@ retrieval, or paired prompting in isolation.
 
 | Experiment | Population | Systems | Primary question |
 | --- | --- | --- | --- |
-| Natural support | Public RHELM and MemOps; 87 evaluation groups, 182,908 memories, 3,767 queries | Nine frozen retrieval arms; global and namespace dense are primary | Does trusted candidate support improve utility and risk at fixed budgets? |
+| Natural support and closure | Public RHELM and MemOps; 87 groups, 182,908 memories, 3,767 retrieval queries; frozen 1,523-case reader subset | Nine frozen retrieval arms; global and namespace dense are primary; three separately reported readers on the closure subset | Does trusted support improve route quality and judged answers on the same natural cases? |
 | Metadata reliability | Same frozen natural rankings; ten seeds per corruption point | Namespace, policy, lifecycle, and combined filters | Which metadata supplies value, and how do missing, false-deny, fail-open, and swap errors change it? |
 | Natural verification | 96 public-development cases: 24 calibration, 72 analysis | Released-field oracle, GPT-5.6 Sol, Gemini 3.6 Flash | Can text-only verification recover released-field headroom without losing required evidence? |
 | Controlled verification | 16 constructed scenarios; 32 focal and 64 stable pairs | Keep-all, released-label oracle, GPT-5.6 Sol, Gemini 3.6 Flash, DeepSeek V4 Pro | Do models follow focal rule changes while preserving stable evidence? |
 | Paired exposure | Same 16 scenarios; 192 pairs and 384 scored requests per reader | Original three-reader execution plus separate Claude Opus 5 replication | Once a candidate is exposed, how does disclosure change by relevance and admissibility? |
 | GateMem audit | Separate observational appendix populations | Two fixed OpenAI readers and frozen G0/G1 routes | How are natural exposure, disclosure, leakage, utility, and refusal associated? |
 
-These populations and estimands are never pooled.
+No reader is pooled. Experiments outside the natural closure remain separate
+populations and estimands.
 
 ## Model Roles
 
@@ -68,6 +72,10 @@ These populations and estimands are never pooled.
 - `gemini-3.6-flash`: Google Flash tier; low thinking in natural text verification
   and thinking `minimal` in paired exposure; not Pro.
 - `deepseek-v4-pro`: DeepSeek Pro tier, thinking disabled; not Flash.
+- `gpt-5.6-luna`: sequential OpenAI robustness replication for the natural closure;
+  it is not part of an independently preregistered three-reader panel.
+- `claude-haiku-4-5-20251001`: one blinded shared judge for all natural-closure
+  readers. Agreement across readers is therefore not cross-judge replication.
 - `claude-opus-5`: independently executed Anthropic reader replication, thinking
   disabled and medium effort. It is not pooled with the original panel.
 - GPT-4o and GPT-4o mini occur only in the older observational GateMem appendix.
@@ -82,6 +90,15 @@ same-tier capability leaderboard.
 - At top-100, namespace support changes recall by +0.149, feasible rate by +0.223,
   and penalized admissibility upper risk by -0.274. The measured candidate work drops
   58.1-fold under exact search; this is not a wall-clock latency claim.
+- On the same frozen 1,523 natural cases, namespace dense improves judged answer
+  accuracy by +0.053 for DeepSeek, +0.068 for Gemini, and +0.066 for GPT-5.6 Luna;
+  all pointwise paired intervals exclude zero. Answer quality improves and over-
+  refusal falls for all three readers. The shared-judge and sequential-replication
+  boundaries remain explicit.
+- The released-policy gate further lowers route risk by -0.019 relative to namespace
+  dense, but its answer-accuracy intervals include zero for every reader. The tested
+  text-only verifier instead increases route risk by +0.0068 and does not establish a
+  consistent utility gain.
 - The released-field oracle reduces natural-development admissibility risk by -0.032
   (95% CI [-0.065, -0.007]) without changing recall. The tested text-only filters do
   not preserve that utility-risk improvement.
@@ -107,6 +124,10 @@ copying empirical numbers into LaTeX.
 - A causal natural-route exposure effect; the GateMem analysis is observational.
 - An isolated causal moderator effect of admissibility in the paired intervention.
 - A pooled four-reader result or model capability ranking.
+- A pooled natural-reader estimate, cross-judge replication, or independently
+  preregistered status for the sequential GPT-5.6 Luna replication.
+- A general protected- or stale-disclosure reduction from namespace support; every
+  natural-reader interval on those outcomes includes zero.
 - Universal failure of clustering or thresholds beyond the frozen tested variants.
 
 Do not reintroduce the historical Bayesian/CRP development path or the discarded
@@ -118,8 +139,10 @@ human-agreement experiment. Neither belongs to this paper's evidence story.
    that admissibility, namespaces, or policy metadata are newly invented.
 2. The constructed verification and exposure populations support mechanism claims,
    not natural prevalence or production safety.
-3. The natural retrieval audit has no downstream reader; the controlled exposure
-   study closes a different part of the chain on a different population.
+3. The natural closure uses one shared blinded judge, and GPT-5.6 Luna was run
+   sequentially after the original positive continuation gate. This supports a same-
+   population utility-risk result, not independent three-reader or cross-judge
+   replication.
 4. Released metadata is an oracle-like evidence source. No latent-field inference or
    noisy production identity system is demonstrated.
 5. The main text uses the full nine-page allowance; further prose additions must be
@@ -139,8 +162,8 @@ human-agreement experiment. Neither belongs to this paper's evidence story.
 - A changed empirical number requires updating normalized evidence and its claim
   contract, then regenerating artifacts. Pure prose edits do not.
 - Preserve double-blind wording and the 4-9 content-page limit.
-- Keep C8, the original three-reader execution, separate from C12, the Claude
-  replication.
+- Keep C8, the original three-reader controlled exposure execution, separate from
+  C12, the Claude replication, and C13, the natural route-to-reader closure.
 
 ## Recommended Reading Order
 

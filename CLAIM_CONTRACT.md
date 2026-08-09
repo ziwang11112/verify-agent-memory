@@ -385,6 +385,47 @@ deployment safety, or call this an official benchmark result.
 construction, `claude-opus-5`, disabled thinking, and medium effort. The scenarios are
 constructed and literal disclosure does not identify internal model reasoning.
 
+## Natural Same-Population Closure
+
+### C13: Natural route-to-reader utility and risk
+
+**Status:** Natural same-population route-to-reader evaluation
+
+The frozen sample contains all 523 RHELM cases and an outcome-independent sample of
+1,000/3,244 MemOps cases. The same 1,523 cases are paired across routes for each
+reader. Namespace dense versus global dense produced:
+
+| Reader | Answer-accuracy delta (95% CI) | Answer-quality delta (95% CI) | Over-refusal delta (95% CI) |
+| --- | ---: | ---: | ---: |
+| DeepSeek V4 Pro | 0.05252 [0.02030, 0.08374] | 0.04259 [0.02268, 0.06166] | -0.04849 [-0.06798, -0.03051] |
+| Gemini 3.6 Flash | 0.06764 [0.04670, 0.09021] | 0.04992 [0.03630, 0.06475] | -0.04053 [-0.05739, -0.02490] |
+| GPT-5.6 Luna | 0.06594 [0.03895, 0.09610] | 0.04762 [0.03104, 0.06646] | -0.03814 [-0.05892, -0.01484] |
+
+The corresponding route-level evidence-recall delta was 0.10402 and penalized
+admissibility-upper-risk delta was -0.08475. The released-policy gate reduced risk a
+further -0.01920 relative to namespace dense, but answer-accuracy intervals included
+zero for all three readers. For the two original readers, the text-only verifier
+increased route risk by 0.00675; Gemini answer accuracy declined while the DeepSeek
+interval included zero.
+
+**Allowed:** Trusted namespace support improved route utility-risk and separately
+judged answer utility on the same natural sample for each reader. Additional
+released-policy deletion reduced route risk without establishing an answer-utility
+gain. The text-only verifier did not provide a consistent substitute for trusted
+namespace support.
+
+**Forbidden:** Do not pool readers, call the shared judge independent cross-judge
+replication, describe GPT-5.6 Luna as an independently preregistered replication,
+claim general protected- or stale-disclosure reduction, claim monotonic benefit from
+stricter deletion, or present this as an official RHELM/MemOps benchmark result.
+
+**Boundary:** All reader estimates are separate and share one blinded Claude Haiku
+judge. GPT-5.6 Luna was a sequential reader replication after the positive
+two-reader continuation gate. Namespace effects on protected and stale disclosure
+have intervals containing zero for every reader. GPT evaluated only the three
+primary routes; the text-verifier and released-field-oracle diagnostics were not
+rerun for GPT.
+
 ## Writing Rule
 
 Every manuscript sentence that asserts an empirical result must map to one claim ID.

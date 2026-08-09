@@ -1,6 +1,6 @@
 # The Wrong Memory at the Right Time
 
-**Metadata Reliability and Enforcement Boundaries in Long-Term Agent Memory**
+**Evaluating Retrieval Admissibility in Long-Term Agents**
 
 Long-term memory is intended to prevent language agents from forgetting, but
 persistence creates a complementary verification problem: a retrieved memory can
@@ -176,3 +176,14 @@ Rebuilding the historical full executions is intentionally not a one-command pub
 workflow because raw benchmark payloads, embeddings, routes, prompts, and responses
 are excluded. Exact upstream revisions and artifact identities are recorded in
 [PROVENANCE.md](PROVENANCE.md).
+
+## License and Anonymous Release
+
+Original code and documentation are licensed under the [MIT License](LICENSE).
+Upstream data rights are not expanded by that license; raw benchmark content and
+provider material remain excluded as described in
+[docs/LICENSE_AUDIT.md](docs/LICENSE_AUDIT.md) and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Use
+`python -m scripts.export_anonymous_artifact` to create a no-history, identity-
+redacted review package after the release checks pass. The complete procedure is in
+[docs/ANONYMOUS_RELEASE.md](docs/ANONYMOUS_RELEASE.md).

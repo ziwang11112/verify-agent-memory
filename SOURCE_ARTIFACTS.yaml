@@ -648,3 +648,91 @@ artifacts:
     transformation_required: "Preserve controlled public-development and provider-separated execution boundaries."
     public_paper_label: "controlled verifier provenance"
     contains_raw_text_or_private_content: false
+
+  - id: natural_end_to_end_two_reader_manifest
+    category: GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_path: "results/natural_end_to_end_two_reader_judged/manifest.json"
+    source_sha256: "f0bf0a32b2c595a6c5168521a3574338f847320af75cd6f2e3aa37d5d032caf8"
+    intended_normalized_destination: "evidence/manifests/natural_end_to_end.json"
+    transformation_required: "Preserve the frozen natural sample, complete-bundle status, shared judge, non-official boundary, and no reader pooling."
+    public_paper_label: "natural two-reader result manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_end_to_end_two_reader_main_table
+    category: GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_path: "results/natural_end_to_end_two_reader_judged/main_table.csv"
+    source_sha256: "9cf98341edbb00a2c8598c1113d6f52c7ad9e4cb168006f2752d010935c57a84"
+    intended_normalized_destination: "evidence/normalized/natural_end_to_end.csv"
+    transformation_required: "Retain reader-separated absolute outcomes as source context; do not infer significance from point estimates."
+    public_paper_label: "natural two-reader absolute metrics"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_end_to_end_two_reader_paired_deltas
+    category: GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_path: "results/natural_end_to_end_two_reader_judged/paired_deltas.csv"
+    source_sha256: "e6eb979e116a83721c17133559d6b8197a9781a2d4cd92ea172a3c588155b848"
+    intended_normalized_destination: "evidence/normalized/natural_end_to_end.csv"
+    transformation_required: "Select claim-bearing paired deltas with namespace-group bootstrap intervals; keep readers separate."
+    public_paper_label: "natural two-reader paired deltas"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_end_to_end_two_reader_receipt
+    category: GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_path: "results/natural_end_to_end_two_reader_judged/execution_receipt.json"
+    source_sha256: "779ca0d7d4bc760335c09126c5549531df143b9f3df5dcc31c059a3bb71a6d94"
+    intended_normalized_destination: "evidence/manifests/natural_end_to_end.json"
+    transformation_required: "Retain only content-free completion, model, request, protocol, and cost metadata."
+    public_paper_label: "natural two-reader execution receipt"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_end_to_end_gpt_manifest
+    category: GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_path: "results/natural_end_to_end_gpt_luna_judged/manifest.json"
+    source_sha256: "b8e0496eeb4797843a2737a14b6e1a014b86b95b831d40f284b28ef5f7b2d3dd"
+    intended_normalized_destination: "evidence/manifests/natural_end_to_end.json"
+    transformation_required: "Preserve the sequential replication, three-route scope, shared judge, and no-pooling boundaries."
+    public_paper_label: "GPT natural replication manifest"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_end_to_end_gpt_main_table
+    category: GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_path: "results/natural_end_to_end_gpt_luna_judged/main_table.csv"
+    source_sha256: "34cea4e5d0c91c5815608d7fa68792238422f8d8e38d65d281979a8716b1e431"
+    intended_normalized_destination: "evidence/normalized/natural_end_to_end.csv"
+    transformation_required: "Retain reader-specific absolute outcomes as source context; never pool with the two-reader execution."
+    public_paper_label: "GPT natural replication absolute metrics"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_end_to_end_gpt_paired_deltas
+    category: GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_path: "results/natural_end_to_end_gpt_luna_judged/paired_deltas.csv"
+    source_sha256: "4d303256226c4e59da9f6ca444633e84cc0af1e36224f78c8c377d39ca6b0236"
+    intended_normalized_destination: "evidence/normalized/natural_end_to_end.csv"
+    transformation_required: "Select the same primary paired contrasts while preserving the sequential reader-replication boundary."
+    public_paper_label: "GPT natural replication paired deltas"
+    contains_raw_text_or_private_content: false
+
+  - id: natural_end_to_end_gpt_receipt
+    category: GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_path: "results/natural_end_to_end_gpt_luna_judged/execution_receipt.json"
+    source_sha256: "678a9d0c01c62e0c7c96a86d0500f803f498897a58556c0a34f757c0f6e8d442"
+    intended_normalized_destination: "evidence/manifests/natural_end_to_end.json"
+    transformation_required: "Retain only content-free reader and judge completion, model, request, protocol, and cost metadata."
+    public_paper_label: "GPT natural replication execution receipt"
+    contains_raw_text_or_private_content: false

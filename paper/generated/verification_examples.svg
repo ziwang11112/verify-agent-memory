@@ -683,7 +683,7 @@ z
     <text style="font-weight: 700; font-size: 4.65px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #30363c" x="435.864" y="288.474369" transform="rotate(-0 435.864 288.474369)">USE / DROP + reason-coded trace</text>
    </g>
    <g id="text_54">
-    <text style="font-size: 4.15px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #59616b" x="83.52" y="300.337134" transform="rotate(-0 83.52 300.337134)">Known violation: exclude | unresolved: report unknown | old state: keep only when query-compatible</text>
+    <text style="font-size: 4.15px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #59616b" x="83.52" y="300.337134" transform="rotate(-0 83.52 300.337134)">Violation: exclude | evaluator unresolved -&gt; verifier may return unknown | old state: keep only when query-compatible</text>
    </g>
    <g id="text_55">
     <text style="font-size: 4.5px; font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #747b83" x="508.368" y="18.066123" transform="rotate(-0 508.368 18.066123)">Abridged audited public-source examples</text>

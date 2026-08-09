@@ -13,20 +13,20 @@ excluded for a current-state query and retained for a history query.
 | Panel | Role | Intended read |
 | --- | --- | --- |
 | a | Compact query--candidate audit matrix over four RHELM/MemOps rows | Wrong-principal, superseded-current, and explicitly forgotten candidates can be topically matched yet fail different pre-prompt checks; a history row shows that old state is not intrinsically inadmissible |
-| b | Three population-specific evidence blocks | Natural support, selective verification, and paired exposure answer related questions on distinct populations and estimands; they do not form a pooled end-to-end trace |
+| b | Verification path and three evidence blocks | Support and end-to-end cards distinguish the full natural retrieval audit from its frozen 1,523-case route-to-answer subset; the exposure card is a separate controlled population |
 
 **Evidence:** Panel a uses C1 and the abridged wrong-namespace market,
 superseded-Lisbon, and user-forgotten-phone cases listed in
 `evidence/examples/retrieval_admissibility_cases.json`; the Lisbon history note is an
-audited public-source example. Panel b indexes C9 top-20 support, C11 natural
-released-field headroom, and the C8/C12 controlled exposure executions. The three roadmap
-estimates come from distinct populations and are not combined. All four audited cases
-appear in Appendix Figure A1.
+audited public-source example. Panel b indexes C9 top-20 support, C13 natural closure,
+and the C8/C12 controlled exposure executions. The support and closure cards share the
+frozen natural source but have different sample sizes; controlled exposure remains
+separate. All four audited cases appear in Appendix Figure 4.
 
 **Boundary:** Text is abridged for figure legibility; packet IDs, memory IDs, source
 labels, and verdicts are preserved in the example manifest. The examples do not infer
 policy, scope, intent, or lifecycle state, estimate prevalence, or pool the roadmap
-statistics.
+statistics or readers.
 
 ## Figure 2: Constraint Value Depends on Metadata Reliability
 
@@ -48,21 +48,7 @@ thresholds. The historical v1
 non-usable selection score is not used as an admissibility-only outcome. This is not
 an official RHELM or MemOps submission.
 
-## Figure 3: Semantic Verifiers Recognize Rules but Cannot Apply Them Selectively
-
-| Panel | Population | Quantity | Intended read |
-| --- | --- | --- | --- |
-| a | 72 public-development cases; fixed top-20 candidates | Released-oracle and text-inferred feasibility versus sign-reversed admissibility-risk differences, with recall deltas | Released fields occupy the useful quadrant; text-only filters fail to realize the headroom and can worsen both outcomes |
-| b | 16 controlled scenarios and 32 focal pairs | Focal consistency versus stable-control overflip, with stable-admissible false denial | Strong focal rule-following coexists with over-filtering of memories whose status should remain unchanged |
-
-**Boundaries:** Panels a and b are separate public-development populations and are
-never pooled. OpenAI and Gemini are comparison-eligible in the natural diagnostic;
-OpenAI, Gemini, and DeepSeek are complete in the controlled diagnostic. Released
-metadata is an oracle reference, not a deployable method. The result does not cover
-latent production state or untested models. Candidate-level ROC-AUC and operating-
-point diagnostics are reported in the appendix rather than mixed into the main plot.
-
-## Figure 4: Controlled Exposure Can Enable Literal-Marker Disclosure
+## Figure 3: Controlled Exposure Can Enable Literal-Marker Disclosure
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
@@ -77,13 +63,27 @@ exposure under construction-defined admissible and inadmissible query conditions
 not an isolated causal effect of admissibility, internal model use, natural
 prevalence, production safety, or an official benchmark result.
 
-## Appendix Figure A1: Additional Audited Admissibility Cases
+## Appendix Figure 4: Additional Audited Admissibility Cases
 
 **Conclusion:** Wrong scope, supersession, explicit forgetting, and historical intent
-produce distinct eligibility decisions that the main same-memory example does not
-exhaust. These examples establish taxonomy coverage, not prevalence.
+produce distinct eligibility decisions that the main examples do not exhaust. These
+examples establish taxonomy coverage, not prevalence.
 
-## Appendix Figure A2: Frozen Nine-Arm Retrieval Diagnostics
+## Appendix Figure 5: Semantic Verifiers Recognize Rules but Cannot Apply Them Selectively
+
+| Panel | Population | Quantity | Intended read |
+| --- | --- | --- | --- |
+| a | 72 public-development cases; fixed top-20 candidates | Released-oracle and text-inferred feasibility versus sign-reversed admissibility-risk differences, with recall deltas | Released fields occupy the useful quadrant; text-only filters fail to realize the headroom and can worsen both outcomes |
+| b | 16 controlled scenarios and 32 focal pairs | Focal consistency versus stable-control overflip, with stable-admissible false denial | Strong focal rule-following coexists with over-filtering of memories whose status should remain unchanged |
+
+**Boundaries:** Panels a and b are separate public-development populations and are
+never pooled. OpenAI and Gemini are comparison-eligible in the natural diagnostic;
+OpenAI, Gemini, and DeepSeek are complete in the controlled diagnostic. Released
+metadata is an oracle reference, not a deployable method. The result does not cover
+latent production state or untested models. Candidate-level ROC-AUC and operating-
+point diagnostics are reported in the appendix rather than mixed into the main plot.
+
+## Appendix Figure 6: Frozen Nine-Arm Retrieval Diagnostics
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |
@@ -95,7 +95,7 @@ exhaust. These examples establish taxonomy coverage, not prevalence.
 v1. It is not the corrected governance-v2 attribution arm and cannot support a
 lifecycle-only claim.
 
-## Appendix Figure A3: Natural Route Traces Are Observational
+## Appendix Figure 7: Natural Route Traces Are Observational
 
 | Panel | Population | Quantity | Intended read |
 | --- | --- | --- | --- |

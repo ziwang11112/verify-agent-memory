@@ -25,19 +25,21 @@ The generator reads only `evidence/normalized/*.csv` after
 and figures under `paper/generated/`, plus a hash manifest binding inputs, outputs,
 and generator code. Figure assets are emitted as vector PDF/SVG and inspection PNG:
 
-- `verification_pipeline.*`: three audited scope, lifecycle, and forget-policy
-  failures, the observable prompt-boundary path, and the three-stage evidence roadmap
-  used as Figure 1;
+- `verification_pipeline.*`: four audited scope, lifecycle, and policy decisions,
+  the observable prompt-boundary path, and the three evidence populations used as
+  Figure 1;
 - `verification_examples.*`: four abridged audited examples covering wrong namespace,
   supersession, explicit forgetting, and history-compatible old states, retained in
   the appendix;
 - `constraint_reliability.*`: fixed-budget support, corrected metadata attribution,
   and observed corruption brackets used as main-text Figure 2;
 - `inference_gap.*`: the released-oracle utility--risk gap and controlled selective-
-  verification diagnostic used as main-text Figure 3;
+  verification diagnostic retained in the appendix;
 - `results/counterfactual_exposure/figures/counterfactual_exposure.*`: the controlled
   paired-exposure effects from the original three-reader execution and the separately
-  executed Claude Opus 5 replication used as main-text Figure 4;
+  executed Claude Opus 5 replication used as main-text Figure 3;
+- `natural_end_to_end_results.tex`: the three separately reported reader effects for
+  the frozen 1,523-case same-population route-to-answer closure used as Table 2;
 - `evidence_summary.*`: observational GateMem exposure/disclosure, prediction, and
   filtering trade-off, retained in the appendix;
 - `retrieval_results.*`: all retrieval arms in recall--cost space, the trusted
@@ -62,7 +64,7 @@ page-count and visual-inspection receipt is in `paper/BUILD_REPORT.md`.
 
 - `paper/main.tex` must use `dblblindworkshop`.
 - `paper/checklist.tex` must contain no TODO answers.
-- C1-C12 must each appear in `paper/CLAIM_MAP.md`.
+- C1-C13 must each appear in `paper/CLAIM_MAP.md`.
 - Generated artifact hashes must match the manifest.
 - No empirical number should be hand-entered in prose when a generated macro exists.
 - The main text must not use retired internal method labels.

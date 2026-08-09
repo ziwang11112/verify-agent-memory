@@ -78,11 +78,12 @@
     \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results, as described in supplemental material?
     \item[] Answer: \answerNo{}
     \item[] Justification: The anonymized package includes evaluation code,
-    content-free derived scores, manifests, tests, and build commands, while raw
-    benchmark assets remain available from credited upstream sources.  It does not
-    redistribute prompt, candidate, response, or answer text, so it supports artifact
-    regeneration but not full provider-execution replication or independent
-    rescoring.
+    content-free derived scores, manifests, tests, build commands, controlled prompt
+    templates, and synthetic candidate definitions, while raw benchmark assets remain
+    available from credited upstream sources.  It does not redistribute instantiated
+    natural benchmark payloads, exact provider request/response bundles, or normalized
+    private provider outputs, so it supports artifact regeneration but not full
+    provider-execution replication or independent rescoring.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that paper does not include experiments requiring code.

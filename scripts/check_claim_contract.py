@@ -51,6 +51,7 @@ SOURCE_CATEGORIES = {
     "GENERATED_FROM_HASH_BOUND_EXECUTION",
     "GENERATED_FROM_FROZEN_POSTHOC",
     "GENERATED_FROM_PUBLIC_DIAGNOSTIC",
+    "GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION",
 }
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
@@ -58,6 +59,7 @@ MIGRATION_SNAPSHOT = "a28093110325968c26906223e9eb0f1e078f6aad"
 NATURAL_EXECUTION_COMMIT = "8e34e3d41c56e1699696bc27be95cdac7c9528e5"
 COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT = "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
 CLAUDE_OPUS5_EXPOSURE_EXECUTION_COMMIT = "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+NATURAL_END_TO_END_SOURCE_SNAPSHOT = "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
 NATURAL_POSTHOC_IMPLEMENTATION_COMMIT = "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
 
 
@@ -261,6 +263,29 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
         if "never pooled" not in limitations:
             errors.append("C12 must include a no-pooling limitation")
 
+    natural_end_to_end = claim_by_id.get("C13")
+    if natural_end_to_end:
+        limitations = _combined_text(natural_end_to_end.get("known_limitations"))
+        forbidden = _combined_text(natural_end_to_end.get("forbidden_wording"))
+        if natural_end_to_end.get("status") != "natural_same_population_route_to_reader_evaluation":
+            errors.append("C13 must remain a natural same-population route-to-reader evaluation")
+        for phrase, message in (
+            ("never pooled", "C13 must preserve the no-pooling boundary"),
+            ("share one blinded claude haiku judge", "C13 must preserve the shared-judge boundary"),
+            (
+                "sequential reader replication",
+                "C13 must preserve the sequential-replication boundary",
+            ),
+            (
+                "no general disclosure reduction",
+                "C13 must preserve the disclosure null-result boundary",
+            ),
+        ):
+            if phrase not in limitations:
+                errors.append(message)
+        if "official rhelm or memops" not in forbidden:
+            errors.append("C13 must forbid an official benchmark interpretation")
+
     if readable_contract is not None:
         for claim_id in claim_by_id:
             if f"### {claim_id}:" not in readable_contract:
@@ -312,6 +337,11 @@ def validate_source_index(source_data: Any, contract_data: Any) -> list[str]:
                 CLAUDE_OPUS5_EXPOSURE_EXECUTION_COMMIT,
             }:
                 errors.append(f"{artifact_id}.frozen_commit must match a paired-exposure execution")
+        elif category == "GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION":
+            if artifact.get("frozen_commit") != NATURAL_END_TO_END_SOURCE_SNAPSHOT:
+                errors.append(
+                    f"{artifact_id}.frozen_commit must match the natural end-to-end snapshot"
+                )
         elif category == "GENERATED_FROM_FROZEN_POSTHOC":
             if artifact.get("frozen_commit") != NATURAL_POSTHOC_IMPLEMENTATION_COMMIT:
                 errors.append(

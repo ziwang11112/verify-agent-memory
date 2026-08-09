@@ -19,7 +19,7 @@
 \input{generated/paper_numbers.tex}
 
 \title{The Wrong Memory at the Right Time:\\
-Metadata Reliability and Enforcement Boundaries in Long-Term Agent Memory}
+Evaluating Retrieval Admissibility in Long-Term Agents}
 
 \author{Anonymous Author(s)}
 
@@ -30,161 +30,153 @@ Metadata Reliability and Enforcement Boundaries in Long-Term Agent Memory}
 \maketitle
 
 \begin{abstract}
-Long-term agents can retrieve semantically relevant memories that are ineligible for
-the current principal, purpose, or time, a failure hidden by answer accuracy and
-retrieval recall alone.  We introduce a query-conditioned, three-valued retrieval-
-admissibility target, matched-recall risk with unresolved-label bounds, and record-
-level logs of retrieval, exposure, and disclosure.  On frozen rankings over
-\NaturalQueryCount{} public-source queries, trusted namespace support raises top-20
-recall from \TopTwentyGlobalRecall{} to \TopTwentyNamespaceRecall{} while reducing
-penalized admissibility upper risk from \TopTwentyGlobalAdmRisk{} to
-\TopTwentyNamespaceAdmRisk{}.  Mechanism tests show that released policy metadata
-drives the incremental gain, the evaluated coarse lifecycle rule over-filters, and
-false-deny errors cross their channel-specific utility--risk boundary earlier than
-fail-open errors.  On 72 fixed public-development cases, released fields expose risk
-headroom (\ReleasedOracleAdmRiskDelta{}, 95\% CI
-\ReleasedOracleAdmRiskDeltaCI{}) that text-only verifiers do not recover without
-rejecting stable evidence.  In separate constructed exposure tests, every reader has
-a positive selectivity-gap interval, but only DeepSeek has a strictly positive
-relevant-inadmissible exposure-effect interval; the independent Claude interval
-includes zero.  Together, the results support constraining candidates with reliable
-eligibility information before prompt assembly.  We contribute an auditable
-evaluation protocol and failure-mechanism diagnosis, not a new memory index or a
-production-safety claim.
+Long-term memory is usually evaluated by relevance, yet a relevant record may belong
+to another principal, violate policy, or describe an incompatible state.  We
+introduce \emph{retrieval admissibility}: a query-conditioned, three-valued target
+with matched-recall risk bounds, record-level accounting through prompt exposure,
+and answer-level disclosure.
+
+Across \NaturalMemoryCount{} memories and \NaturalQueryCount{} queries from RHELM
+and MemOps, trusted namespace support improves retrieval utility and risk together.
+At top-20, recall rises from \TopTwentyGlobalRecall{} to
+\TopTwentyNamespaceRecall{}, penalized admissibility upper risk falls from
+\TopTwentyGlobalAdmRisk{} to \TopTwentyNamespaceAdmRisk{}, and exact-search
+candidate work drops \CandidateWorkRatio{}$\times$.  On a frozen
+\NaturalEndToEndCaseCount{}-case natural sample, the same intervention improves
+judged answer accuracy by \DeepSeekNaturalAccuracyDelta{},
+\GeminiNaturalAccuracyDelta{}, and \GPTLunaNaturalAccuracyDelta{} for three
+separately reported readers; all intervals exclude zero, and over-refusal also falls.
+Additional released-policy deletion lowers route risk without an established answer-
+utility gain, while text-only verification increases route risk.
+
+In paired exposure tests, four separately reported readers have positive selectivity
+gaps, but DeepSeek V4 Pro retains a strictly positive relevant-inadmissible
+disclosure effect.  Together, the results support enforcing reliable eligibility
+constraints before prompt assembly in the tested settings, while showing that more
+deletion is not monotonically better.  The accompanying anonymized artifact
+regenerates every reported table and figure without provider calls.
 \end{abstract}
 
 \section{Introduction}
+\label{sec:introduction}
 
-Long-term agents do not only fail by forgetting.  They can retrieve the right fact
-under the wrong authority, purpose, or time.  The dangerous record is often highly
-relevant: an earlier delivery address answers an address question, another user's
-market note answers a market question, and a superseded date answers a date question.
-Semantic ranking alone cannot establish whether any of those records may influence
-the current answer.
+The hardest failures in long-term agent memory are not irrelevant memories.  They are
+the right facts under the wrong conditions.  An earlier delivery address can answer
+an address question, another user's market note can answer a market question, and a
+superseded date can answer a date question.  Their semantic relevance is precisely
+what makes them difficult to detect: a system may retrieve the needed fact and even
+produce the correct answer while relying on evidence that should never have shaped
+that answer.  Retrieval recall and final-answer accuracy alone cannot expose this
+failure.
 
-Figure~\ref{fig:pipeline} isolates three failure modes and one counterexample.  A
-market memory can belong to the wrong principal, an earlier Lisbon date can be
-superseded for a current-state query, and a phone detail can remain topically similar
-after an explicit forget request.  Yet an old record may be required by a history
-query.  Admissibility therefore belongs to the memory--query context, not to the
-record alone.  We represent that context using authenticated scope, governing
-policy, query intent, and time, while retaining an unresolved state when released
-evidence does not establish a verdict.  We then record each memory ID at the stored,
-retrieved, verified, exposed, and disclosed stages.  The intended enforcement
-boundary lies before prompt assembly, not inside the reader.
+We study this gap through \emph{retrieval admissibility}: whether a memory that is
+relevant to a query is also eligible under the current principal, purpose, intent,
+and time.  Relevance asks whether a record can answer the question; admissibility asks
+whether it may be used to answer it.  This decision belongs to the memory--query
+context rather than to the record alone.  A superseded value may be inadmissible for
+``what is true now?'' yet indispensable for ``how did it change?''  Likewise, a
+topically matched record may remain unusable because it belongs to another principal,
+violates an active policy, or was explicitly forgotten.
 
-This paper asks three linked questions.  \emph{Support:} do trusted constraints
-improve retrieval rather than merely hiding errors?  \emph{Verification:} when
-eligibility metadata is unreliable or absent, can a text-only LLM reconstruct it
-without rejecting stable evidence?  \emph{Enforcement:} if an inadmissible record
-reaches the prompt, can reader restraint prevent disclosure?  Together these
-stagewise tests examine one enforcement sequence: candidate support, metadata
-reliability, selective verification, prompt exposure, and answer disclosure.  They
-use distinct populations and estimands and do not constitute one end-to-end causal
-estimate.
+Figure~\ref{fig:pipeline} grounds this distinction with four audited examples.  A
+market memory fails scope, an earlier Lisbon date fails lifecycle compatibility for
+a current-state query, and a forgotten phone detail fails policy.  The historical
+medication example provides the complementary case: an old state remains admissible
+because the query explicitly asks for change over time.  These examples motivate a
+query-conditioned evaluation target that preserves the reason a memory is admitted,
+excluded, or left unresolved.
 
-Prior work already establishes that relevance is insufficient.  RaMem restores
-episodic conditions for validity-aware retrieval \citep{yang2026ramem}; GateMem tests
-utility, access control, and active forgetting \citep{ren2026gatemem}; and Governed
-Shared Memory formalizes scoped retrieval, supersession, provenance, and policy-
-governed propagation as system primitives \citep{margalit2026governed}.  Our claim is
-therefore narrower: we provide a common measurement layer and an empirical
-decomposition of where eligibility enforcement succeeds and fails.
+We operationalize admissibility with a three-valued target, utility-matched route
+risk, record-level accounting through prompt exposure, and answer-level disclosure.
+Missing governance evidence remains unresolved, and a route cannot appear safer
+merely by returning less useful context.
+
+Three separate analyses probe \emph{candidate support} under metadata corruption,
+\emph{selective verification} of missing eligibility decisions, and \emph{prompt
+exposure} to relevant inadmissible records.  Each uses its appropriate population so
+candidate-set, verifier, and reader failures remain identifiable.
 
 \begin{figure}[!t]
   \centering
   \includegraphics[width=\textwidth]{generated/verification_pipeline.pdf}
-  \caption{A concrete eligibility audit and the evidence used in this paper.  (a)
-  Four abridged RHELM/MemOps rows pair a query intent with a retrieved topical
-  candidate, the governing check, and the pre-prompt decision.  The history row
-  shows why an old record is not intrinsically inadmissible.  These examples
-  establish failure types, not prevalence.  (b) Three distinct empirical tests
-  measure candidate support, selective verification, and prompt-level disclosure on
-  different populations and estimands; their estimates are not pooled into an
-  end-to-end effect.  Full audited examples appear in
+  \caption{\textbf{Retrieval admissibility and its enforcement boundary.}
+  (a) Audited RHELM/MemOps examples show that topical relevance does not determine
+  eligibility: wrong-principal, superseded, and explicitly forgotten records are
+  excluded, while an old state is admitted for a history query.  (b) The framework
+  records tri-valued relevance, scope, policy, and lifecycle judgments; evaluates
+  routes at matched evidence recall; tracks memory IDs through prompt exposure; and
+  separately records answer-level target disclosure.  The natural closure follows
+  the same 1,523 cases from route to judged answer for each reader; the controlled
+  exposure intervention remains a separate population, and reader estimates are
+  never pooled.  Full examples appear in
   Appendix~\ref{app:verification-examples}.}
   \label{fig:pipeline}
 \end{figure}
 
-Our contributions are:
-\begin{itemize}
-  \item \textbf{Measurement:} a three-valued retrieval-admissibility target,
-  matched-recall risk bounds for unresolved labels, and record-level observation from
-  retrieval through answer disclosure;
-  \item \textbf{Constraint diagnosis:} natural-corpus tests that separate candidate-
-  support gains from policy and lifecycle effects, then stress each metadata channel
-  under controlled corruption; and
-  \item \textbf{Enforcement diagnosis:} natural and controlled verifier tests,
-  followed by a paired prompt-exposure intervention with reader-specific estimates
-  and an independent replication.
-\end{itemize}
+Table~\ref{tab:natural-end-to-end} closes the natural path from candidate support to
+judged answer utility, while the remaining diagnostics explain why additional
+filtering does not automatically help.  Our contributions are (i) a
+three-valued admissibility target with matched-recall bounds, (ii) a stage-localized
+protocol spanning natural retrieval, corruption, verification, and paired exposure,
+and (iii) same-population natural evidence that reliable namespace constraints improve
+both route quality and downstream answer utility, while stricter semantic filtering
+is not a consistent substitute for pre-prompt admission.
 
 \section{Related Work}
 
-\paragraph{Long-term memory evaluation.}
-LongMemEval evaluates extraction, multi-session reasoning, temporal reasoning,
-updates, and abstention, while LongMemEval-V2 extends evaluation to environment
-experience and context gathering \citep{wu2025longmemeval,wu2026longmemevalv2}.
-RHELM studies heterogeneous, evolving histories and MemOps evaluates explicit
-remember, forget, update, and reflection operations
-\citep{zhang2026rhelm,hao2026memops}.  These benchmarks motivate our record-level
-treatment of evidence state and provenance.
+\paragraph{Long-term memory capability.}
+LoCoMo, LongMemEval, MemBench, and MemoryAgentBench evaluate retention, retrieval,
+reasoning, and capacity over long or multi-session histories
+\citep{maharana2024locomo,wu2025longmemeval,tan2025membench,hu2026memoryagentbench}.  RHELM adds
+heterogeneous temporal histories, and LongMemEval-V2 tests compact evidence gathering
+from accumulated experience \citep{zhang2026rhelm,wu2026longmemevalv2}.
 
-\paragraph{Governance and contextual validity.}
-GateMem evaluates access control and active forgetting; Collaborative Memory
-implements dynamic asymmetric access policies with private/shared memory tiers and
-persistent provenance; CIMemories tests contextual information flow; and STALE
-studies invalidated premises
-\citep{ren2026gatemem,rezazadeh2025collaborative,
-mireshghallah2026cimemories,chao2026stale}.  CIMemories also documents
-all-or-nothing prompt-level sharing under privacy-conscious prompting; our controlled
-candidate-level diagnostic localizes an analogous false-denial failure before prompt
-assembly and connects it to route utility.  RaMem restores episodic conditions for
-validity-aware retrieval, while Governed Shared Memory implements scoped retrieval,
-supersession, provenance, and policy-governed propagation in a live service
-\citep{yang2026ramem,margalit2026governed}.  We therefore do not claim to introduce
-governance-aware retrieval.  Our contribution is a common, uncertainty-aware
-evaluation of eligibility evidence and its failure boundaries from candidate support
-to prompt disclosure.  These systems optimize answer- or service-level objectives,
-whereas our primary outcomes are record-level eligibility, matched-recall risk,
-prompt exposure, and disclosure; nominal score comparisons would not share an
-estimand.
+\paragraph{Validity, mutation, and contextual use.}
+MemOps, Memora, STALE, A-TMA, and LoCoMo-Plus show that recall can conflict with
+mutation, forgetting, outdated state, or latent constraints
+\citep{hao2026memops,uddin2026memora,chao2026stale,shi2026atma,li2026locomoplus}.  We evaluate
+this conflict per retrieved record and compare routes at matched evidence recall with
+explicit bounds for unresolved labels.
 
-\paragraph{Access control around retrieval and generation.}
-Attribute-based access control (ABAC) supplies a general vocabulary for evaluating
-requests against subject, object, action, and environment attributes
-\citep{hu2019abac}.  Recent agent systems instantiate related controls at different
-boundaries.  Securing the Agent applies vendor-neutral ABAC gates to multitenant
-retrieval and tool use, explicitly separating relevance from authorization
-\citep{arceo2026securing}; SD-RAG applies sanitization and disclosure controls during
-retrieval, before the model input is augmented \citep{almasoud2026sdrag}.  Our novelty is not
-the placement of another enforcement point.  It is the joint evaluation of candidate
-support, metadata reliability, selective verification, prompt exposure, and answer
-disclosure with unresolved-label bounds and stage-specific estimands.
+\paragraph{Governed memory and pre-generation enforcement.}
+GateMem, CIMemories, and CI-Work evaluate access, forgetting, and contextual
+information flow;
+Collaborative Memory, Governed Shared Memory, and RaMem implement permissions,
+provenance, supersession, or validity-aware retrieval
+\citep{ren2026gatemem,mireshghallah2026cimemories,fu2026ciwork,rezazadeh2025collaborative,
+margalit2026governed,yang2026ramem}.  ABAC, Securing the Agent, and SD-RAG likewise
+motivate authorization before generation \citep{hu2019abac,arceo2026securing,
+almasoud2026sdrag}.  We supply a common measurement layer for these controls.
 
-\paragraph{Analytical agent evaluation.}
-AgentBench and AgentBoard broaden agent evaluation beyond static language tasks
-\citep{liu2024agentbench,ma2024agentboard}; HELM emphasizes multi-metric transparent
-evaluation \citep{liang2023helm}.  Our protocol follows this analytical stance:
-final-answer accuracy alone cannot tell whether an answer was supported by
-admissible evidence.  Because model-based evaluation can introduce systematic
-biases \citep{liu2023geval}, we report reader identities separately and do not pool
-their estimates.
+\paragraph{Stagewise analytical evaluation.}
+HELM, AgentBoard, RAGChecker, and MEMPROBE motivate multi-metric, intermediate-stage
+analysis \citep{liang2023helm,ma2024agentboard,ru2024ragchecker,ma2026memprobe}.
+Our record-level estimands extend that view across retrieval, verification, exposure,
+and disclosure without collapsing the path into final-answer accuracy.
 
-\section{Evaluating Retrieval Admissibility}
 
-We evaluate whether each returned memory is eligible for its query context, compare
-routes at equal evidence recall, and track where candidate selection becomes prompt
-exposure.  The resulting quantities are evaluation targets, not a latent-state
-classifier or a new memory index.
+\section{Retrieval Admissibility Evaluation Framework}
+\label{sec:framework}
 
-\subsection{Evidence eligibility is query-conditioned}
+\subsection{Framework overview}
 
-Let $z=(q,p,\rho,t)$ contain the query, authenticated principal, governing policy,
-and time.  For memory $m$, the evaluator records relevance $r_z(m)$, namespace or
-scope membership $n_z(m)$, policy permission $g_z(m)$, and lifecycle compatibility
-$\ell_z(m)$.  Each axis lies in $\mathcal{T}=\{1,0,?\}$: established positive,
-established negative, or unresolved.  The conservative conjunction is
+Given a query context $z$, a candidate memory $m$, and a retrieval arm $\alpha$,
+the framework evaluates three linked objects: record-level eligibility,
+utility-matched route risk, and disclosure after candidate exposure.  A route may use
+symbolic metadata, a learned verifier, or no eligibility filter; the common audit
+unit is the same memory ID through retrieval and prompt exposure; the answer trace
+records only whether target content is disclosed.
+
+\subsection{Query-conditioned admissibility}
+
+Let $z=(q,p,\kappa,t)$ contain the query, authenticated principal, governing policy,
+and evaluation time.  For memory $m$, the evaluator records relevance $r_z(m)$,
+scope $n_z(m)$, policy permission $g_z(m)$, and lifecycle compatibility $\ell_z(m)$.
+Each axis lies in $\mathcal{T}=\{1,0,?\}$: established positive, established
+negative, or unresolved.  Here \emph{unresolved} names an evaluator state;
+\emph{unknown} below is reserved for an explicit verifier abstention.
+
+We combine three-valued decisions using
 \begin{equation}
 \bigwedge\nolimits_{3}(x_1,\ldots,x_d)=
 \begin{cases}
@@ -194,88 +186,132 @@ established negative, or unresolved.  The conservative conjunction is
 \end{cases}
 \label{eq:three-valued}
 \end{equation}
-We define admissibility and usability for the memory--context pair as
+The admissibility and usability targets for a memory--context pair are
 \begin{align}
-a_z(m)&=\bigwedge\nolimits_{3}\!\left(n_z(m),g_z(m),\ell_z(m)\right),
+a_z(m)
+&=\bigwedge\nolimits_{3}
+  \left(n_z(m),g_z(m),\ell_z(m)\right),
 \label{eq:admissible}\\
-u_z(m)&=\bigwedge\nolimits_{3}\!\left(r_z(m),a_z(m)\right).
+u_z(m)
+&=\bigwedge\nolimits_{3}
+  \left(r_z(m),a_z(m)\right).
 \label{eq:usable}
 \end{align}
-Thus one established governance violation excludes a candidate, usability requires
-relevance and admissibility, and missing evidence never becomes an implicit pass.
-With complete binary labels, this reduces to
-$\mathcal{U}_z=\mathcal{R}_z\cap\mathcal{N}_z\cap\mathcal{P}_z\cap\mathcal{L}_z$.
-Lifecycle compatibility remains relational: a superseded value may be excluded for
-``what is current?'' and retained for ``how did it change?''  The released mapping is
-specified in Appendix~\ref{app:metric-details}; it is not a claim that latent state
-or intent can be inferred from text.
 
-\subsection{Verification precedes exposure}
+One established governance violation therefore excludes a candidate; usability also
+requires relevance.  Unresolved evidence is never converted into an implicit pass or
+denial.  Lifecycle remains relational: a superseded value may be excluded for
+``what is current?'' and retained for ``how did it change?''  Appendix
+\ref{app:metric-details} gives the released-field mapping.
 
-For every returned ID, the verifier emits $u_z(m)$, known exclusion reasons, and
-unresolved status.  Trusted namespace metadata may constrain ranking support from
-the global store $\mathcal{M}$ to
-$\mathcal{C}^{N}_z=\{m\in\mathcal{M}:n_z(m)=1\}$.  The protocol never silently
-completes missing provenance.  For route $a$, $S_m$, $R_{qma}$, and $E_{qma}$ denote
-stored, returned, and prompt-exposed records, with
-$E_{qma}\leq R_{qma}\leq S_m$.  We separately record $Y_{qa}$, whether the protected
-target appears in the answer.  These logs localize enforcement failure without
-claiming access to the reader's internal use of evidence.
+\subsection{Stagewise record accounting}
 
-\subsection{Matched-recall risk preserves utility and uncertainty}
+The target $a_z(m)$ is distinct from a metadata rule, oracle, or verifier prediction
+$\widehat a_{qm\alpha}$.  We retain memory identity across storage $S_m$, retrieval
+$R_{qm\alpha}$, and reader-visible exposure $E_{qm\alpha}$, which obey
+\begin{equation}
+E_{qm\alpha}\leq R_{qm\alpha}\leq S_m.
+\label{eq:stage-order}
+\end{equation}
+We also record answer disclosure $Y_{q\alpha}$.  Thus the trace localizes failures in
+candidate support, verification, prompt assembly, or disclosure.  For example,
+trusted namespace support ranks only
+$\mathcal{C}^{N}_z=\{m\in\mathcal{M}:n_z(m)=1\}$; other arms substitute global,
+governance-filtered, routed, or verifier-filtered support without changing the audit
+unit.
+
+\subsection{Utility-matched route risk}
 \label{sec:matched-risk}
 
-Let $\mathcal{G}_q$ be known usable anchors and
-$\pi_{qa}=(m_1,\ldots,m_n)$ a ranked route.  At target recall $\tau$, we score the
-smallest qualifying prefix
-\begin{equation}
-k^*_{qa}(\tau)=\min\left\{k:
-\frac{|\{m_1,\ldots,m_k\}\cap\mathcal{G}_q|}{|\mathcal{G}_q|}\geq\tau\right\},
-\qquad P_{qa}(\tau)=\{m_1,\ldots,m_{k^*_{qa}(\tau)}\}.
+Let $\mathcal{G}_q$ be the known usable anchors: records whose relevance and all
+three admissibility axes are established positive.  Any unresolved axis keeps a
+record outside $\mathcal{G}_q$; a query with no such anchors is recall-unevaluable.
+Let $\pi_{q\alpha}=(m_1,\ldots,m_n)$ be the ranking from arm $\alpha$.  At target
+recall $\tau$, we score the smallest qualifying prefix:
+\begin{align}
+\operatorname{Rec}_{q\alpha}(k)
+&=\frac{|\{m_1,\ldots,m_k\}\cap\mathcal{G}_q|}{|\mathcal{G}_q|},\\
+k^*_{q\alpha}(\tau)
+&=\min\{k:\operatorname{Rec}_{q\alpha}(k)\geq\tau\},\\
+P_{q\alpha}(\tau)
+&=\{m_1,\ldots,m_{k^*_{q\alpha}(\tau)}\}.
 \label{eq:matched-prefix}
-\end{equation}
-This charges a route for every item ranked before it reaches the same anchor-recall
-target.  In a prefix of size $N$, let $c^B$, $v^B$, and $h^B$ count negative,
-positive, and unresolved labels for status family $B\in\{U,A\}$, where $U$ denotes
-usability and $A$ admissibility.  We report
-\begin{equation}
-C^{K,B}=\frac{c^B}{c^B+v^B},\qquad
-\gamma^B=\frac{c^B+v^B}{N},\qquad
-[C^{L,B},C^{U,B}]=\left[\frac{c^B}{N},\frac{c^B+h^B}{N}\right].
+\end{align}
+The route is feasible when
+$F_{q\alpha}(\tau)=\mathbf{1}\{k^*_{q\alpha}(\tau)<\infty\}=1$.  Charging every item
+before the same recall target prevents a route from appearing safer merely by
+returning less useful evidence.
+
+For a feasible prefix of size $N_{q\alpha}$ and status family $B\in\{U,A\}$, let
+$c^B$, $v^B$, and $h^B$ count violations, positives, and unresolved labels.  We
+report known-label risk, coverage, and partial-identification bounds
+\citep{imbens2004confidence}:
+\begin{align}
+C^{K,B}_{q\alpha}
+&=\frac{c^B}{c^B+v^B},\\
+\gamma^B_{q\alpha}
+&=\frac{c^B+v^B}{N_{q\alpha}},\\
+\left[
+C^{L,B}_{q\alpha},
+C^{U,B}_{q\alpha}
+\right]
+&=\left[\frac{c^B}{N_{q\alpha}},
+\frac{c^B+h^B}{N_{q\alpha}}\right].
 \label{eq:matched-bounds}
+\end{align}
+The bounds are sharp under the recorded labels and have width $1-\gamma^B_{q\alpha}$.
+
+To prevent infeasible routes from appearing artificially safe, we define the
+penalized upper risk
+\begin{equation}
+\widetilde C^{U,B}_{q\alpha}
+=
+\begin{cases}
+C^{U,B}_{q\alpha}, & F_{q\alpha}=1,\\
+1, & F_{q\alpha}=0,
+\end{cases}
+\qquad
+\operatorname{PCR}^{B}_{\alpha}
+=
+\left\langle
+\widetilde C^{U,B}_{q\alpha}
+\right\rangle_{\mathcal S},
+\label{eq:penalized-risk}
 \end{equation}
-The interval is sharp under the released labels and has width $1-\gamma^B$.
-Infeasible routes receive upper risk 1 rather than appearing safe.  The historical
-selection score remains \emph{penalized non-usable upper risk}; the post-hoc v2 score
-is \emph{penalized admissibility upper risk}.  We never rename or pool them.  Full
-aggregation is specified in Section~4.3; the infeasibility decomposition and
-edge-case conventions appear in Appendix~\ref{app:metric-details}.
+where $\langle\cdot\rangle_{\mathcal S}$ is instantiated in
+Section~\ref{sec:evaluation-design}.  $B=U$ yields penalized non-usable upper risk;
+$B=A$ yields penalized admissibility upper risk.  Thus $\operatorname{PCR}^{A}$ is
+not a conditional contamination probability: it combines matched-prefix upper risk
+with a unit penalty for infeasible queries.
 
 \subsection{Exposure and disclosure}
 
-The observational GateMem audit compares exposure-discordant routes but is explicitly
-non-causal (Appendix~\ref{app:gatemem}).  The controlled experiment fixes query and
-background candidates and changes only whether one candidate is exposed.  For paired
-unit $i$ in relevance--admissibility cell $c$, let $D_i(1)$ and $D_i(0)$ denote
-literal target disclosure when exposed and withheld.  We estimate
-\begin{equation}
-\hat{\Delta}_c=\frac{1}{n_c}\sum_{i\in c}\bigl[D_i(1)-D_i(0)\bigr],\qquad
-\hat{S}=\hat{\Delta}_{\mathrm{rel,adm}}-
-\hat{\Delta}_{\mathrm{rel,inadm}}.
+For paired unit $i$ in relevance--admissibility cell $c$, let $D_i(1)$ and $D_i(0)$
+denote literal target disclosure when a candidate is exposed and withheld.  We define
+the cell effect and reader selectivity gap as
+\begin{align}
+\widehat{\Delta}_c
+&=\frac{1}{n_c}\sum_{i\in c}\left[D_i(1)-D_i(0)\right],\\
+\widehat S
+&=\widehat{\Delta}_{\mathrm{rel,adm}}-
+\widehat{\Delta}_{\mathrm{rel,inadm}}.
 \label{eq:paired-exposure}
-\end{equation}
-The selectivity gap $\hat S$ asks whether exposure enables relevant admissible
-evidence more than relevant inadmissible evidence.  It identifies a prompt-level
-effect in the constructed population, not internal model use or natural prevalence.
-
+\end{align}
+A positive $\widehat S$ indicates that exposure enables relevant admissible evidence
+more than relevant inadmissible evidence; $\widehat{\Delta}_{\mathrm{rel,inadm}}$
+must still be reported because a selective reader may disclose inadmissible evidence
+after exposure.  The next section instantiates these record-, route-, and reader-level
+quantities on separate natural and controlled populations.
 \section{Experimental Design}
+\label{sec:evaluation-design}
 
 We organize the evaluation around the three questions in Section~1.  The support
 question combines natural retrieval and metadata corruption; the verification
 question combines natural and controlled diagnostics; and the enforcement question
 uses paired exposure.  Table~\ref{tab:experiment-map} states the data, comparisons,
 and outcomes for the five component analyses.  Natural, public-development, and
-constructed populations are never pooled.
+constructed populations are never pooled; the route-to-reader closure is an explicit
+frozen subset of the natural population.
 
 \begin{table}[!t]
   \centering
@@ -291,11 +327,11 @@ constructed populations are never pooled.
     \toprule
     Experiment and data & Systems compared & Primary outcomes \\
     \midrule
-    \textbf{Natural support.} Public RHELM + MemOps; 23 development and
-      \NaturalGroupCount{} evaluation groups; \NaturalQueryCount{} evaluation queries
-      & Nine frozen retrieval arms. Primary: global versus namespace dense at
-      $k\in\{10,20,50,100\}$ & Evidence recall, feasible rate at $\tau=.8$,
-      admissibility risk, candidates scored \\
+    \textbf{Natural support + closure.} Public RHELM + MemOps; \NaturalQueryCount{}
+      retrieval queries and a frozen \NaturalEndToEndCaseCount{}-case reader sample
+      & Nine retrieval arms; five closure routes for DeepSeek/Gemini and three
+      primary routes for GPT Luna & Recall, admissibility risk, answer utility,
+      over-refusal, typed disclosure \\
     \addlinespace[2pt]
     \textbf{Metadata reliability.} Same evaluation groups; 10 seeds per channel and
       eight corruption rates & Frozen namespace, policy, lifecycle, and combined
@@ -343,6 +379,13 @@ experiment reuses those governing conditions with independently frozen relevance
 admissibility labels.  These diagnostic populations are not estimates of natural
 prevalence.
 
+The natural route-to-reader closure uses all 523 RHELM cases and an outcome-
+independent simple random sample of 1,000/3,244 MemOps cases, frozen before reader
+outcomes.  The resulting \NaturalEndToEndCaseCount{} cases span all 87 evaluation
+groups and are paired across routes within each reader.  DeepSeek and Gemini cover
+five routes; GPT Luna is a sequential robustness replication over the three primary
+routes after a frozen continuation gate.  Reader estimates are never pooled.
+
 \subsection{Models and comparison systems}
 
 All dense retrieval arms use the pinned \texttt{Qwen/Qwen3-Embedding-8B} snapshot:
@@ -382,31 +425,30 @@ construction but is not pooled with or retroactively inserted into the original
 three-reader execution.  Every reader contributes one accepted response per request,
 with no judge, semantic repair, selective rerun, or cross-model pooling.
 
+The natural closure uses \texttt{deepseek-v4-pro},
+\texttt{gemini-3.6-flash}, and \texttt{gpt-5.6-luna} as separately reported
+readers.  A blinded \texttt{claude-haiku-4-5-20251001} judge scores answer
+correctness, quality, and over-refusal from the reference evidence; it does not see
+the route or reader identity.  This shared judge makes the result cross-reader, not
+cross-judge, evidence.  GPT Luna was run sequentially after the positive two-reader
+continuation gate and is not an independently preregistered replication.
+
 \subsection{Metrics}
 
 Natural retrieval is macro-averaged within source and then equally across RHELM and
-MemOps.  Let $\langle\cdot\rangle_{\mathcal S}$ denote this equal-source operator,
-and let $F_{qa}$ indicate that route $a$ reaches target recall $.8$ for query $q$.
-For status family $B\in\{U,A\}$---usability or admissibility---we define
-\begin{equation}
-\widetilde C^{U,B}_{qa}
-=\begin{cases}
-C^{U,B}_{qa},&F_{qa}=1,\\
-1,&F_{qa}=0,
-\end{cases}
-\qquad
-\operatorname{PCR}^{B}_{a}
-=\left\langle\widetilde C^{U,B}_{qa}\right\rangle_{\mathcal S}.
-\label{eq:penalized-risk}
-\end{equation}
-We report evidence recall, feasible rate, and $\operatorname{PCR}^{A}$ as primary
-retrieval outcomes; $B=U$ names the frozen historical selection family.  Typed
-scope, policy, and lifecycle violations are reported separately.
+MemOps.  This instantiates $\langle\cdot\rangle_{\mathcal S}$ in
+Equation~\ref{eq:penalized-risk} as the equal-source operator and fixes target recall
+at $.8$.  We report evidence recall, feasible rate, and $\operatorname{PCR}^{A}$ as
+primary retrieval outcomes; $B=U$ names the frozen historical selection family.
+Typed scope, policy, and lifecycle violations are reported separately.
 
 Candidate-level verifier diagnostics include balanced accuracy, Brier score,
 calibration error, violation precision and recall, coverage, and required-anchor
 false denial.  Controlled verification reports focal consistency and stable
-overflip; paired exposure uses Equation~\ref{eq:paired-exposure}.  Appendix
+overflip; paired exposure uses Equation~\ref{eq:paired-exposure}.  Natural downstream
+outcomes are judged answer correctness, bounded answer quality, over-refusal, and
+released-field protected/stale disclosure.  Answer and disclosure effects remain
+reader-specific.  Appendix
 \ref{app:metric-details} gives the exact definitions, undefined-denominator rules,
 risk decomposition, and edge cases.
 
@@ -434,20 +476,56 @@ All reported intervals are pointwise 95\% percentile bootstrap intervals from
 contrasts and released-field attribution resample namespace groups while preserving
 equal-source macro-averaging.  Text verification resamples namespace groups
 stratified by source and query intent.  Controlled verification and exposure
-resample the 16 scenarios within governing-axis strata.  Corruption means are
-descriptive over ten seeds.  The
-natural run has no downstream reader, models and experimental populations are never
-pooled, and none of these results is an official RHELM, MemOps, or GateMem benchmark
-score.  Appendices~\ref{app:gatemem} and \ref{app:smoke} retain the secondary
+resample the 16 scenarios within governing-axis strata.  The natural closure uses
+paired namespace-group resampling while preserving equal-source macro aggregation.
+Corruption means are descriptive over ten seeds.  Models and distinct experimental
+populations are never pooled, and none of these results is an official RHELM, MemOps,
+or GateMem benchmark score.  Appendices~\ref{app:gatemem} and \ref{app:smoke} retain the secondary
 observational GateMem audit \citep{ren2026gatemem} and implementation smoke.
 
 \section{Results}
+
+\begin{table}[!t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3.2pt}
+  \renewcommand{\arraystretch}{1.08}
+  \caption{Natural same-population route-to-reader effects.  Entries are namespace
+  dense minus global dense with pointwise 95\% paired namespace-group bootstrap
+  intervals.  Readers are reported separately and share one blinded Claude Haiku
+  judge.  $^{\dagger}$GPT-5.6 Luna is a sequential robustness replication.}
+  \label{tab:natural-end-to-end}
+  \input{generated/natural_end_to_end_results.tex}
+\end{table}
+
+\subsection{Namespace support improves downstream utility on the same natural cases}
+
+The natural closure connects retrieval to judged answers on the same
+\NaturalEndToEndCaseCount{} cases (Table~\ref{tab:natural-end-to-end}).  Namespace
+dense raises route evidence recall by \NaturalEndToEndRecallDelta{} (95\% CI
+\NaturalEndToEndRecallDeltaCI{}), feasible rate by
+\NaturalEndToEndFeasibleDelta{} (\NaturalEndToEndFeasibleDeltaCI{}), and lowers
+penalized admissibility upper risk by \NaturalEndToEndAdmRiskDelta{}
+(\NaturalEndToEndAdmRiskDeltaCI{}).  Answer-accuracy, answer-quality, and over-
+refusal intervals all favor namespace support for DeepSeek, Gemini, and GPT Luna,
+with no pooling across readers.
+
+More deletion is not monotonically better.  The released-policy gate lowers route
+risk a further \NaturalPolicyAdmRiskDelta{} (\NaturalPolicyAdmRiskDeltaCI{}) relative
+to namespace dense, but its answer-accuracy intervals include zero for all three
+readers.  For DeepSeek and Gemini, the text-only verifier instead raises route risk
+by \NaturalTextVerifierAdmRiskDelta{} (\NaturalTextVerifierAdmRiskDeltaCI{});
+Gemini accuracy declines, while the DeepSeek interval includes zero.  Finally,
+namespace effects on protected and stale disclosure include zero for every reader.
+The same-population result therefore supports namespace-constrained candidate
+support as a utility--risk intervention, not a general disclosure reduction or a
+claim that stricter filtering always helps.
 
 \begin{figure}[!t]
   \centering
   \includegraphics[width=\textwidth]{generated/constraint_reliability.pdf}
   \caption{Utility--risk effects of trusted metadata.  (a) Global-to-namespace
-  movement at four fixed budgets.  (b) Corrected v2 policy/lifecycle attribution;
+  movement at four fixed budgets.  (b) v2 policy/lifecycle decomposition;
   whiskers are pointwise 95\% namespace-group bootstrap intervals.  (c)
   Channel-specific weak-dominance brackets across nested corruption rates.  Namespace
   channels are compared with global dense; governance channels are compared with
@@ -485,14 +563,14 @@ and is reported separately in Appendix~\ref{app:arms}.
 
 \subsection{Metadata error direction determines whether constraints remain useful}
 
-Corrected attribution changes the earlier lifecycle interpretation
+The v2 decomposition separates policy and lifecycle effects
 (Figure~\ref{fig:constraint-reliability}b).  Policy-only filtering changes recall by
 \PolicyOnlyRecallDelta{} (\PolicyOnlyRecallDeltaCI{}), feasible rate by
 \PolicyOnlyFeasibleDelta{} (\PolicyOnlyFeasibleDeltaCI{}), and admissibility risk by
 \PolicyOnlyAdmRiskDelta{} (\PolicyOnlyAdmRiskDeltaCI{}).  Lifecycle-only filtering
 instead changes recall by \LifecycleOnlyRecallDelta{} and risk by
 \LifecycleOnlyAdmRiskDelta{}: the evaluated two-intent rule removes useful evidence.
-The corrected combined v2 arm remains beneficial, but less so than policy alone.
+The combined v2 arm remains beneficial, but less so than policy alone.
 Thus the incremental gain is policy-driven, not lifecycle-only headroom.
 
 Corruption confirms that error direction matters, but only relative to each channel's
@@ -508,25 +586,11 @@ the first nonzero .02 point, whereas policy false allow and fail-open missing pa
 through .30 and first fail at .40.  These channel-specific observed brackets are not
 universal metadata-accuracy thresholds.
 
-\begin{figure}[!t]
-  \centering
-  \includegraphics[width=\textwidth]{generated/inference_gap.pdf}
-  \caption{Semantic verifiers recognize eligibility changes but do not apply them
-  selectively.  (a) Feasibility and sign-reversed admissibility-risk differences
-  versus namespace dense; labels give recall differences.  Whiskers are pointwise
-  95\% intervals from 10,000 namespace-group bootstrap replicates stratified by
-  source and query intent over 72 analysis cases.  (b) Controlled focal
-  consistency versus stable-control overflip; the shaded quadrant is the frozen
-  supportive criterion and labels report stable-admissible false-denial rate (FD).
-  The natural and controlled populations are separate and never pooled.}
-  \label{fig:inference-gap}
-\end{figure}
-
 \subsection{Text-only verifiers over-deny stable evidence on fixed candidates}
 
 The released oracle preserves recall and feasibility while reducing admissibility
 risk by \ReleasedOracleAdmRiskDelta{} (\ReleasedOracleAdmRiskDeltaCI{};
-Figure~\ref{fig:inference-gap}a).  GPT-5.6 text filtering instead changes recall by
+Appendix Figure~\ref{fig:inference-gap}a).  GPT-5.6 text filtering instead changes recall by
 \OpenAIInferredRecallDelta{} (\OpenAIInferredRecallDeltaCI{}), feasible rate by
 \OpenAIInferredFeasibleDelta{} (\OpenAIInferredFeasibleDeltaCI{}), and risk by
 \OpenAIInferredAdmRiskDelta{} (\OpenAIInferredAdmRiskDeltaCI{}).  Gemini does not
@@ -536,7 +600,7 @@ realize the oracle benefit either: its recall, feasibility, and risk differences
 points (Appendix Table~\ref{tab:text-inference-diagnostics}), but neither converts
 released-field headroom into a utility-preserving route.
 
-Controlled pairs expose the mechanism (Figure~\ref{fig:inference-gap}b).  GPT-5.6
+Controlled pairs expose the mechanism (Appendix Figure~\ref{fig:inference-gap}b).  GPT-5.6
 and Gemini classify all focal flips correctly, while DeepSeek reaches
 \DeepSeekControlledFocalConsistency{}.  Yet stable-control overflip is
 \GPTControlledOverflip{}, \GeminiControlledOverflip{}, and
@@ -561,61 +625,43 @@ selective verification.
 
 \subsection{Constructed exposure reveals a reader-specific disclosure failure}
 
-Each of the three original readers has a positive selectivity-gap interval
-(Figure~\ref{fig:paired-exposure}).  DeepSeek alone has a strictly positive
-relevant-inadmissible exposure effect, \DeepSeekExposureInadmissible{}
-(\DeepSeekExposureInadmissibleCI{}), showing that reader selectivity does not
-eliminate constructed prompt-level disclosure after exposure.  The independently
-executed Claude Opus 5
-replication also yields a positive selectivity gap, \OpusExposureGap{}
-(\OpusExposureGapCI{}), but its relevant-inadmissible interval
-\OpusExposureInadmissibleCI{} includes zero and therefore does not establish a
-nonzero relevant-inadmissible effect.  All estimates remain reader-specific; the
-intervention
-identifies prompt-level disclosure effects under constructed query conditions, not
-internal model use or an isolated causal moderator effect of admissibility.
+All four readers have positive selectivity-gap intervals
+(Figure~\ref{fig:paired-exposure}).  DeepSeek alone has a strictly positive relevant-
+inadmissible effect, \DeepSeekExposureInadmissible{}
+(\DeepSeekExposureInadmissibleCI{}); the separate Opus replication has gap
+\OpusExposureGap{} (\OpusExposureGapCI{}), but its inadmissible interval includes
+zero.  Estimates remain reader-specific and identify constructed prompt-level
+disclosure, not internal use or natural prevalence.
 
 \section{Discussion}
 
-\paragraph{Constrain support before ranking.}
-Semantic ranking cannot repair misspecified support.  Authenticated principal and
-provenance should remove impossible candidates before ranking, but arbitrary filters
-are not justified: policy supplied the gain, whereas the coarse lifecycle rule
-over-filtered.
-
-\paragraph{Preserve unknown rather than defaulting to deny.}
-False denial removes required evidence before fail-open errors erase aggregate
-dominance; fail-open errors instead expand exposure and work.  Text-only verifiers
-likewise reject stable admissible candidates.  Unknown should remain explicit rather
-than silently becoming permission or denial.
-
-\paragraph{Enforce before prompt assembly.}
-One reader retained a positive relevant-inadmissible disclosure effect after prompt
-exposure.  This supports constraining support and recording three-valued exclusions
-before prompt assembly rather than assigning policy enforcement to the reader.
+Semantic ranking cannot repair misspecified support: authenticated principal and
+provenance improve route quality and judged answer utility on the same natural cases.
+Yet arbitrary deletion is not justified.  False denial removes required evidence,
+the coarse lifecycle rule over-filters, and text-only verifiers reject stable
+admissible candidates.  Systems should preserve unresolved status and enforce known
+violations before prompt assembly, because one reader still disclosed relevant
+inadmissible content after exposure.
 
 \section{Limitations and Broader Impact}
 
-The natural audit covers two public-source families, released metadata, and no
-downstream reader; corruption brackets are not population thresholds.  V2 scoring is
-post-hoc on frozen rankings, whereas selection used v1 non-usable risk.  Policy and
-lifecycle are approximations, candidate counts are not production cost, and the
-inference populations contain only 72 cases and 16 scenarios.
-
-GateMem is observational and same-provider.  Paired exposure uses constructed queries,
-literal markers, and a rule-based scorer; it measures neither internal use nor natural
-prevalence.  Claude is a separate replication, and the heterogeneous readers do not
-define a capability leaderboard.  Filters can suppress legitimate evidence, so
-deployments should preserve unresolved states, log exclusions, and evaluate utility
-at matched recall.
+The natural audit covers two public sources and released metadata; its reader closure
+uses all RHELM but a frozen 1,000-case MemOps sample.  All readers share one blinded
+judge, GPT Luna is sequential, and disclosure intervals include zero.  Thus utility
+gains are neither cross-judge replication nor a general safety result.  V2 scores are
+post-hoc, corruption brackets are not population thresholds, metadata rules are
+approximations, and candidate counts are not production latency.  GateMem is
+observational; verifier diagnostics contain 72 natural cases and 16 constructed
+scenarios; paired exposure uses literal markers and measures neither internal use nor
+natural prevalence.  Heterogeneous readers do not define a leaderboard.
 
 \section{Conclusion}
 
-Reliable metadata improves candidate support, whereas text-only verification
-over-denies stable evidence and constructed exposure produces disclosure in one
-reader condition.  These findings support matched-utility evaluation of retrieval
-admissibility and enforcement before prompt assembly rather than another semantic-
-ranking layer.
+Reliable namespace metadata improves route and answer utility on the same natural
+cases, but stricter deletion is not monotonically beneficial and exposed
+inadmissible records can still be disclosed.  Retrieval evaluation should therefore
+measure admissibility at matched recall and enforce established violations before
+prompt assembly.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
@@ -735,7 +781,7 @@ known exclusion reasons and trusted-namespace support are
 \label{eq:reasons}\\
 \mathcal{C}^{N}_z&=\{m\in\mathcal{M}:n_z(m)=1\},\qquad
 \pi^{N}_z=\operatorname{Rank}(q;\mathcal{C}^{N}_z).
-\label{eq:namespace-support}
+\notag
 \end{align}
 The typed violation metric is defined in Equation~\ref{eq:typed-violation}.
 Finally, for leakage, utility, or refusal outcome $j$ and its own eligible population
@@ -778,6 +824,19 @@ rejected by the reference implementation.
 
 \section{Text-Only Inference Diagnostics}
 \label{app:text-inference}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{generated/inference_gap.pdf}
+  \caption{Semantic verifiers recognize eligibility changes but do not apply them
+  selectively.  (a) Feasibility and sign-reversed admissibility-risk differences
+  versus namespace dense; labels give recall differences.  Whiskers are pointwise
+  95\% intervals from 10,000 namespace-group bootstrap replicates stratified by
+  source and query intent over 72 analysis cases.  (b) Controlled focal consistency
+  versus stable-control overflip; labels report stable-admissible false-denial rate.
+  The natural and controlled populations are separate and never pooled.}
+  \label{fig:inference-gap}
+\end{figure}
 
 \begin{table}[H]
   \centering
@@ -981,11 +1040,12 @@ frozen source paths and hashes,
 source-snapshot identity, and transformation-script hash.  The natural execution
 manifest proves complete coverage of nine settings over 3,767 queries in 33,903
 route rows and 33,903 score rows.  Tests bind every estimate and confidence interval
-back to the machine-readable claim contract.  The public package regenerates every
-reported table and figure from released derived scores without a provider call.  It
-does not expose the separately retained hash-bound prompt, response, or normalized
-provider-output bundles, so it cannot independently audit the provider-output-to-
-score boundary or reproduce the original provider executions.
+back to the machine-readable claim contract.  The public package includes controlled
+prompt templates, synthetic candidate definitions, and content-free derived scores;
+it regenerates every reported table and figure without a provider call.  Instantiated
+natural benchmark payloads, exact provider request/response bundles, and normalized
+private provider outputs are not distributed, so the package cannot independently
+audit the provider-output-to-score boundary or reproduce the original executions.
 
 \input{checklist.tex}
 

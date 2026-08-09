@@ -19,6 +19,7 @@ REQUIRED_GENERATED_INPUTS = (
     "generated/full_arm_results.tex",
     "generated/matched_prefix_diagnostics.tex",
     "generated/mechanism_smoke.tex",
+    "generated/natural_end_to_end_results.tex",
     "generated/verification_pipeline.pdf",
     "generated/verification_examples.pdf",
     "generated/evidence_summary.pdf",
