@@ -1,10 +1,10 @@
 schema_version: 1
-title: "The Wrong Memory at the Right Time: Evaluating Retrieval Admissibility in Long-Term Agents"
+title: "Retrieval Admissibility Evaluation Claim Contract"
 claims:
   - id: C1
     status: definition
     claim: "A memory can be relevant and still be inadmissible for the current query."
-    estimand: "Not applicable; this is the paper's formal distinction."
+    estimand: "Not applicable; this is the evaluation's formal distinction."
     population: "Conceptual definition over a memory, query, governing policy, and query time."
     source_repository: null
     source_snapshot_commit: null
@@ -23,10 +23,6 @@ claims:
     known_limitations:
       - "The definition does not itself provide an inference procedure for latent policy or intent."
       - "Security harm, factual invalidity, and policy inadmissibility remain distinct outcomes."
-    paper_locations:
-      - "Introduction"
-      - "Formulation"
-      - "Figure 1"
     verification_tests:
       - "test_definition_has_no_empirical_source_requirement"
 
@@ -102,10 +98,6 @@ claims:
       - "Both readers are from OpenAI, so this is same-provider cross-reader robustness, not cross-provider replication."
       - "Reader estimates are reported separately and are never pooled."
       - "The result is open-label and is not an official GateMem benchmark submission."
-    paper_locations:
-      - "Four Observable Stages"
-      - "Appendix Figure 7"
-      - "Limitations"
     verification_tests:
       - "test_gatemem_claim_requires_non_causal_limitation"
       - "test_gatemem_claim_requires_same_provider_limitation"
@@ -154,10 +146,6 @@ claims:
       - "The estimates come from one OpenAI reader and do not constitute a cross-provider result; the broader reader evidence is same-provider."
       - "Leakage and bounded utility use different eligible checkpoint populations."
       - "Utility accuracy is benchmark-bounded and is not a complete measure of user value."
-    paper_locations:
-      - "Four Observable Stages"
-      - "Appendix Figure 7"
-      - "Discussion"
     verification_tests:
       - "test_gatemem_claim_requires_non_causal_limitation"
       - "test_gatemem_claim_requires_same_provider_limitation"
@@ -202,9 +190,6 @@ claims:
       - "The four development packets make setting selection high variance."
       - "No downstream reader or answer leakage was evaluated."
       - "This is a mechanism smoke, not a natural-corpus estimate."
-    paper_locations:
-      - "Evaluation Protocol"
-      - "Appendix"
     verification_tests:
       - "test_smoke_and_full_populations_are_distinct"
 
@@ -323,11 +308,6 @@ claims:
       - "Non-required same-namespace memories remain unresolved; the namespace-dense conditional matched-prefix label coverage is 0.3555 and its upper bound is 0.7782."
       - "The result applies to trusted released namespaces, not noisy or inferred scope."
       - "Confidence intervals are source-macro bootstrap intervals."
-    paper_locations:
-      - "Experimental Setup"
-      - "Support Constraints Results"
-      - "Figure 2"
-      - "Appendix Figure 6"
     verification_tests:
       - "test_smoke_and_full_populations_are_distinct"
       - "test_confidence_intervals_contain_estimates"
@@ -383,10 +363,6 @@ claims:
       - "This is a negative result for two frozen diagnostic variants, not all possible routers."
       - "Local timing and candidate counts do not establish a production cost claim."
       - "The cluster-router contamination interval crosses zero."
-    paper_locations:
-      - "Support Constraints Results"
-      - "Appendix Figure 6"
-      - "Discussion"
     verification_tests:
       - "test_confidence_intervals_contain_estimates"
 
@@ -440,11 +416,6 @@ claims:
       - "The recall interval includes zero."
       - "Historical queries can require records that are stale for current-state queries."
       - "The v1 arm applies released policy filtering only to current-state queries; corrected v2 attribution is reported separately."
-    paper_locations:
-      - "Metadata Reliability Results"
-      - "Figure 2"
-      - "Appendix Figure 6"
-      - "Limitations"
     verification_tests:
       - "test_confidence_intervals_contain_estimates"
 
@@ -569,12 +540,6 @@ claims:
       - "Axis-specific estimates contain only four scenarios and are diagnostic."
       - "The result applies to the exact frozen prompts and model snapshots."
       - "Observed disclosure can occur even when the manipulated candidate is withheld; a zero paired effect is not a zero-risk claim."
-    paper_locations:
-      - "Four Observable Stages"
-      - "Experimental Design"
-      - "Controlled Exposure Results"
-      - "Figure 3"
-      - "Limitations"
     verification_tests:
       - "test_counterfactual_exposure_claim_requires_controlled_boundary"
       - "test_counterfactual_exposure_claim_requires_no_pooling_boundary"
@@ -674,10 +639,6 @@ claims:
       - "No settings were retuned, and original development selection used the v1 penalized non-usable upper risk."
       - "Confidence intervals use namespace-group bootstrap resampling under equal-source macro-averaging."
       - "The result applies to released trusted namespaces in the evaluated public sources."
-    paper_locations:
-      - "Constraint Value and Metadata Reliability"
-      - "Figure 2"
-      - "Appendix"
     verification_tests:
       - "test_fixed_budget_claim_requires_posthoc_no_retuning_boundary"
       - "test_confidence_intervals_contain_estimates"
@@ -759,10 +720,6 @@ claims:
       - "Full-natural support expansion uses fixed embeddings and exact reranking with no retuning."
       - "No failure was observed through 50 percent for some channels; behavior beyond the tested grid is unknown."
       - "Aggregate weak dominance does not imply zero wrong-scope exposure."
-    paper_locations:
-      - "Constraint Value and Metadata Reliability"
-      - "Figure 2"
-      - "Appendix"
     verification_tests:
       - "test_metadata_reliability_claim_requires_grid_boundary"
       - "test_metadata_reliability_claim_requires_corrected_v2_semantics"
@@ -858,10 +815,6 @@ claims:
       - "The natural diagnostic uses fixed top-20 candidates and development-selected thresholds."
       - "The controlled diagnostic uses 16 constructed scenarios and 32 focal pairs."
       - "The released-field oracle is an upper-bound diagnostic, not deployable inference."
-    paper_locations:
-      - "Selective Verification Results"
-      - "Appendix Figure 5"
-      - "Limitations"
     verification_tests:
       - "test_inference_gap_claim_requires_population_separation"
       - "test_inference_gap_claim_requires_no_pooling_boundary"
@@ -931,11 +884,6 @@ claims:
       - "Disclosure is detected by a fixed literal scorer and does not identify the reader's internal reasoning."
       - "The Opus 5 estimate is model-specific and is never pooled with another reader."
       - "The result applies to the exact frozen prompt, model ID, and disabled-thinking configuration."
-    paper_locations:
-      - "Models and Comparison Systems"
-      - "Controlled Exposure Results"
-      - "Figure 3"
-      - "Limitations"
     verification_tests:
       - "test_opus_replication_claim_requires_separate_execution_boundary"
       - "test_opus_replication_claim_requires_no_pooling_boundary"
@@ -1165,12 +1113,6 @@ claims:
       - "Protected-disclosure and stale-disclosure namespace intervals include zero for every reader, so this result establishes no general disclosure reduction."
       - "The GPT replication evaluated three primary routes; text-verifier and released-field-oracle diagnostics were not rerun for GPT."
       - "The released-field policy route uses trusted metadata and does not establish deployable inference of missing governance state."
-    paper_locations:
-      - "Abstract"
-      - "Experimental Design"
-      - "Natural End-to-End Results"
-      - "Table 2"
-      - "Limitations"
     verification_tests:
       - "test_natural_end_to_end_claim_requires_no_pooling_boundary"
       - "test_natural_end_to_end_claim_requires_shared_judge_boundary"
@@ -1277,10 +1219,6 @@ claims:
       - "Answer-quality exact agreement is 0.240 even though within-one agreement is 0.755 and quadratic weighted kappa is 0.884."
       - "The audit evaluates judge-label agreement only; it does not re-estimate route effects, disclosure effects, or reader utility."
       - "Reader estimates remain separate and are never pooled."
-    paper_locations:
-      - "Experimental Design"
-      - "Natural End-to-End Results"
-      - "Limitations"
     verification_tests:
       - "test_cross_judge_claim_requires_posthoc_sample_boundaries"
       - "test_cross_judge_import_preserves_bounded_audit_scope"

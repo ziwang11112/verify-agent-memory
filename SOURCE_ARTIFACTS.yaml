@@ -1,5 +1,5 @@
 schema_version: 1
-purpose: "Phase 2 source index only; no listed artifact is copied in Phase 1."
+purpose: "Hash-bound source index for released code, normalized evidence, and result packages."
 method_label_mapping:
   flat_dense: global_dense
   namespace_dense: namespace_dense
@@ -19,7 +19,7 @@ artifacts:
     source_sha256: "85c42ed64497b48cbf4809af1ff31419b0aa8947b03ed7bfe3c7797df18893b2"
     intended_normalized_destination: "src/verify_agent_memory/metrics.py"
     transformation_required: "Rewrite under the new schema; remove historical names and audit all dependencies."
-    public_paper_label: "admissibility metrics"
+    public_label: "admissibility metrics"
     contains_raw_text_or_private_content: false
 
   - id: code_admissibility_runner
@@ -30,7 +30,7 @@ artifacts:
     source_sha256: "192a681fb25b026f941e7f29d97b99e8e1616b9ac9e1e568a7b66d7784149cf9"
     intended_normalized_destination: "src/verify_agent_memory/evaluation.py"
     transformation_required: "Extract scorer orchestration only; remove retired arms, constants, and runtime coupling."
-    public_paper_label: "evaluation runner"
+    public_label: "evaluation runner"
     contains_raw_text_or_private_content: false
 
   - id: code_memops_mapping
@@ -41,7 +41,7 @@ artifacts:
     source_sha256: "43649753b297badd5136d6d9cef1721686aca6ec42761591b01cbd9a6da9489a"
     intended_normalized_destination: "src/verify_agent_memory/sources/memops.py"
     transformation_required: "Rewrite as a source adapter after upstream license and schema review."
-    public_paper_label: "MemOps adapter"
+    public_label: "MemOps adapter"
     contains_raw_text_or_private_content: false
 
   - id: code_rhelm_resolution
@@ -52,7 +52,7 @@ artifacts:
     source_sha256: "22ac8bd2753d4ddc5d025199540dad02a8f9498fffaee80657148f97af082417"
     intended_normalized_destination: "src/verify_agent_memory/sources/rhelm.py"
     transformation_required: "Rewrite evidence resolution after upstream license and ambiguity review."
-    public_paper_label: "RHELM adapter"
+    public_label: "RHELM adapter"
     contains_raw_text_or_private_content: false
 
   - id: code_natural_corpus
@@ -63,7 +63,7 @@ artifacts:
     source_sha256: "b08af8554909a35b88211ce1485b03f55608eb62e808f9a79ab7e90f571ff13b"
     intended_normalized_destination: "src/verify_agent_memory/analysis/natural_corpus.py"
     transformation_required: "Extract public-source construction logic and remove internal runtime dependencies."
-    public_paper_label: "public-source audit"
+    public_label: "public-source audit"
     contains_raw_text_or_private_content: false
 
   - id: code_natural_analysis
@@ -74,7 +74,7 @@ artifacts:
     source_sha256: "f664ac7a87628ff5294203961e0c243dfa73b436196e602e0df5f3b842af60de"
     intended_normalized_destination: "src/verify_agent_memory/analysis/bootstrap.py"
     transformation_required: "Select pure bootstrap and table logic only; do not copy the module wholesale."
-    public_paper_label: "paired analysis"
+    public_label: "paired analysis"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_a_summary
@@ -85,7 +85,7 @@ artifacts:
     source_sha256: "bddfc5c1b039854a6ed2e0bf7225e2d4fe51b451d8b42d304cb85a22176a26a7"
     intended_normalized_destination: "evidence/manifests/gatemem.json"
     transformation_required: "Extract reader A status and aggregate values; omit internal governance prose."
-    public_paper_label: "GateMem reader A"
+    public_label: "GateMem reader A"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_a_pairs
@@ -96,7 +96,7 @@ artifacts:
     source_sha256: "e2d1099ebc4954010fec198cbddac7426d8e4bfea8e6d2ea55f34355bd6dbf5f"
     intended_normalized_destination: "evidence/normalized/gatemem.csv"
     transformation_required: "Audit identifiers and deterministically normalize reader and metric labels."
-    public_paper_label: "GateMem reader A"
+    public_label: "GateMem reader A"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_a_prediction
@@ -107,7 +107,7 @@ artifacts:
     source_sha256: "0aeb6e33454380f1df00d69860a4fcacb3d5423ca236ca23a73ed74e64f8b314"
     intended_normalized_destination: "evidence/normalized/gatemem.csv"
     transformation_required: "Normalize reader label and retain estimates, intervals, and bootstrap metadata."
-    public_paper_label: "GateMem reader A"
+    public_label: "GateMem reader A"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_a_tradeoff
@@ -118,7 +118,7 @@ artifacts:
     source_sha256: "3ddfe726d28c4096aef7d945099a992771c0ffe750ba03d4ab989cb0a49cf5a0"
     intended_normalized_destination: "evidence/normalized/gatemem.csv"
     transformation_required: "Retain paired estimates and population sizes; normalize policy labels."
-    public_paper_label: "GateMem leakage-utility trade-off"
+    public_label: "GateMem leakage-utility trade-off"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_a_arms
@@ -129,7 +129,7 @@ artifacts:
     source_sha256: "bc744f9e08500354fb4fdeb66ebda564e6a9dd4ec044d8db68d9d1ae0d75d2d4"
     intended_normalized_destination: "evidence/normalized/gatemem.csv"
     transformation_required: "Normalize arm labels without changing source values."
-    public_paper_label: "GateMem reader A"
+    public_label: "GateMem reader A"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_a_manifest
@@ -140,7 +140,7 @@ artifacts:
     source_sha256: "ce17a94745394abdb2ef392e05de631f7c52e9b20dc95675bfea18a8db9957ee"
     intended_normalized_destination: "evidence/manifests/gatemem.json"
     transformation_required: "Preserve model, execution, and no-judge boundaries; omit approval metadata."
-    public_paper_label: "GateMem reader A manifest"
+    public_label: "GateMem reader A manifest"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_a_response_manifest
@@ -151,7 +151,7 @@ artifacts:
     source_sha256: "73a088844de6d495ac2b17d9f4cf4128186226d927d36a39ef81ff5c3f4d7e22"
     intended_normalized_destination: "evidence/manifests/gatemem.json"
     transformation_required: "Preserve bundle identity only; never import the response bundle."
-    public_paper_label: "GateMem reader A response identity"
+    public_label: "GateMem reader A response identity"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_b_summary
@@ -162,7 +162,7 @@ artifacts:
     source_sha256: "f04320fb5b61e35c4a62e3980ef4d542eeb7d272f5b5c3dc6132fb30e25f7753"
     intended_normalized_destination: "evidence/manifests/gatemem.json"
     transformation_required: "Extract reader B status and aggregate values; omit internal governance prose."
-    public_paper_label: "GateMem reader B"
+    public_label: "GateMem reader B"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_b_pairs
@@ -173,7 +173,7 @@ artifacts:
     source_sha256: "4a4fb48df80a176fb06e4624685b47c9a70e83f67ce2458d072962cf1f96f937"
     intended_normalized_destination: "evidence/normalized/gatemem.csv"
     transformation_required: "Audit identifiers and deterministically normalize reader and metric labels."
-    public_paper_label: "GateMem reader B"
+    public_label: "GateMem reader B"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_b_prediction
@@ -184,7 +184,7 @@ artifacts:
     source_sha256: "6d6375ecf4da09e3226a66d6f8bb712862259ec5ac16b27ccffb8fd079515527"
     intended_normalized_destination: "evidence/normalized/gatemem.csv"
     transformation_required: "Normalize reader label and retain estimates, intervals, and bootstrap metadata."
-    public_paper_label: "GateMem reader B"
+    public_label: "GateMem reader B"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_b_tradeoff
@@ -195,7 +195,7 @@ artifacts:
     source_sha256: "7065df7211f06a0b76e7dac13d319ac69a210ed7722b794091a80f75a9e305b8"
     intended_normalized_destination: "evidence/normalized/gatemem.csv"
     transformation_required: "Retain reader-specific trade-off estimates without pooling."
-    public_paper_label: "GateMem reader B"
+    public_label: "GateMem reader B"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_b_arms
@@ -206,7 +206,7 @@ artifacts:
     source_sha256: "68b4243f5dcd936edb3598cc2d99dddb8c023fd9c8316e0918d6ee240c7dde3e"
     intended_normalized_destination: "evidence/normalized/gatemem.csv"
     transformation_required: "Normalize arm labels without changing source values."
-    public_paper_label: "GateMem reader B"
+    public_label: "GateMem reader B"
     contains_raw_text_or_private_content: false
 
   - id: gatemem_reader_b_manifest
@@ -217,7 +217,7 @@ artifacts:
     source_sha256: "6581b30fbf0b6c1b55f521d37443790552b52523a7a591ec5b6709b51937a9af"
     intended_normalized_destination: "evidence/manifests/gatemem.json"
     transformation_required: "Preserve model, provider, execution, and no-pooling boundaries."
-    public_paper_label: "GateMem reader B manifest"
+    public_label: "GateMem reader B manifest"
     contains_raw_text_or_private_content: false
 
   - id: smoke_main_table
@@ -228,7 +228,7 @@ artifacts:
     source_sha256: "75ff85ffd2737daa33cf1e9fd7a454e2b8f68f358605778af37f7dba8fba937a"
     intended_normalized_destination: "evidence/normalized/mechanism_smoke.csv"
     transformation_required: "Apply deterministic public method labels and preserve the 16-packet population."
-    public_paper_label: "candidate-pool mechanism smoke"
+    public_label: "candidate-pool mechanism smoke"
     contains_raw_text_or_private_content: false
 
   - id: smoke_paired_deltas
@@ -239,7 +239,7 @@ artifacts:
     source_sha256: "3756e1cf54bea133b6536cf498a3e2afad79b00d951d420675e2c12213b6724a"
     intended_normalized_destination: "evidence/normalized/mechanism_smoke.csv"
     transformation_required: "Apply public method labels; retain bootstrap metadata and smoke population."
-    public_paper_label: "candidate-pool mechanism smoke"
+    public_label: "candidate-pool mechanism smoke"
     contains_raw_text_or_private_content: false
 
   - id: smoke_selected_settings
@@ -250,7 +250,7 @@ artifacts:
     source_sha256: "f20c48e9092bd141c9247eece935921f5a759c053edd0776573a486a3ddb830f"
     intended_normalized_destination: "evidence/manifests/mechanism_smoke.json"
     transformation_required: "Rename methods deterministically and retain development-only selection boundary."
-    public_paper_label: "mechanism-smoke settings"
+    public_label: "mechanism-smoke settings"
     contains_raw_text_or_private_content: false
 
   - id: smoke_run_manifest
@@ -261,7 +261,7 @@ artifacts:
     source_sha256: "5432301b31a4f2bde36e4a2343852a1f08a15fb786842709df6d513e1ab71d3c"
     intended_normalized_destination: "evidence/manifests/mechanism_smoke.json"
     transformation_required: "Preserve encoder, split, and no-reader boundaries; normalize method labels."
-    public_paper_label: "mechanism-smoke manifest"
+    public_label: "mechanism-smoke manifest"
     contains_raw_text_or_private_content: false
 
   - id: smoke_summary
@@ -272,7 +272,7 @@ artifacts:
     source_sha256: "f7368f2db3fbe409e4f170283099405defa27846928f224b22a12f71ddd40685"
     intended_normalized_destination: "evidence/manifests/mechanism_smoke.json"
     transformation_required: "Extract bounded conclusions; omit historical status language."
-    public_paper_label: "candidate-pool mechanism smoke"
+    public_label: "candidate-pool mechanism smoke"
     contains_raw_text_or_private_content: false
 
   - id: natural_execution_manifest
@@ -283,7 +283,7 @@ artifacts:
     source_sha256: "ab46b28f522e13379bf9d52d6f065c0a320779c73763dc80fd578672db3f79a9"
     intended_normalized_destination: "evidence/manifests/natural_evaluation.json"
     transformation_required: "Preserve execution identity and all source artifact hashes."
-    public_paper_label: "full public-source evaluation manifest"
+    public_label: "full public-source evaluation manifest"
     contains_raw_text_or_private_content: false
 
   - id: natural_main_table
@@ -294,7 +294,7 @@ artifacts:
     source_sha256: "f5bce1ae923653af913168d31e131d641578f28fea29a35b1c68af92d6f049b3"
     intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
     transformation_required: "Apply deterministic public method labels and write a new normalized hash."
-    public_paper_label: "full public-source evaluation"
+    public_label: "full public-source evaluation"
     contains_raw_text_or_private_content: false
 
   - id: natural_paired_deltas
@@ -305,7 +305,7 @@ artifacts:
     source_sha256: "ad1c0fde483bf4358b2ca9d05bd39587a2b86a02c14e64fa7dd136724da90677"
     intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
     transformation_required: "Apply public method labels; retain source-macro intervals and populations."
-    public_paper_label: "full public-source evaluation"
+    public_label: "full public-source evaluation"
     contains_raw_text_or_private_content: false
 
   - id: natural_selected_settings
@@ -316,7 +316,7 @@ artifacts:
     source_sha256: "108b2b047beb4ff76e9ff0efcd674997fd2a7a5cab1aaf0c5f70988a24b060fc"
     intended_normalized_destination: "evidence/manifests/natural_evaluation.json"
     transformation_required: "Normalize method labels and retain development-selection identities."
-    public_paper_label: "full-evaluation settings"
+    public_label: "full-evaluation settings"
     contains_raw_text_or_private_content: false
 
   - id: natural_source_intent
@@ -327,7 +327,7 @@ artifacts:
     source_sha256: "21d4fe8e03912fe438ced92ced966eb46c39bf608a0e3c5df76a3ed62913fcdb"
     intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
     transformation_required: "Retain source and intent strata; label lifecycle results as released-field upper bounds."
-    public_paper_label: "source and intent analysis"
+    public_label: "source and intent analysis"
     contains_raw_text_or_private_content: false
 
   - id: natural_standard_ir
@@ -338,7 +338,7 @@ artifacts:
     source_sha256: "f7955afb484096e3dbbc8c5127160773b70e29351970cefb0461415e53a0f501"
     intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
     transformation_required: "Normalize method labels and retain metric definitions."
-    public_paper_label: "standard retrieval diagnostics"
+    public_label: "standard retrieval diagnostics"
     contains_raw_text_or_private_content: false
 
   - id: natural_cost
@@ -349,7 +349,7 @@ artifacts:
     source_sha256: "f1d4c14a04fc682b2263671ddd753c01e098b22ee4fa590771c74c9aa8b00e48"
     intended_normalized_destination: "evidence/normalized/natural_evaluation.csv"
     transformation_required: "Retain local diagnostic cost only; prohibit production latency or monetary claims."
-    public_paper_label: "diagnostic retrieval cost"
+    public_label: "diagnostic retrieval cost"
     contains_raw_text_or_private_content: false
 
   - id: natural_failure_cases
@@ -360,7 +360,7 @@ artifacts:
     source_sha256: "cc650000c08fdd6dc28926007f5e96f60deacc8e01f0e6059807988053ecca22"
     intended_normalized_destination: "evidence/normalized/natural_failure_cases.jsonl"
     transformation_required: "Audit public query identifiers and remove internal setting IDs before release."
-    public_paper_label: "public-source failure cases"
+    public_label: "public-source failure cases"
     contains_raw_text_or_private_content: false
 
   - id: natural_summary
@@ -371,7 +371,7 @@ artifacts:
     source_sha256: "1802af44648c82dca743209b4478c8b63c8b268131201d09d700e756f44fbaa9"
     intended_normalized_destination: "evidence/manifests/natural_evaluation.json"
     transformation_required: "Extract frozen boundaries and conclusions; omit historical status language."
-    public_paper_label: "full public-source evaluation"
+    public_label: "full public-source evaluation"
     contains_raw_text_or_private_content: false
 
   - id: counterfactual_exposure_manifest
@@ -382,7 +382,7 @@ artifacts:
     source_sha256: "a8574e39b2fa23a65491ead0329954251bd9cde51344330ee94e39e3c4afeda1"
     intended_normalized_destination: "evidence/manifests/counterfactual_exposure.json"
     transformation_required: "Preserve execution, protocol, checkpoint, response-bundle, scoring, cost, and content-free publication receipts."
-    public_paper_label: "paired counterfactual exposure execution manifest"
+    public_label: "paired counterfactual exposure execution manifest"
     contains_raw_text_or_private_content: false
 
   - id: counterfactual_exposure_cells
@@ -393,7 +393,7 @@ artifacts:
     source_sha256: "98c9bd7fb04f5c945aa90b08ff05d4d265c461f736be85a5c46e87ef70072140"
     intended_normalized_destination: "evidence/normalized/counterfactual_exposure.csv"
     transformation_required: "Select overall construction-defined cells and preserve reader-separated exposed, withheld, and paired-effect estimates."
-    public_paper_label: "paired exposure cell metrics"
+    public_label: "paired exposure cell metrics"
     contains_raw_text_or_private_content: false
 
   - id: counterfactual_exposure_bootstrap
@@ -404,7 +404,7 @@ artifacts:
     source_sha256: "3e745921ba8e66304e656bcaca96bc63a4db0303c5c01c93fad5a1200a391dd9"
     intended_normalized_destination: "evidence/normalized/counterfactual_exposure.csv"
     transformation_required: "Preserve all four relevance-by-admissibility effects and the selectivity gap with scenario-bootstrap intervals; never pool readers."
-    public_paper_label: "paired exposure uncertainty"
+    public_label: "paired exposure uncertainty"
     contains_raw_text_or_private_content: false
 
   - id: counterfactual_exposure_usage
@@ -415,7 +415,7 @@ artifacts:
     source_sha256: "ff62365d1c6a7fca4df8c95afcc37ac11832088d8e6a72b8cc49646c30f55699"
     intended_normalized_destination: "evidence/manifests/counterfactual_exposure.json"
     transformation_required: "Retain content-free call, token, latency, cost, checkpoint, and score receipts; do not publish responses."
-    public_paper_label: "paired exposure execution usage"
+    public_label: "paired exposure execution usage"
     contains_raw_text_or_private_content: false
 
   - id: claude_opus5_exposure_replication_manifest
@@ -426,7 +426,7 @@ artifacts:
     source_sha256: "b738a330efbf4072dbba30a1a5ff879072414523053e261ec58a52500eaa0963"
     intended_normalized_destination: "evidence/manifests/claude_opus5_exposure_replication.json"
     transformation_required: "Preserve the separate reader-replication boundary, execution receipts, and content-free publication guarantees."
-    public_paper_label: "Claude Opus 5 paired-exposure replication manifest"
+    public_label: "Claude Opus 5 paired-exposure replication manifest"
     contains_raw_text_or_private_content: false
 
   - id: claude_opus5_exposure_replication_cells
@@ -437,7 +437,7 @@ artifacts:
     source_sha256: "b90a9a28d9879e4e57c488bc8f897422cdcae9653275b0287a3b397e380ad738"
     intended_normalized_destination: "evidence/normalized/claude_opus5_exposure_replication.csv"
     transformation_required: "Select overall construction-defined cells and keep the Anthropic estimate separate from the frozen three-reader panel."
-    public_paper_label: "Claude Opus 5 exposure cell metrics"
+    public_label: "Claude Opus 5 exposure cell metrics"
     contains_raw_text_or_private_content: false
 
   - id: claude_opus5_exposure_replication_bootstrap
@@ -448,7 +448,7 @@ artifacts:
     source_sha256: "0bbf273cb8e17f0f2235dadffee51eb76b7d60f8d3edef8f4c35fbfa6801f93e"
     intended_normalized_destination: "evidence/normalized/claude_opus5_exposure_replication.csv"
     transformation_required: "Preserve all four cell effects and the selectivity-gap interval without cross-model pooling."
-    public_paper_label: "Claude Opus 5 exposure uncertainty"
+    public_label: "Claude Opus 5 exposure uncertainty"
     contains_raw_text_or_private_content: false
 
   - id: claude_opus5_exposure_replication_usage
@@ -459,7 +459,7 @@ artifacts:
     source_sha256: "9cf5df44c8fc369f736271e0225e59d7e2de4c641483dd99abbfed3c57b818c4"
     intended_normalized_destination: "evidence/manifests/claude_opus5_exposure_replication.json"
     transformation_required: "Retain content-free call, token, latency, cost, checkpoint, and score receipts; do not publish responses."
-    public_paper_label: "Claude Opus 5 exposure execution usage"
+    public_label: "Claude Opus 5 exposure execution usage"
     contains_raw_text_or_private_content: false
 
   - id: posthoc_natural_top_k_pareto
@@ -470,7 +470,7 @@ artifacts:
     source_sha256: "7f1a2129aac71459bb4e121c8c0b4612dde211fd6f540606925ed9908825e66e"
     intended_normalized_destination: "evidence/normalized/fixed_budget_support.csv"
     transformation_required: "Select top-k 10, 20, 50, and 100 absolute metrics from frozen rankings; retain v2 metric labels."
-    public_paper_label: "fixed-budget support frontier"
+    public_label: "fixed-budget support frontier"
     contains_raw_text_or_private_content: false
 
   - id: posthoc_natural_top_k_paired_deltas
@@ -481,7 +481,7 @@ artifacts:
     source_sha256: "3055e0350b6c8dc99f7c8a8ec98374561e073e7f7c6ee72d953a2562aebc5e3f"
     intended_normalized_destination: "evidence/normalized/fixed_budget_support.csv"
     transformation_required: "Preserve namespace-group bootstrap intervals under equal-source macro-averaging and the risk-component decomposition; do not relabel as confirmatory."
-    public_paper_label: "fixed-budget paired deltas"
+    public_label: "fixed-budget paired deltas"
     contains_raw_text_or_private_content: false
 
   - id: posthoc_natural_top_k_manifest
@@ -492,7 +492,7 @@ artifacts:
     source_sha256: "5f851cf604cfa4c57d259248ada9dd8e7ea49538567a3ddecbafd29e4e27cfa0"
     intended_normalized_destination: "evidence/manifests/fixed_budget_support.json"
     transformation_required: "Preserve frozen-ranking, no-retuning, route-bundle, and implementation identities."
-    public_paper_label: "fixed-budget provenance"
+    public_label: "fixed-budget provenance"
     contains_raw_text_or_private_content: false
 
   - id: posthoc_natural_attribution_deltas
@@ -503,7 +503,7 @@ artifacts:
     source_sha256: "233db8acf7c7381c26fe9b3b458800bfed9882390857e18a31df13ad45af62ec"
     intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
     transformation_required: "Preserve corrected v2 policy, lifecycle, and combined-governance attribution with namespace-group intervals under equal-source macro-averaging."
-    public_paper_label: "metadata-axis attribution"
+    public_label: "metadata-axis attribution"
     contains_raw_text_or_private_content: false
 
   - id: posthoc_natural_namespace_break_even
@@ -514,7 +514,7 @@ artifacts:
     source_sha256: "9a833a4a5c47684cee1439414af1844d586e5238d5acd771a040ec8bdc3f4af0"
     intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
     transformation_required: "Import observed namespace false-deny and missing grid brackets without interpreting them as population thresholds."
-    public_paper_label: "namespace corruption brackets"
+    public_label: "namespace corruption brackets"
     contains_raw_text_or_private_content: false
 
   - id: posthoc_natural_governance_break_even
@@ -525,7 +525,7 @@ artifacts:
     source_sha256: "68af2163cf02d6d0a65d51890dcbed6099c7a75e5fbdad197dbca609701c8d83"
     intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
     transformation_required: "Import observed policy, lifecycle, and intent grid brackets without extrapolation."
-    public_paper_label: "governance corruption brackets"
+    public_label: "governance corruption brackets"
     contains_raw_text_or_private_content: false
 
   - id: posthoc_natural_support_expansion_summary
@@ -536,7 +536,7 @@ artifacts:
     source_sha256: "a7e4b23338097b5c17c55e6856461022c562c21dcbada034b38eb72526548d08"
     intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
     transformation_required: "Select the 0.50 false-allow and 0.20 source-swap full-reranking diagnostics with fixed settings."
-    public_paper_label: "full-natural support-expansion stress test"
+    public_label: "full-natural support-expansion stress test"
     contains_raw_text_or_private_content: false
 
   - id: posthoc_natural_support_expansion_break_even
@@ -547,7 +547,7 @@ artifacts:
     source_sha256: "267b057da9cdaf3f0191ce73f3eac00efe69f1757c6c1da1fa7b6ff30cb599ec"
     intended_normalized_destination: "evidence/normalized/metadata_reliability.csv"
     transformation_required: "Import observed full-reranking dominance brackets without extrapolation."
-    public_paper_label: "support-expansion break-even brackets"
+    public_label: "support-expansion break-even brackets"
     contains_raw_text_or_private_content: false
 
   - id: posthoc_natural_supplemental_manifest
@@ -558,7 +558,7 @@ artifacts:
     source_sha256: "3b166daeccd91848a90cfe5bb601f6fe2ee90a42dabfc1c91a5e2bc81e20a30e"
     intended_normalized_destination: "evidence/manifests/metadata_reliability.json"
     transformation_required: "Preserve the published supplemental package inventory and hashes."
-    public_paper_label: "natural post-hoc provenance"
+    public_label: "natural post-hoc provenance"
     contains_raw_text_or_private_content: false
 
   - id: inferred_admissibility_paired_route_deltas
@@ -569,7 +569,7 @@ artifacts:
     source_sha256: "9d2ba2b6ef69ee9d107aeea2582b5e2f20263bf7d23da694c6b32199ff96d170"
     intended_normalized_destination: "evidence/normalized/text_inferred_admissibility.csv"
     transformation_required: "Preserve model-separated route deltas on fixed public-development candidates."
-    public_paper_label: "text-inferred route diagnostic"
+    public_label: "text-inferred route diagnostic"
     contains_raw_text_or_private_content: false
 
   - id: inferred_admissibility_classification_metrics
@@ -580,7 +580,7 @@ artifacts:
     source_sha256: "4d30a58254e3fbccc654e331f41ad07798dab420cbc79e226d0da6263efe3a73"
     intended_normalized_destination: "evidence/normalized/text_inferred_admissibility.csv"
     transformation_required: "Select equal-stratum admissibility discrimination metrics and retain model separation."
-    public_paper_label: "text-inferred classification diagnostic"
+    public_label: "text-inferred classification diagnostic"
     contains_raw_text_or_private_content: false
 
   - id: inferred_admissibility_filter_metrics
@@ -591,7 +591,7 @@ artifacts:
     source_sha256: "f400bec797847cee09e72ec609496de0c1da6ee619bea68c14598bbdbb49f9dd"
     intended_normalized_destination: "evidence/normalized/text_inferred_admissibility.csv"
     transformation_required: "Select violation precision, recall, and required-anchor false-deny diagnostics with no model pooling."
-    public_paper_label: "text-inferred filter diagnostic"
+    public_label: "text-inferred filter diagnostic"
     contains_raw_text_or_private_content: false
 
   - id: inferred_admissibility_manifest
@@ -602,7 +602,7 @@ artifacts:
     source_sha256: "90262b0803dd9fc0ba2c3354c3e1f5632484be633c8abb1cdc56dddeec51dce7"
     intended_normalized_destination: "evidence/manifests/text_inferred_admissibility.json"
     transformation_required: "Preserve public-development, fixed-candidate, model, and no-pooling boundaries."
-    public_paper_label: "text-inference provenance"
+    public_label: "text-inference provenance"
     contains_raw_text_or_private_content: false
 
   - id: controlled_admissibility_aggregate
@@ -613,7 +613,7 @@ artifacts:
     source_sha256: "946ece00ed99963f6f2b846b2320983cdb029fca941a99b85f8db0946d3c2b98"
     intended_normalized_destination: "evidence/normalized/controlled_selective_verification.csv"
     transformation_required: "Select overall focal-pair consistency and stable-control overflip by model."
-    public_paper_label: "controlled verifier aggregate"
+    public_label: "controlled verifier aggregate"
     contains_raw_text_or_private_content: false
 
   - id: controlled_admissibility_bootstrap
@@ -624,7 +624,7 @@ artifacts:
     source_sha256: "ec616b52194ae579f66d52ce79a6b0eea7ba425cf9bd18872ae8f2e9b8956055"
     intended_normalized_destination: "evidence/normalized/controlled_selective_verification.csv"
     transformation_required: "Preserve scenario-bootstrap intervals for focal consistency and stable overflip by model."
-    public_paper_label: "controlled verifier uncertainty"
+    public_label: "controlled verifier uncertainty"
     contains_raw_text_or_private_content: false
 
   - id: controlled_admissibility_error_taxonomy
@@ -635,7 +635,7 @@ artifacts:
     source_sha256: "48cb67a351023094517079f501f124974ea6a5c50a6bdcea7cb9a0e03de2cb88"
     intended_normalized_destination: "evidence/normalized/controlled_selective_verification.csv"
     transformation_required: "Select stable-admissible false-deny and stable-inadmissible false-admit rates by model."
-    public_paper_label: "controlled verifier error taxonomy"
+    public_label: "controlled verifier error taxonomy"
     contains_raw_text_or_private_content: false
 
   - id: controlled_admissibility_manifest
@@ -646,7 +646,7 @@ artifacts:
     source_sha256: "d3d7b468eda4dd388b5a0d8a9df32d7404f94a676f37dd7224db2776cc2800e6"
     intended_normalized_destination: "evidence/manifests/controlled_selective_verification.json"
     transformation_required: "Preserve controlled public-development and provider-separated execution boundaries."
-    public_paper_label: "controlled verifier provenance"
+    public_label: "controlled verifier provenance"
     contains_raw_text_or_private_content: false
 
   - id: natural_end_to_end_two_reader_manifest
@@ -657,7 +657,7 @@ artifacts:
     source_sha256: "f0bf0a32b2c595a6c5168521a3574338f847320af75cd6f2e3aa37d5d032caf8"
     intended_normalized_destination: "evidence/manifests/natural_end_to_end.json"
     transformation_required: "Preserve the frozen natural sample, complete-bundle status, shared judge, non-official boundary, and no reader pooling."
-    public_paper_label: "natural two-reader result manifest"
+    public_label: "natural two-reader result manifest"
     contains_raw_text_or_private_content: false
 
   - id: natural_end_to_end_two_reader_main_table
@@ -668,7 +668,7 @@ artifacts:
     source_sha256: "9cf98341edbb00a2c8598c1113d6f52c7ad9e4cb168006f2752d010935c57a84"
     intended_normalized_destination: "evidence/normalized/natural_end_to_end.csv"
     transformation_required: "Retain reader-separated absolute outcomes as source context; do not infer significance from point estimates."
-    public_paper_label: "natural two-reader absolute metrics"
+    public_label: "natural two-reader absolute metrics"
     contains_raw_text_or_private_content: false
 
   - id: natural_end_to_end_two_reader_paired_deltas
@@ -679,7 +679,7 @@ artifacts:
     source_sha256: "e6eb979e116a83721c17133559d6b8197a9781a2d4cd92ea172a3c588155b848"
     intended_normalized_destination: "evidence/normalized/natural_end_to_end.csv"
     transformation_required: "Select claim-bearing paired deltas with namespace-group bootstrap intervals; keep readers separate."
-    public_paper_label: "natural two-reader paired deltas"
+    public_label: "natural two-reader paired deltas"
     contains_raw_text_or_private_content: false
 
   - id: natural_end_to_end_two_reader_receipt
@@ -690,7 +690,7 @@ artifacts:
     source_sha256: "779ca0d7d4bc760335c09126c5549531df143b9f3df5dcc31c059a3bb71a6d94"
     intended_normalized_destination: "evidence/manifests/natural_end_to_end.json"
     transformation_required: "Retain only content-free completion, model, request, protocol, and cost metadata."
-    public_paper_label: "natural two-reader execution receipt"
+    public_label: "natural two-reader execution receipt"
     contains_raw_text_or_private_content: false
 
   - id: natural_end_to_end_gpt_manifest
@@ -701,7 +701,7 @@ artifacts:
     source_sha256: "b8e0496eeb4797843a2737a14b6e1a014b86b95b831d40f284b28ef5f7b2d3dd"
     intended_normalized_destination: "evidence/manifests/natural_end_to_end.json"
     transformation_required: "Preserve the sequential replication, three-route scope, shared judge, and no-pooling boundaries."
-    public_paper_label: "GPT natural replication manifest"
+    public_label: "GPT natural replication manifest"
     contains_raw_text_or_private_content: false
 
   - id: natural_end_to_end_gpt_main_table
@@ -712,7 +712,7 @@ artifacts:
     source_sha256: "34cea4e5d0c91c5815608d7fa68792238422f8d8e38d65d281979a8716b1e431"
     intended_normalized_destination: "evidence/normalized/natural_end_to_end.csv"
     transformation_required: "Retain reader-specific absolute outcomes as source context; never pool with the two-reader execution."
-    public_paper_label: "GPT natural replication absolute metrics"
+    public_label: "GPT natural replication absolute metrics"
     contains_raw_text_or_private_content: false
 
   - id: natural_end_to_end_gpt_paired_deltas
@@ -723,7 +723,7 @@ artifacts:
     source_sha256: "4d303256226c4e59da9f6ca444633e84cc0af1e36224f78c8c377d39ca6b0236"
     intended_normalized_destination: "evidence/normalized/natural_end_to_end.csv"
     transformation_required: "Select the same primary paired contrasts while preserving the sequential reader-replication boundary."
-    public_paper_label: "GPT natural replication paired deltas"
+    public_label: "GPT natural replication paired deltas"
     contains_raw_text_or_private_content: false
 
   - id: natural_end_to_end_gpt_receipt
@@ -734,7 +734,7 @@ artifacts:
     source_sha256: "678a9d0c01c62e0c7c96a86d0500f803f498897a58556c0a34f757c0f6e8d442"
     intended_normalized_destination: "evidence/manifests/natural_end_to_end.json"
     transformation_required: "Retain only content-free reader and judge completion, model, request, protocol, and cost metadata."
-    public_paper_label: "GPT natural replication execution receipt"
+    public_label: "GPT natural replication execution receipt"
     contains_raw_text_or_private_content: false
 
   - id: natural_cross_judge_manifest
@@ -745,7 +745,7 @@ artifacts:
     source_sha256: "15d8b7ce0e832d9afbcc7dda437d9b658a69976e76496f33e0f08540788a52bf"
     intended_normalized_destination: "evidence/manifests/cross_judge_audit.json"
     transformation_required: "Preserve the post-hoc, outcome-independent, 200-output, nonofficial, and no-full-rescoring boundaries."
-    public_paper_label: "natural cross-judge audit manifest"
+    public_label: "natural cross-judge audit manifest"
     contains_raw_text_or_private_content: false
 
   - id: natural_cross_judge_answer_correct
@@ -756,7 +756,7 @@ artifacts:
     source_sha256: "537d4136e2058a00d3cd9626ae914a32b73c5e728697b961fd6fc7d9eaa531d8"
     intended_normalized_destination: "evidence/normalized/cross_judge_audit.csv"
     transformation_required: "Select overall, reader-panel, and reader-specific answer-correctness agreement without treating the audit as a route-effect replication."
-    public_paper_label: "natural cross-judge answer-correctness agreement"
+    public_label: "natural cross-judge answer-correctness agreement"
     contains_raw_text_or_private_content: false
 
   - id: natural_cross_judge_confusion
@@ -767,7 +767,7 @@ artifacts:
     source_sha256: "cfabf4f1697d0f0a33009c1202fc77e0cf7e3f968597366daf8f43042816bc06"
     intended_normalized_destination: "evidence/normalized/cross_judge_audit.csv"
     transformation_required: "Retain only aggregate directional disagreements; do not expose prompts, answers, or per-output IDs."
-    public_paper_label: "natural cross-judge answer-correctness confusion"
+    public_label: "natural cross-judge answer-correctness confusion"
     contains_raw_text_or_private_content: false
 
   - id: natural_cross_judge_answer_quality
@@ -778,7 +778,7 @@ artifacts:
     source_sha256: "fd82560f8f9f2614f2b09256e719d26b717c4f42f258698216eab1812642fb26"
     intended_normalized_destination: "evidence/normalized/cross_judge_audit.csv"
     transformation_required: "Retain aggregate ordinal agreement, including low exact agreement and within-one agreement."
-    public_paper_label: "natural cross-judge answer-quality agreement"
+    public_label: "natural cross-judge answer-quality agreement"
     contains_raw_text_or_private_content: false
 
   - id: natural_cross_judge_secondary_labels
@@ -789,7 +789,7 @@ artifacts:
     source_sha256: "5dea83f898c13683de8ae37e6e2fd826cd469bca8e19a3c6ce314d79dc33ef37"
     intended_normalized_destination: "evidence/normalized/cross_judge_audit.csv"
     transformation_required: "Retain aggregate protected- and stale-disclosure agreement as descriptive secondary evidence only."
-    public_paper_label: "natural cross-judge secondary-label agreement"
+    public_label: "natural cross-judge secondary-label agreement"
     contains_raw_text_or_private_content: false
 
   - id: natural_cross_judge_sample_profile
@@ -800,7 +800,7 @@ artifacts:
     source_sha256: "336b84193d7f33d2a1a1575b1d198d7d47c6282a580e4a964f830adeed2a7cae"
     intended_normalized_destination: "evidence/manifests/cross_judge_audit.json"
     transformation_required: "Preserve content-free reader, source, and route stratum counts for the outcome-independent sample."
-    public_paper_label: "natural cross-judge sample profile"
+    public_label: "natural cross-judge sample profile"
     contains_raw_text_or_private_content: false
 
   - id: natural_cross_judge_receipt
@@ -811,7 +811,7 @@ artifacts:
     source_sha256: "92ec86887df04781c110426dc548c51b807ac6b42df48de89c584338d74e6f27"
     intended_normalized_destination: "evidence/manifests/cross_judge_audit.json"
     transformation_required: "Retain only content-free completion, model, request, protocol, token, and cost metadata."
-    public_paper_label: "natural cross-judge execution receipt"
+    public_label: "natural cross-judge execution receipt"
     contains_raw_text_or_private_content: false
 
   - id: natural_cross_judge_summary
@@ -822,5 +822,5 @@ artifacts:
     source_sha256: "9cfbc30853d85484b237f1a695a2cf51ebc8c86d7726104f5fabc5c361031c0e"
     intended_normalized_destination: "evidence/manifests/cross_judge_audit.json"
     transformation_required: "Preserve the aggregate interpretation, including the confidence-interval and GPT-reader subgroup caveats."
-    public_paper_label: "natural cross-judge audit summary"
+    public_label: "natural cross-judge audit summary"
     contains_raw_text_or_private_content: false

@@ -70,6 +70,5 @@ content-free publication manifest. The natural end-to-end family is bound to bot
 complete result bundles and preserves its no-pooling, shared-judge, and sequential-
 replication boundaries. The cross-judge family is separately bound to its exact
 provider-execution commit and preserves its post-hoc, 200-output, one-alternate-judge
-scope. Figure-example JSON is separately validated by
-the paper artifact builder and hash-bound in
-`paper/generated/artifact_manifest.json`.
+scope. The qualitative example JSON is separately hash-bound to its upstream source
+artifacts and validated by the evidence tests.

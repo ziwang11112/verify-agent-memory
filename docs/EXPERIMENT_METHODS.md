@@ -1,8 +1,7 @@
 # Retrieval Experiment Code Guide
 
-This document is an implementation map, not a manuscript or a result summary. It
-describes the executable retrieval-admissibility experiment exposed by
-this repository.
+This document maps the executable retrieval-admissibility experiments exposed by
+this repository to their implementations and frozen protocols.
 
 ## Code Map
 

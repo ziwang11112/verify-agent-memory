@@ -80,7 +80,7 @@ raw answers are not copied into tracked results.
 Paid commands require an external JSON unlock matching the exact Git commit,
 execution-protocol hash, base-protocol hash, three model IDs, owner, and $8.50 cap.
 Dirty files under `experiments/`, `scripts/`, or `src/` invalidate the unlock. Local
-paper edits outside those contract-bearing paths do not alter the experiment.
+documentation edits outside those contract-bearing paths do not alter the experiment.
 
 The credential-free sequence is:
 
@@ -101,4 +101,4 @@ python -m scripts.run_counterfactual_exposure_execution score --provider OpenAI
 
 Replacing `OpenAI` with the other provider names runs their independent bundles. An
 approved execution remains a controlled public-development diagnostic, not an
-official benchmark or full-paper decision.
+official benchmark or project-wide decision.

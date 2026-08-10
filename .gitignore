@@ -38,20 +38,7 @@ routes/
 *.npy
 *.npz
 
-# Generated paper files
-paper/build/
 /tmp/
-paper/*.aux
-paper/*.bbl
-paper/*.bcf
-paper/*.blg
-paper/*.fdb_latexmk
-paper/*.fls
-paper/*.log
-paper/*.out
-paper/*.pdf
-paper/*.run.xml
-paper/*.synctex.gz
 
 # Editor and operating-system files
 .DS_Store

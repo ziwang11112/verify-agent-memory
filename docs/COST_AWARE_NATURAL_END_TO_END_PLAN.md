@@ -49,7 +49,7 @@ answer disclosure without materially reducing answer utility.
 | Paired exposure | Selectivity gaps are `0.906`, `0.812`, `0.656`, and separately `0.844` for Claude; DeepSeek retains a positive inadmissible exposure effect | Once content enters the prompt, reader restraint is not a reliable enforcement boundary |
 | GateMem observational audit | Exposure predicts disclosure; stricter exposure also lowers bounded utility and raises over-refusal | The safety-utility trade-off is real, but the estimate is non-causal and from a separate population |
 
-These blocks support the paper's verification story. They do not establish that a
+These evidence blocks motivate the end-to-end evaluation. They do not establish that a
 natural support constraint improves downstream answers and protected disclosure on
 the same queries.
 
@@ -252,7 +252,7 @@ for at least one primary constrained arm versus global dense:
    arm; and
 6. cheap-versus-strong judge agreement is at least 0.85 on the frozen audit sample.
 
-These are continuation gates, not paper claims. Confidence intervals and negative
+These are continuation gates, not released claims. Confidence intervals and negative
 results remain reportable.
 
 Expected incremental cost: `$20-$45`.
@@ -312,12 +312,12 @@ locked behind their preceding evidence gates.
 
 ## 12. Decision value
 
-A supportive result would close the paper's main empirical gap: on one natural
+A supportive result would close the evaluation's main empirical gap: on one natural
 population, pre-prompt constraints would reduce inadmissible exposure or disclosure
 without sacrificing answer utility. A mixed result would still localize the boundary
 between retrieval improvement and downstream behavior. A negative result would
-prevent an unsupported end-to-end claim and leave the current paper as an evaluation
-and mechanism study.
+prevent an unsupported end-to-end claim and leave the released evidence as separate
+retrieval and mechanism studies.
 
 No outcome changes the already frozen claims unless the new protocol completes and a
 separate claim-contract amendment is reviewed.

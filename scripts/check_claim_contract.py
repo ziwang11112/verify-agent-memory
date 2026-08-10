@@ -27,7 +27,6 @@ REQUIRED_CLAIM_FIELDS = {
     "allowed_wording",
     "forbidden_wording",
     "known_limitations",
-    "paper_locations",
     "verification_tests",
 }
 
@@ -42,7 +41,7 @@ REQUIRED_SOURCE_FIELDS = {
     "source_sha256",
     "intended_normalized_destination",
     "transformation_required",
-    "public_paper_label",
+    "public_label",
     "contains_raw_text_or_private_content",
 }
 SOURCE_CATEGORIES = {

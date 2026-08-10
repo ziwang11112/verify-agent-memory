@@ -46,20 +46,9 @@ Raw response bundles and private scored derivatives are not eligible.
 
 ## REFERENCE_ONLY
 
-The following may be read for source interpretation but must not be copied into the
-new repository:
-
-```text
-paper/introduction.md
-paper/outline.md
-paper/results.md
-paper/limitations.md
-paper/claim_evidence_matrix.md
-docs/PLAN.md
-```
-
-Their narrative and evidence status are stale relative to the frozen full
-public-source evaluation.
+Historical narrative, planning, and status documents may be read for source
+interpretation but must not be copied into this repository. Their evidence status
+is stale relative to the frozen full public-source evaluation.
 
 ## PROHIBITED
 
@@ -86,7 +75,7 @@ Phase 2 may apply this mapping only through a deterministic transformation scrip
 The source file must retain its original hash, and the normalized output must receive
 a new hash.
 
-| Source label | Paper-facing label |
+| Source label | Public label |
 | --- | --- |
 | `flat_dense` | `global_dense` |
 | `namespace_dense` | `namespace_dense` |

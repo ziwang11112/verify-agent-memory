@@ -1,39 +1,70 @@
-# The Wrong Memory at the Right Time
+# Verify Agent Memory
 
-**Evaluating Retrieval Admissibility in Long-Term Agents**
-
-Long-term memory is intended to prevent language agents from forgetting, but
-persistence creates a complementary verification problem: a retrieved memory can
-be semantically relevant while being out of scope, prohibited, temporally
-incompatible, or otherwise inappropriate for the current question. **A memory can
-be relevant and still be inadmissible for the current query.** This project studies
-how to verify that distinction while preserving the useful evidence an agent needs.
-The current evidence follows one mechanism chain:
-
-```text
-Candidate support -> Metadata reliability -> Selective verification
-                  -> Prompt exposure -> Answer disclosure
-```
-
-The central finding is diagnostic: trusted eligibility metadata can improve the
-retrieval utility-risk frontier, but error direction matters, text-only verifiers do
-not reconstruct governance state selectively, and reader restraint cannot repair
-every mistake after prompt exposure.
-
-For manuscript collaboration, start with
-[PAPER_REVIEW_GUIDE.md](PAPER_REVIEW_GUIDE.md). It gives the complete experiment map,
-model roles, defensible and forbidden claims, current review risks, editing
-boundaries, and a requested review format for human or model-assisted paper review.
-
-The evaluation surface separates four states:
+An open-source evaluation toolkit for **retrieval admissibility** in long-term agent
+memory. It tests whether retrieved evidence is not only relevant, but also valid for
+the current principal, policy, intent, lifecycle state, and time.
 
 ```text
 Stored -> Retrieved -> Exposed -> Disclosed
 ```
 
-Retrieval does not imply prompt exposure, and exposure does not imply answer
-disclosure.
-The formal object is query-conditioned admissibility:
+The package keeps these stages separate so a high-recall route cannot hide wrong-
+namespace, policy-disallowed, stale, superseded, or answer-disclosed evidence.
+
+## Included
+
+- a pure Python evaluation library under `src/verify_agent_memory/`;
+- frozen experiment protocols, prompt contracts, and constructed cases;
+- deterministic retrieval, robustness, matched-recall, Pareto, verifier, exposure,
+  reader, and judge-audit runners;
+- all legally redistributable derived result packages;
+- normalized evidence with source and transformation hashes;
+- synthetic data for complete local execution-path testing;
+- exact public-source Git revisions and a fetch/verification CLI; and
+- unit, invariant, provenance, package-integrity, and end-to-end smoke tests.
+
+The public package excludes private conversations, credentials, raw provider
+responses, and embedding checkpoints.
+
+## Quick Start
+
+Requirements: Python 3.11+, Git, and [`uv`](https://docs.astral.sh/uv/).
+
+```powershell
+uv sync --extra dev --extra plots
+
+uv run --extra dev python -m scripts.fetch_public_sources validate
+uv run --extra dev python -m scripts.run_retrieval_experiment validate `
+  --cases tests/fixtures/retrieval_cases.jsonl `
+  --protocol experiments/frozen_natural_protocol.json
+uv run --extra dev python -m scripts.run_retrieval_experiment run `
+  --cases tests/fixtures/retrieval_cases.jsonl `
+  --protocol experiments/frozen_natural_protocol.json `
+  --output tmp/retrieval_routes.jsonl
+```
+
+These commands make no provider call and require no API key or GPU.
+
+## Verify Everything Released Here
+
+```powershell
+uv run --extra dev python -m pytest
+uv run --extra dev python -m ruff check .
+uv run --extra dev python -m ruff format --check .
+uv run --extra dev python scripts/check_claim_contract.py
+uv run --extra dev python scripts/verify_evidence.py
+uv run --extra dev python -m scripts.check_reproducibility_package
+uv run --extra dev python -m scripts.publish_supplemental_results verify
+uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
+uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
+```
+
+The checks reject schema drift, non-finite data, changed hashes, incomplete result
+families, unindexed evidence, release-excluded paths, and common secret/key shapes.
+
+## Evaluation Surface
+
+For a memory `m`, query `q`, policy context `p`, and time `t`:
 
 ```text
 admissible(m, q, p, t)
@@ -46,148 +77,84 @@ usable(m, q, p, t)
     AND admissible(m, q, p, t)
 ```
 
-This repository contains the claim contract, a small pure evaluation library,
-hash-bound controlled prompts, and normalized aggregate evidence. It contains no
-private benchmark payloads, raw provider responses, credentials, embeddings, or
-checkpoints. Provider-backed historical diagnostics remain isolated from the public
-retrieval evaluator.
+Labels are three-valued: allowed, disallowed, or unresolved. Known violations are
+excluded; unresolved labels remain unresolved and contribute to explicit coverage and
+lower/upper risk bounds.
 
-For the code-level experiment contract, all nine frozen retrieval arms, the
-dev-only setting-selection objective, and local smoke commands, see
-[docs/EXPERIMENT_METHODS.md](docs/EXPERIMENT_METHODS.md). This technical path is
-independent of the manuscript build.
+The main retrieval comparisons include global BM25/dense, hybrid and recency dense,
+trusted namespace dense, released policy/lifecycle filters, threshold routing, and
+cluster routing. All methods use the same candidate construction and development-
+only setting-selection budget. Matched-recall evaluation reports recall, feasibility,
+known admissibility risk, label coverage, conservative bounds, typed violations, and
+route work.
 
-The controlled counterfactual diagnostic holds each candidate pool fixed while
-changing only principal, intent, purpose, or as-of time. Its frozen protocol, pure
-scorer, and content-free results are documented in
-[docs/COUNTERFACTUAL_ADMISSIBILITY_EXPERIMENT.md](docs/COUNTERFACTUAL_ADMISSIBILITY_EXPERIMENT.md)
-and [results/counterfactual_admissibility/](results/counterfactual_admissibility/).
+Implementation details and equations are in
+[`docs/EXPERIMENT_METHODS.md`](docs/EXPERIMENT_METHODS.md).
 
-The paired exposure intervention holds the query and two background candidates fixed
-while including or withholding one candidate. Its purpose-built 2x2 candidate
-contract, literal disclosure scorer, and zero-call construction commands are documented in
-[docs/PAIRED_EXPOSURE_INTERVENTION.md](docs/PAIRED_EXPOSURE_INTERVENTION.md) and
-[experiments/counterfactual_exposure_protocol.json](experiments/counterfactual_exposure_protocol.json).
-That construction CLI still has no provider client or execution command. A separately
-authorized, hash-bound execution completed the frozen panel for GPT-5.6 Sol, Gemini
-3.6 Flash, and DeepSeek V4 Pro. An independently hash-bound execution then completed
-a Claude Opus 5 replication under the same construction; its estimate is reported
-separately and is never pooled with the original panel. Only content-free derived
-scores, aggregates, costs, and receipts are published in
-[results/counterfactual_exposure/](results/counterfactual_exposure/) and
-[results/claude_opus5_exposure_replication/](results/claude_opus5_exposure_replication/);
-raw prompts and responses remain outside this repository.
+## Data
 
-## Reproducibility
+Three input classes are explicit:
 
-The public package has three explicit reproducibility levels:
+| Class | Availability |
+| --- | --- |
+| Synthetic and constructed inputs | Checked in under `tests/fixtures/` and `experiments/` |
+| GateMem, RHELM, and MemOps source repositories | Fetchable at exact commit and tree hashes with `scripts.fetch_public_sources` |
+| Raw provider responses, benchmark-bearing prompts, embeddings, and checkpoints | Intentionally excluded; hashes and content-free receipts are retained |
 
-| Level | Included here | Boundary |
-| --- | --- | --- |
-| Local code-path smoke | Synthetic retrieval fixture, frozen protocols, routing, scoring, robustness, Pareto, and zero-call exposure construction | Runs without benchmark downloads, credentials, or model calls |
-| Evidence and paper verification | Content-free normalized evidence, source receipts, claim checks, generated tables, and figures | Recomputes every published aggregate from the checked-in normalized evidence |
-| Historical full execution | Source identities and construction contracts | Raw benchmark text, embeddings, routes, provider prompts, and responses are intentionally excluded and must not be inferred from the aggregate package |
-
-Start with the zero-cost commands in
-[docs/EXPERIMENT_METHODS.md](docs/EXPERIMENT_METHODS.md#local-smoke), then run the
-verification commands below. The local fixture validates implementation behavior;
-it is not a benchmark result.
-
-## Current Scope
-
-- Define retrieval admissibility without equating all inadmissible context with
-  security harm.
-- Keep natural-route exposure-to-leakage results associative, and bound the separate
-  paired intervention to controlled prompt-level disclosure effects.
-- Separate a small mechanism smoke from the full public-source evaluation.
-- Keep the frozen historical released-field v1 arm distinct from the corrected v2
-  governance diagnostic; neither is a deployable blind inference method.
-- Preserve source artifact identities through deterministic normalization.
-
-See [CLAIM_CONTRACT.md](CLAIM_CONTRACT.md), [MIGRATION_ALLOWLIST.md](MIGRATION_ALLOWLIST.md),
-and [PROVENANCE.md](PROVENANCE.md) for the frozen boundaries.
-
-## Current Evidence
-
-- Separate reader estimates show a strong non-causal association between target
-  exposure and answer leakage.
-- Restricting exposure lowers leakage but also reduces bounded utility and increases
-  over-refusal.
-- Trusted released namespaces improve recall and feasible rate while reducing the
-  preregistered penalized non-usable upper risk on the public-source evaluation.
-- On the same frozen natural sample, namespace dense also improves judged answer
-  accuracy separately for Gemini, DeepSeek, and GPT-5.6 Luna. The GPT replication
-  changes accuracy by `+0.0659` (95% CI `[+0.0390, +0.0961]`), lowers penalized risk
-  by `-0.0847`, and lowers over-refusal by `-0.0381`. Its protected- and stale-
-  disclosure intervals include zero, so this is a utility-risk replication rather
-  than a general disclosure-safety claim.
-- A post-hoc, outcome-independent alternate-judge audit over 200 exact-deduplicated
-  outputs finds 0.865 answer-correctness agreement (95% CI [0.815, 0.910]), with
-  nearly symmetric directional disagreements. The sequential GPT-reader subgroup is
-  lower at 0.833, so this reduces but does not remove the shared-judge limitation.
-- The evaluated threshold and cluster routers do not establish incremental utility
-  beyond namespace support.
-- Corrected v2 attribution shows that released policy metadata drives the incremental
-  governance gain; the evaluated coarse lifecycle-only rule hurts retrieval.
-- In controlled counterfactual pairs, GPT-5.6 Sol and Gemini 3.6 Flash follow every
-  focal eligibility flip, but all three complete providers fail the preregistered
-  stable-control overflip ceiling. Explicit LLM verification is therefore not yet a
-  selective replacement for trusted controls.
-- In the paired exposure intervention, the relevant-admissible minus
-  relevant-inadmissible disclosure effect is 0.906 for GPT-5.6 Sol, 0.812 for Gemini
-  3.6 Flash, and 0.656 for DeepSeek V4 Pro; all scenario-bootstrap intervals exclude
-  zero. A separately executed Claude Opus 5 replication yields a 0.844 selectivity
-  gap (95% CI [0.688, 0.969]) and a relevant-inadmissible point estimate of 0.125
-  (95% CI [0.000, 0.281]). DeepSeek also has a strictly positive
-  relevant-inadmissible interval, so reader selectivity is not an enforcement
-  boundary.
-
-The normalized values and their source receipts are documented in
-[evidence/README.md](evidence/README.md).
-
-## Paper
-
-The double-blind NeurIPS 2026 workshop manuscript, claim map, references, and
-official checklist are under [paper/](paper/). Every empirical table, figure, and
-prose macro is regenerated from verified normalized evidence:
+Fetch and verify the public sources from their owners:
 
 ```powershell
-uv sync --extra dev --extra paper
-uv run --extra dev --extra paper python -m scripts.build_paper_artifacts
-uv run --extra dev --extra paper python -m scripts.verify_paper
-uv run --extra dev --extra paper python -m scripts.compile_paper
+uv run --extra dev python -m scripts.fetch_public_sources fetch
+uv run --extra dev python -m scripts.fetch_public_sources verify
 ```
 
-The compile step requires `pdflatex` and BibTeX on `PATH`. The submission target
-and page-limit receipt are recorded in
-[paper/SUBMISSION_TARGET.md](paper/SUBMISSION_TARGET.md).
+See [`data/README.md`](data/README.md) for exact revisions, redistribution limits, and
+the full execution boundary. Repository-level source licenses do not automatically
+broaden rights in incorporated datasets.
 
-## Verify
+## Results
 
-```powershell
-uv sync --extra dev
-uv run --extra dev python -m pytest
-uv run --extra dev python -m ruff check .
-uv run --extra dev python -m ruff format --check .
-uv run --extra dev python scripts/check_claim_contract.py
-uv run --extra dev python scripts/verify_evidence.py
-uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
-uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
+Nine checked-in result families cover natural retrieval, fixed-budget and metadata
+robustness, natural and controlled verification, paired exposure, three natural
+reader bundles, and an alternate-judge audit. Public result files contain only
+derived scores, aggregates, intervals, figures, usage/cost receipts, and hashes.
+
+Representative frozen findings include:
+
+- namespace-constrained support improves recall and admissibility risk relative to
+  global dense on the natural evaluation;
+- released policy metadata supplies most of the incremental governance gain, while
+  the evaluated coarse lifecycle-only rule removes useful evidence;
+- tested text-only verifiers over-deny stable evidence and do not recover the
+  released-field utility-risk frontier;
+- reader restraint is imperfect after relevant inadmissible evidence is exposed; and
+- a 200-output alternate-judge audit reaches `0.865` answer-correctness agreement,
+  with a weaker `0.833` sequential GPT-reader subgroup.
+
+These are bounded evaluations, not an official benchmark leaderboard or a claim of a
+new state-of-the-art memory index. Exact estimates and interpretation limits are in
+[`results/README.md`](results/README.md), [`evidence/README.md`](evidence/README.md),
+and [`CLAIM_CONTRACT.md`](CLAIM_CONTRACT.md).
+
+## Repository Layout
+
+```text
+src/           evaluation library
+scripts/       experiment runners, importers, publishers, and integrity checks
+experiments/   frozen protocols, prompts, and constructed inputs
+data/          public-source registry and redistribution policy
+results/       content-free derived result packages
+evidence/      normalized measurements and provenance manifests
+claims/        machine-readable reporting boundaries
+tests/         unit, invariant, and reproducibility tests
+docs/          method and execution contracts
 ```
 
-The checked-in normalized evidence is fully verifiable without private material.
-Rebuilding the historical full executions is intentionally not a one-command public
-workflow because raw benchmark payloads, embeddings, routes, prompts, and responses
-are excluded. Exact upstream revisions and artifact identities are recorded in
-[PROVENANCE.md](PROVENANCE.md).
+Start with [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) for the full command matrix.
 
-## License and Anonymous Release
+## Provenance and License
 
-Original code and documentation are licensed under the [MIT License](LICENSE).
-Upstream data rights are not expanded by that license; raw benchmark content and
-provider material remain excluded as described in
-[docs/LICENSE_AUDIT.md](docs/LICENSE_AUDIT.md) and
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Use
-`python -m scripts.export_anonymous_artifact` to create a no-history, identity-
-redacted review package after the release checks pass. The complete procedure is in
-[docs/ANONYMOUS_RELEASE.md](docs/ANONYMOUS_RELEASE.md).
+Every imported artifact is indexed in `SOURCE_ARTIFACTS.yaml`; upstream revisions,
+execution identities, and checkpoint hashes are recorded in `PROVENANCE.md`.
+Original code and documentation are MIT licensed. Third-party data and repositories
+retain their own terms; see `THIRD_PARTY_NOTICES.md` and `docs/LICENSE_AUDIT.md`.

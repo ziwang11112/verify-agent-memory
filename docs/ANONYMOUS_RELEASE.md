@@ -1,6 +1,6 @@
 # Anonymous Release
 
-The submission artifact must not be a fork and must not retain the private
+The anonymous release artifact must not be a fork and must not retain the private
 repository's Git history. It may contain only tracked, reviewable files from a clean
 commit. Raw benchmark text, provider prompts and responses, credentials, embeddings,
 checkpoints, and private data remain excluded.
@@ -19,7 +19,7 @@ The exporter:
 
 1. copies only `git ls-files` entries;
 2. excludes Git history, CI metadata, caches, local configuration, raw/private data,
-   provider material, and the compiled paper directory;
+   and provider material;
 3. redacts private owner and repository identifiers in the copied text only;
 4. repairs evidence-manifest hashes for redacted transformation scripts;
 5. fails on common API-key and private-key shapes; and
@@ -29,13 +29,13 @@ Verify the exported package independently before publishing it:
 
 ```powershell
 Push-Location tmp/anonymous_artifact
-uv sync --extra dev --extra paper
+uv sync --extra dev --extra plots
 uv run --extra dev python -m pytest -q
 uv run --extra dev python -m ruff check .
 uv run --extra dev python -m ruff format --check .
 uv run --extra dev python -m scripts.check_claim_contract
 uv run --extra dev python -m scripts.verify_evidence
-uv run --extra dev --extra paper python -m scripts.verify_paper
+uv run --extra dev python -m scripts.check_reproducibility_package
 Pop-Location
 ```
 

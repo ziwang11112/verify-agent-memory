@@ -721,15 +721,15 @@ dev = [
     { name = "pyyaml" },
     { name = "ruff" },
 ]
-paper = [
+plots = [
     { name = "matplotlib" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "matplotlib", marker = "extra == 'paper'", specifier = ">=3.9" },
+    { name = "matplotlib", marker = "extra == 'plots'", specifier = ">=3.9" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
     { name = "pyyaml", marker = "extra == 'dev'", specifier = ">=6" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12" },
 ]
-provides-extras = ["dev", "paper"]
+provides-extras = ["dev", "plots"]

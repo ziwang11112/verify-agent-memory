@@ -20,7 +20,6 @@ EXCLUDED_PREFIXES = (
     "data/private/",
     "data/raw/",
     "evidence/raw/",
-    "paper/build/",
     "private/",
     "tmp/",
 )

@@ -2,7 +2,7 @@
 
 This document renders the machine-readable contract in `claims/claims.yaml`. The
 YAML file is authoritative for automated checks; this document is the readable
-paper-writing boundary.
+reporting and evidence boundary.
 
 ## Formal Distinction
 
@@ -461,9 +461,9 @@ alternate judge. It does not re-score the full natural closure, re-estimate rout
 reader effects, or remove the shared-primary-judge limitation from C13. Reader
 effects remain separate and are never pooled.
 
-## Writing Rule
+## Reporting Rule
 
-Every manuscript sentence that asserts an empirical result must map to one claim ID.
-When a sentence combines claims, it must preserve the population, estimand, and
+Every empirical statement derived from this repository must map to one claim ID.
+When a report combines claims, it must preserve the population, estimand, and
 limitations of each source claim. Mechanism-smoke values and full-evaluation values
-must never be pooled, averaged, or narrated as one experiment.
+must never be pooled, averaged, or represented as one experiment.

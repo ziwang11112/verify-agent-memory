@@ -25,7 +25,7 @@ reader-specific estimate. The earlier three-reader estimates remain unchanged.
 
 The existing reader panel already includes OpenAI's flagship Sol tier, Google's
 production Flash tier, and DeepSeek's Pro tier. Claude Opus 5 adds a high-capability
-Anthropic arm and directly tests whether the paper's prompt-boundary conclusion holds
+Anthropic arm and directly tests whether the prompt-boundary result holds
 for another provider. It is not described as Anthropic's most capable current model;
 that designation belongs to Claude Fable 5 as of 2026-08-03. Opus 5 is selected here
 because it permits disabled thinking at medium effort, which is closer to the frozen
