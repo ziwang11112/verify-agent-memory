@@ -93,6 +93,7 @@ Verify the checked-in derived result packages and regenerate their public plots:
 uv run --extra dev python -m scripts.publish_supplemental_results verify
 uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
 uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
+uv run --extra dev python -m scripts.publish_natural_case_audit verify
 uv run --extra dev --extra plots python -m scripts.plot_counterfactual_selectivity_figure
 uv run --extra dev --extra plots python -m scripts.plot_counterfactual_exposure_figure
 ```
@@ -127,6 +128,7 @@ The repository supports three different reproducibility claims:
 | --- | --- | --- |
 | Code behavior and synthetic smoke | Yes | None |
 | Every checked-in aggregate/result/evidence hash | Yes | None |
+| Natural case-level aggregation and paired bootstrap | Yes | Tokenized `results/natural_end_to_end_case_audit/case_scores.csv` |
 | Raw natural-corpus and provider execution | No, not from Git alone | Upstream raw text, frozen embeddings/checkpoints, credentials, and response bundles |
 
 The exact historical natural execution used 182,908 memories, 3,767 queries, 33,903
@@ -135,9 +137,13 @@ embedding, route, and score hashes are recorded in `PROVENANCE.md`. Embedding sh
 would be several gigabytes, and provider responses include benchmark text; neither is
 appropriate for ordinary Git storage.
 
-Provider execution scripts remain available for audit, but a checked-in historical
-receipt is not authorization to spend money or rerun a model. Complete-bundle,
-cost-cap, and fail-closed requirements are enforced in code and tests.
+The case-level audit exposes parsed numeric labels and SHA-256 bindings, so the public
+package can recompute source-specific intervals and every natural closure aggregate.
+It cannot independently verify how a private provider response was converted into a
+parsed score without the excluded response and benchmark payload. Provider execution
+scripts remain available for audit, but a checked-in historical receipt is not
+authorization to spend money or rerun a model. Complete-bundle, cost-cap, and
+fail-closed requirements are enforced in code and tests.
 
 ## 7. Directory Contract
 

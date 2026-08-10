@@ -391,11 +391,13 @@ constructed and literal disclosure does not identify internal model reasoning.
 
 **Status:** Natural same-population route-to-reader evaluation
 
-The frozen sample contains all 523 RHELM cases and an outcome-independent sample of
-1,000/3,244 MemOps cases. The same 1,523 cases are paired across routes for each
-reader. Namespace dense versus global dense produced:
+The frozen sample contains all 523 eligible RHELM evaluation cases and an
+outcome-independent sample of 1,000/3,244 MemOps cases. RHELM eligibility requires a
+conversation-only question and uniquely resolved supporting references: 859 of 1,305
+source QA pairs meet both filters before the frozen split. The same 1,523 cases are
+paired across routes for each reader. Namespace dense versus global dense produced:
 
-| Reader | Answer-accuracy delta (95% CI) | Answer-quality delta (95% CI) | Over-refusal delta (95% CI) |
+| Reader | Answer-accuracy delta (95% CI) | Answer-quality delta (95% CI) | Non-answer delta (95% CI) |
 | --- | ---: | ---: | ---: |
 | DeepSeek V4 Pro | 0.05252 [0.02030, 0.08374] | 0.04259 [0.02268, 0.06166] | -0.04849 [-0.06798, -0.03051] |
 | Gemini 3.6 Flash | 0.06764 [0.04670, 0.09021] | 0.04992 [0.03630, 0.06475] | -0.04053 [-0.05739, -0.02490] |
@@ -407,6 +409,13 @@ further -0.01920 relative to namespace dense, but answer-accuracy intervals incl
 zero for all three readers. For the two original readers, the text-only verifier
 increased route risk by 0.00675; Gemini answer accuracy declined while the DeepSeek
 interval included zero.
+
+The last column is not a gold-action-aware over-refusal measure. The frozen result
+files use the legacy field name `over_refusal`, defined exactly as
+`reader_action != "answer"`. Source-specific answer-accuracy intervals also show
+heterogeneity: DeepSeek is +0.0210 [-0.0369, 0.0746] on RHELM and +0.0840 [0.0520,
+0.1164] on MemOps; Gemini is +0.0593 [0.0322, 0.0943] and +0.0760 [0.0453, 0.1063];
+GPT Luna is +0.0459 [0.0037, 0.0939] and +0.0860 [0.0525, 0.1208], respectively.
 
 **Allowed:** Trusted namespace support improved route utility-risk and separately
 judged answer utility on the same natural sample for each reader. Additional

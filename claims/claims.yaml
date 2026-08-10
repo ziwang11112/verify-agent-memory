@@ -892,8 +892,8 @@ claims:
   - id: C13
     status: natural_same_population_route_to_reader_evaluation
     claim: "On a frozen 1,523-case natural sample, trusted namespace support improved route utility-risk and judged answer utility relative to global dense for each of three separately reported readers; additional deletion gates did not establish a monotonic downstream benefit."
-    estimand: "Paired route-minus-reference deltas for retrieval, judged answer utility, over-refusal, and typed disclosure, with 10,000 paired namespace-group bootstrap replicates and equal-source macro aggregation."
-    population: "All 523 RHELM cases plus a frozen outcome-independent simple random sample of 1,000 of 3,244 MemOps cases; 1,523 paired cases spanning 87 namespace groups, with all 80 MemOps groups represented."
+    estimand: "Paired route-minus-reference deltas for retrieval, judged answer utility, non-answer action, and typed disclosure, with 10,000 paired namespace-group bootstrap replicates and equal-source macro aggregation."
+    population: "All 523 eligible RHELM evaluation cases plus a frozen outcome-independent simple random sample of 1,000 of 3,244 MemOps cases; 1,523 paired cases spanning 87 namespace groups, with all 80 MemOps groups represented. RHELM eligibility requires conversation-only questions with uniquely resolved supporting references; 859 of 1,305 source QA pairs meet both filters before the frozen split."
     source_repository: "ziwang11112/verify-agent-memory"
     source_snapshot_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
     execution_commit:
@@ -1094,7 +1094,7 @@ claims:
         lower: -0.022969620190249163
         upper: -0.015570558942042526
     allowed_wording:
-      - "On the frozen 1,523-case natural sample, namespace support improved judged answer accuracy, answer quality, and over-refusal relative to global dense for each separately reported reader."
+      - "On the frozen 1,523-case natural sample, namespace support improved judged answer accuracy and answer quality and reduced the non-answer rate relative to global dense for each separately reported reader."
       - "Namespace support improved matched route recall and penalized admissibility upper risk on the same natural cases used for downstream reading."
       - "The released-policy gate reduced route risk beyond namespace support, but its answer-accuracy intervals included zero for all three readers."
       - "The text-only verifier increased route risk relative to namespace dense and did not provide a consistent answer-utility gain for the two readers on which it was evaluated."
@@ -1113,6 +1113,8 @@ claims:
       - "Protected-disclosure and stale-disclosure namespace intervals include zero for every reader, so this result establishes no general disclosure reduction."
       - "The GPT replication evaluated three primary routes; text-verifier and released-field-oracle diagnostics were not rerun for GPT."
       - "The released-field policy route uses trusted metadata and does not establish deployable inference of missing governance state."
+      - "The frozen aggregate field `over_refusal` is exactly `reader_action != answer`; it is a legacy alias for non-answer rate, not a gold-action-aware over-refusal measure."
+      - "Source-specific accuracy intervals are heterogeneous: the DeepSeek RHELM interval includes zero, while its MemOps interval and both source intervals for Gemini and GPT are positive."
     verification_tests:
       - "test_natural_end_to_end_claim_requires_no_pooling_boundary"
       - "test_natural_end_to_end_claim_requires_shared_judge_boundary"

@@ -24,6 +24,11 @@ REQUIRED_PATHS = {
     "data/upstream_sources.json",
     "experiments/README.md",
     "results/README.md",
+    "results/natural_end_to_end_case_audit/README.md",
+    "results/natural_end_to_end_case_audit/case_scores.csv",
+    "results/natural_end_to_end_case_audit/manifest.json",
+    "results/natural_end_to_end_case_audit/population_summary.csv",
+    "results/natural_end_to_end_case_audit/source_specific_deltas.csv",
     "evidence/README.md",
     "tests/fixtures/retrieval_cases.jsonl",
 }

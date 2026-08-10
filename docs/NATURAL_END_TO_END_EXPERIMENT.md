@@ -40,6 +40,11 @@ a private compatibility manifest; verifier response content is unchanged.
 - RHELM protected disclosure: unevaluable, because RHELM does not release an equivalent
   answer-level protected target.
 
+RHELM eligibility is restricted to `conversation_only` questions whose released
+supporting references are all uniquely resolvable (`all_references_unique`). Of 1,305
+RHELM QA pairs at the pinned source revision, 859 meet both filters; the frozen split
+assigns 523 of those eligible questions to evaluation.
+
 Protected disclosure is therefore reported with an explicit denominator and never
 imputed for RHELM. Retrieval and prompt-exposure metrics cover both sources.
 
@@ -48,15 +53,18 @@ imputed for RHELM. Retrieval and prompt-exposure metrics cover both sources.
 Retrieval metrics are evidence recall, feasible rate at target recall 0.8, penalized
 admissibility upper risk, route width, and typed wrong-namespace, policy, lifecycle, and
 unresolved exposure. Answer metrics are blinded semantic accuracy, answer quality,
-over-refusal, reference containment, source-defined protected disclosure, and stale
-disclosure. Reader models are reported separately. Paired 95% intervals use 10,000
-namespace-group bootstrap replicates.
+non-answer rate, reference containment, source-defined protected disclosure, and stale
+disclosure. The frozen aggregate CSVs retain the legacy field name `over_refusal`, but
+its exact implementation is `reader_action != "answer"`; it is not a gold-action-aware
+over-refusal label. Reader models are reported separately. Paired 95% intervals use
+10,000 namespace-group bootstrap replicates.
 
 ## Execution
 
-Raw public-source text, prompts, provider responses, and query-level scores stay under
-the ignored `tmp/natural_end_to_end/` directory. Only content-free aggregate tables and
-manifests may be published.
+Raw public-source text, prompts, and provider responses stay under the ignored
+`tmp/natural_end_to_end/` directory. The public case-audit package may include only
+tokenized, content-free numeric scores and private-record hashes; it never includes
+queries, memory text, reference answers, model answers, or judge rationales.
 
 ```powershell
 python scripts/materialize_natural_end_to_end_cases.py

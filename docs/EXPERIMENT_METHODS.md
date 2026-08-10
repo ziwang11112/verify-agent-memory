@@ -107,6 +107,13 @@ execution receipt are published under
 the original panel. It is not represented as Anthropic's current maximum capability
 tier.
 
+The natural route-to-reader closure uses DeepSeek and Gemini as its prespecified
+two-reader panel. GPT-5.6 Luna is a gated sequential replication over the three
+primary routes, not a third jointly prespecified reader. Its frozen aggregate column
+`over_refusal` is a legacy name for `response.action != "answer"`; papers and new
+derivatives call this the non-answer rate because the natural sample has no
+gold-action-aware over-refusal label.
+
 ## Retrieval Arms
 
 The frozen public evaluation contains nine selected arms, all returning at most

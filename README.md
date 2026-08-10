@@ -57,6 +57,7 @@ uv run --extra dev python -m scripts.check_reproducibility_package
 uv run --extra dev python -m scripts.publish_supplemental_results verify
 uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
 uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
+uv run --extra dev python -m scripts.publish_natural_case_audit verify
 ```
 
 The checks reject schema drift, non-finite data, changed hashes, incomplete result
@@ -114,10 +115,11 @@ broaden rights in incorporated datasets.
 
 ## Results
 
-Nine checked-in result families cover natural retrieval, fixed-budget and metadata
+Checked-in result families cover natural retrieval, fixed-budget and metadata
 robustness, natural and controlled verification, paired exposure, three natural
-reader bundles, and an alternate-judge audit. Public result files contain only
-derived scores, aggregates, intervals, figures, usage/cost receipts, and hashes.
+reader bundles, a tokenized case-level audit, and an alternate-judge audit. Public
+result files contain only derived scores, aggregates, intervals, figures, usage/cost
+receipts, and hashes.
 
 Representative frozen findings include:
 
