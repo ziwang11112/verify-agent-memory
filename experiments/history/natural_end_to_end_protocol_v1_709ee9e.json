@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-heldout-route-to-reader-v1",
+  "status": "frozen_nonofficial_same_population_end_to_end_evaluation",
+  "objective": "measure_retrieval_admissibility_prompt_exposure_and_answer_outcomes_on_one_natural_population",
+  "source_contract": {
+    "rhelm_revision": "726fc42ea0d5c11085c1a961ade10d702ba187d3",
+    "memops_revision": "0b85a27bba856c287405a36e53a39e59e424c4e9",
+    "route_checkpoint_sha256": "70ff69fb3d36e8367a16bfe70c796e88c4b3cec5ff4096f0fa7ab1bd0ad709ec",
+    "split": "frozen_eval",
+    "query_counts": {
+      "rhelm": 523,
+      "memops": 3244,
+      "total": 3767
+    },
+    "answer_gold_coverage": {
+      "rhelm": 523,
+      "memops": 3244,
+      "total": 3767
+    },
+    "protected_disclosure_contract": "source_defined_memops_targets_only_rhelm_unevaluable"
+  },
+  "retrieval": {
+    "embedding_model": "Qwen/Qwen3-Embedding-8B",
+    "embedding_revision": "1d8ad4ca9b3dd8059ad90a75d4983776a23d44af",
+    "candidate_depth": 20,
+    "target_recall": 0.8,
+    "base_rankings": {
+      "global_dense": "flat_dense/25ea22a7b2be",
+      "namespace_dense": "namespace_dense/ed4a7e3ae49d"
+    },
+    "gate_semantics": "delete_only_from_frozen_top20_without_backfill_or_reranking",
+    "arms": [
+      "global_dense",
+      "namespace_dense",
+      "namespace_policy_gate",
+      "namespace_text_verifier",
+      "released_field_oracle"
+    ],
+    "reader_memory_max_utf8_bytes": 8192,
+    "verifier_memory_max_utf8_bytes": 2048,
+    "truncation": "utf8_prefix_without_splitting_characters"
+  },
+  "text_verifier": {
+    "provider": "OpenAI",
+    "model": "gpt-5.6-sol",
+    "api_surface": "responses",
+    "effort": "low",
+    "prompt": {
+      "path": "experiments/prompts/inferred_admissibility_v1.txt",
+      "sha256": "933d2f15971f59e4fd1dcdee87539248b26f47018eaca9eb0aa13ca548fa43b1"
+    },
+    "violation_threshold": 0.95,
+    "threshold_source": "public_dev_calibration_only",
+    "input_usd_per_million": 5.0,
+    "output_usd_per_million": 30.0,
+    "maximum_calls": 3768,
+    "hard_cap_usd": 1000.0
+  },
+  "reader": {
+    "prompt": {
+      "path": "experiments/prompts/natural_end_to_end_reader_v1.txt",
+      "sha256": "c91220748045eb81555cc2d47f97d198090de4662318aa1a6c36ff897b4d7466"
+    },
+    "response_schema": "strict_action_and_answer_json",
+    "exact_visible_prompt_deduplication": true,
+    "models_reported_separately": true,
+    "providers": [
+      {
+        "provider": "OpenAI",
+        "model": "gpt-5.6-sol",
+        "api_surface": "responses",
+        "effort": "none",
+        "input_usd_per_million": 5.0,
+        "output_usd_per_million": 30.0,
+        "hard_cap_usd": 3000.0
+      },
+      {
+        "provider": "Anthropic",
+        "model": "claude-opus-5",
+        "api_surface": "messages",
+        "thinking": "disabled",
+        "effort": "medium",
+        "input_usd_per_million": 5.0,
+        "output_usd_per_million": 25.0,
+        "hard_cap_usd": 3000.0
+      },
+      {
+        "provider": "Gemini",
+        "model": "gemini-3.6-flash",
+        "api_surface": "generate_content",
+        "thinking_level": "minimal",
+        "input_usd_per_million": 1.5,
+        "output_usd_per_million": 7.5,
+        "hard_cap_usd": 1000.0
+      },
+      {
+        "provider": "DeepSeek",
+        "model": "deepseek-v4-pro",
+        "api_surface": "chat_completions",
+        "thinking": "disabled",
+        "input_usd_per_million": 0.87,
+        "output_usd_per_million": 1.74,
+        "hard_cap_usd": 500.0
+      }
+    ]
+  },
+  "judge": {
+    "provider": "OpenAI",
+    "model": "gpt-5.6-sol",
+    "api_surface": "responses",
+    "effort": "low",
+    "prompt": {
+      "path": "experiments/prompts/natural_end_to_end_judge_v1.txt",
+      "sha256": "7f6a306e87c972e8a4c06bc68df724351d7da70fee3ef460e091516be0f0c412"
+    },
+    "arm_and_reader_blinded": true,
+    "input_usd_per_million": 5.0,
+    "output_usd_per_million": 30.0,
+    "maximum_calls_before_exact_prompt_deduplication": 75340,
+    "hard_cap_usd": 5000.0
+  },
+  "metrics": {
+    "retrieval_and_exposure": [
+      "matched_evidence_recall",
+      "feasible_rate_at_0.8",
+      "penalized_admissibility_upper_risk",
+      "wrong_namespace_exposure",
+      "policy_disallowed_exposure",
+      "lifecycle_incompatible_exposure",
+      "unresolved_exposure",
+      "prompt_width"
+    ],
+    "answer": [
+      "judge_answer_accuracy",
+      "judge_answer_quality",
+      "over_refusal",
+      "literal_reference_contains",
+      "source_defined_protected_disclosure_with_coverage",
+      "stale_disclosure"
+    ],
+    "aggregation": "reader_specific_source_specific_and_equal_source_macro_no_reader_pooling",
+    "uncertainty": "paired_namespace_group_bootstrap_10000_replicates"
+  },
+  "execution": {
+    "maximum_reader_calls_per_provider_before_exact_prompt_deduplication": 18835,
+    "maximum_output_tokens_reader": 512,
+    "maximum_output_tokens_verifier": 4096,
+    "maximum_output_tokens_judge": 256,
+    "timeout_seconds": 180,
+    "maximum_transport_retries": 2,
+    "checkpoint_after_each_successful_call": true,
+    "semantic_or_output_repair": false,
+    "selective_rerun": false,
+    "complete_bundle_required_for_comparison": true,
+    "total_hard_cap_usd": 13500.0,
+    "official_rhelm_or_memops_claim": false
+  }
+}

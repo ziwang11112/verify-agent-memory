@@ -48,7 +48,7 @@ These commands make no provider call and require no API key or GPU.
 ## Verify Everything Released Here
 
 ```powershell
-uv run --extra dev python -m pytest
+uv run --extra dev --extra plots python -m pytest
 uv run --extra dev python -m ruff check .
 uv run --extra dev python -m ruff format --check .
 uv run --extra dev python scripts/check_claim_contract.py

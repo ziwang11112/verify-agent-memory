@@ -47,6 +47,8 @@ def test_execution_protocol_is_hash_bound_and_validate_is_zero_call(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     protocol = runtime.load_execution_protocol(runtime.DEFAULT_PROTOCOL)
+    monkeypatch.setattr(runtime, "_head_commit", lambda: "offline-test-commit")
+    monkeypatch.setattr(runtime, "_contract_dirty_paths", lambda: ())
 
     def forbidden(*_args: object, **_kwargs: object) -> object:
         raise AssertionError("validation must not read credentials or call a provider")

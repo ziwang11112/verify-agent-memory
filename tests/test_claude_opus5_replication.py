@@ -10,6 +10,8 @@ from scripts import run_claude_opus5_exposure_replication as replication
 
 def test_protocol_is_opus_only_and_zero_call(monkeypatch: pytest.MonkeyPatch) -> None:
     protocol = replication.load_protocol(replication.DEFAULT_PROTOCOL)
+    monkeypatch.setattr(replication.exposure_runtime, "_head_commit", lambda: "offline-test-commit")
+    monkeypatch.setattr(replication.exposure_runtime, "_contract_dirty_paths", lambda: ())
 
     def forbidden(*_args: object, **_kwargs: object) -> object:
         raise AssertionError("validation must not read credentials or call a provider")
@@ -111,8 +113,12 @@ def test_unlock_binds_clean_commit_model_protocol_and_cap(
         replication.exposure_runtime.validate_unlock(protocol, unlock_path)
 
 
-def test_paid_command_is_blocked_before_unlock(tmp_path: Path) -> None:
+def test_paid_command_is_blocked_before_unlock(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     protocol = replication.load_protocol(replication.DEFAULT_PROTOCOL)
+    monkeypatch.setattr(replication.exposure_runtime, "_contract_dirty_paths", lambda: ())
     with pytest.raises((FileNotFoundError, RuntimeError)):
         replication._run_command(
             protocol,

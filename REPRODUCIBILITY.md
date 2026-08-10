@@ -25,7 +25,7 @@ This tier is deterministic, offline after dependency installation, and makes no 
 or provider call:
 
 ```powershell
-uv run --extra dev python -m pytest
+uv run --extra dev --extra plots python -m pytest
 uv run --extra dev python -m ruff check .
 uv run --extra dev python -m ruff format --check .
 uv run --extra dev python scripts/check_claim_contract.py

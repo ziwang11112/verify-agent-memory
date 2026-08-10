@@ -30,7 +30,7 @@ Verify the exported package independently before publishing it:
 ```powershell
 Push-Location tmp/anonymous_artifact
 uv sync --extra dev --extra plots
-uv run --extra dev python -m pytest -q
+uv run --extra dev --extra plots python -m pytest -q
 uv run --extra dev python -m ruff check .
 uv run --extra dev python -m ruff format --check .
 uv run --extra dev python -m scripts.check_claim_contract

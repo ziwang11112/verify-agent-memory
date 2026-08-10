@@ -638,12 +638,18 @@ def test_git_head_is_cached_within_one_runtime_process(monkeypatch) -> None:
 
 def test_v1_verifier_protocol_is_compatible_only_with_reader_budget_amendment() -> None:
     target = runtime.load_protocol(runtime.DEFAULT_PROTOCOL)
-    source = json.loads(
-        verifier_import._git_file_bytes(
-            "709ee9eb0a0e7f5e734fa85a317351f086a29704",
-            verifier_import.PROTOCOL_PATH,
-        )
+    snapshot_path = (
+        verifier_import.ROOT
+        / "experiments"
+        / "history"
+        / "natural_end_to_end_protocol_v1_709ee9e.json"
     )
+    source_bytes = snapshot_path.read_bytes()
+    assert (
+        verifier_import._sha256_bytes(source_bytes)
+        == "5a914194d618c730dcdf9fb50cd6c809ab6704bf722eec49ebffe7734a6e214c"
+    )
+    source = json.loads(source_bytes)
     verifier_import.assert_protocol_compatibility(source, target.raw)
 
     changed = json.loads(json.dumps(target.raw))
