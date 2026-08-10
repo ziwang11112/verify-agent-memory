@@ -26,6 +26,7 @@ REQUIRED_PATHS = {
     "results/README.md",
     "results/natural_end_to_end_case_audit/README.md",
     "results/natural_end_to_end_case_audit/case_scores.csv",
+    "results/natural_end_to_end_case_audit/case_weighted_sensitivity.csv",
     "results/natural_end_to_end_case_audit/manifest.json",
     "results/natural_end_to_end_case_audit/population_summary.csv",
     "results/natural_end_to_end_case_audit/source_specific_deltas.csv",

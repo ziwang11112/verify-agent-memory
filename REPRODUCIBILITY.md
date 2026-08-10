@@ -128,7 +128,7 @@ The repository supports three different reproducibility claims:
 | --- | --- | --- |
 | Code behavior and synthetic smoke | Yes | None |
 | Every checked-in aggregate/result/evidence hash | Yes | None |
-| Natural case-level aggregation and paired bootstrap | Yes | Tokenized `results/natural_end_to_end_case_audit/case_scores.csv` |
+| Natural case-level aggregation, equal-source results, and case-weighted sensitivity | Yes | Tokenized `results/natural_end_to_end_case_audit/case_scores.csv` |
 | Raw natural-corpus and provider execution | No, not from Git alone | Upstream raw text, frozen embeddings/checkpoints, credentials, and response bundles |
 
 The exact historical natural execution used 182,908 memories, 3,767 queries, 33,903
@@ -138,7 +138,8 @@ would be several gigabytes, and provider responses include benchmark text; neith
 appropriate for ordinary Git storage.
 
 The case-level audit exposes parsed numeric labels and SHA-256 bindings, so the public
-package can recompute source-specific intervals and every natural closure aggregate.
+package can recompute source-specific intervals, the post-hoc case-weighted
+sensitivity, and every natural closure aggregate.
 It cannot independently verify how a private provider response was converted into a
 parsed score without the excluded response and benchmark payload. Provider execution
 scripts remain available for audit, but a checked-in historical receipt is not

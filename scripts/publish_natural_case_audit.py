@@ -382,6 +382,94 @@ def source_specific_deltas(rows: Sequence[Mapping[str, object]]) -> list[dict[st
     return output
 
 
+def _case_weighted_delta(
+    rows: Sequence[Mapping[str, object]],
+    *,
+    provider: str,
+    arm: str,
+    reference: str,
+    metric: str,
+) -> tuple[float, float, float, int, int]:
+    selected = [row for row in rows if row["reader_provider"] == provider]
+    by_key = {(str(row["case_token"]), str(row["arm"])): row for row in selected}
+    grouped: defaultdict[tuple[str, str], list[float]] = defaultdict(list)
+    for case_token, row_arm in sorted(by_key):
+        if row_arm != arm:
+            continue
+        row = by_key[(case_token, arm)]
+        comparator = by_key.get((case_token, reference))
+        if comparator is None:
+            continue
+        value = _optional_float(row[metric])
+        reference_value = _optional_float(comparator[metric])
+        if value is None or reference_value is None:
+            continue
+        grouped[(str(row["source"]), str(row["group_token"]))].append(value - reference_value)
+    if not grouped:
+        raise ValueError("case-weighted contrast has no evaluable pairs")
+
+    source_groups: defaultdict[str, list[tuple[float, int]]] = defaultdict(list)
+    for (source, _group), values in grouped.items():
+        source_groups[source].append((sum(values), len(values)))
+
+    def aggregate(sampled: Mapping[str, Sequence[tuple[float, int]]]) -> float:
+        total = sum(value for groups in sampled.values() for value, _count in groups)
+        count = sum(count for groups in sampled.values() for _value, count in groups)
+        return total / count
+
+    point = aggregate(source_groups)
+    seed_text = f"{provider}|{arm}|{reference}|{metric}|case-weighted-sensitivity-v1"
+    rng = random.Random(int(hashlib.sha256(seed_text.encode()).hexdigest()[:16], 16))
+    replicates = []
+    for _ in range(10_000):
+        sampled = {
+            source: [groups[rng.randrange(len(groups))] for _group in groups]
+            for source, groups in source_groups.items()
+        }
+        replicates.append(aggregate(sampled))
+    replicates.sort()
+    lower = replicates[round((len(replicates) - 1) * 0.025)]
+    upper = replicates[round((len(replicates) - 1) * 0.975)]
+    return point, lower, upper, sum(len(values) for values in grouped.values()), len(grouped)
+
+
+def case_weighted_sensitivity(rows: Sequence[Mapping[str, object]]) -> list[dict[str, object]]:
+    output = []
+    providers = sorted({str(row["reader_provider"]) for row in rows})
+    model_by_provider = {str(row["reader_provider"]): str(row["reader_model"]) for row in rows}
+    arm, reference = COMPARISONS[0]
+    for provider in providers:
+        for metric in PAIRED_METRICS:
+            try:
+                point, lower, upper, pair_count, group_count = _case_weighted_delta(
+                    rows,
+                    provider=provider,
+                    arm=arm,
+                    reference=reference,
+                    metric=metric,
+                )
+            except ValueError:
+                continue
+            output.append(
+                {
+                    "reader_provider": provider,
+                    "reader_model": model_by_provider[provider],
+                    "arm": arm,
+                    "reference": reference,
+                    "metric": metric,
+                    "mean_delta_arm_minus_reference": point,
+                    "bootstrap_ci95_lower": lower,
+                    "bootstrap_ci95_upper": upper,
+                    "paired_case_count": pair_count,
+                    "namespace_group_count": group_count,
+                    "source_weighting": "case_weighted",
+                    "bootstrap_strata": "source_namespace_group",
+                    "bootstrap_replicates": 10000,
+                }
+            )
+    return output
+
+
 def population_summary(cases: Sequence[base.NaturalEndToEndCase]) -> list[dict[str, object]]:
     output = []
     for source in ("rhelm", "memops"):
@@ -543,6 +631,10 @@ def verify(output: Path = DEFAULT_OUTPUT) -> dict[str, object]:
         source_specific_deltas(rows),
         _read_csv(output / "source_specific_deltas.csv"),
     )
+    _assert_rows_close(
+        case_weighted_sensitivity(rows),
+        _read_csv(output / "case_weighted_sensitivity.csv"),
+    )
     return {
         "status": "verified",
         "case_score_rows": len(rows),
@@ -562,8 +654,10 @@ judge labels, and SHA-256 bindings to the private reader and judge records; it c
 no query, memory, reference-answer, prompt, model-answer, or judge-rationale text.
 
 `source_specific_deltas.csv` reports paired source-specific effects with 10,000
-namespace-group bootstrap replicates. `population_summary.csv` reports anchor-count
-and protected-target coverage without source text.
+namespace-group bootstrap replicates. `case_weighted_sensitivity.csv` is a post-hoc
+sensitivity analysis that gives every evaluable case equal weight across sources;
+its bootstrap resamples namespace groups within source. `population_summary.csv`
+reports anchor-count and protected-target coverage without source text.
 
 Run `python -m scripts.publish_natural_case_audit verify` to reconstruct the checked-in
 aggregate tables and paired intervals from `case_scores.csv`. This verification path
@@ -597,6 +691,7 @@ def build(output: Path = DEFAULT_OUTPUT) -> dict[str, object]:
     _validate_public_rows(rows)
     base._write_csv(output / "case_scores.csv", rows)
     base._write_csv(output / "source_specific_deltas.csv", source_specific_deltas(rows))
+    base._write_csv(output / "case_weighted_sensitivity.csv", case_weighted_sensitivity(rows))
     base._write_csv(output / "population_summary.csv", population_summary(two_cases))
     readme_path = output / "README.md"
     readme_path.parent.mkdir(parents=True, exist_ok=True)
@@ -628,6 +723,7 @@ def build(output: Path = DEFAULT_OUTPUT) -> dict[str, object]:
             for name in (
                 "case_scores.csv",
                 "source_specific_deltas.csv",
+                "case_weighted_sensitivity.csv",
                 "population_summary.csv",
                 "README.md",
             )

@@ -417,6 +417,13 @@ heterogeneity: DeepSeek is +0.0210 [-0.0369, 0.0746] on RHELM and +0.0840 [0.052
 0.1164] on MemOps; Gemini is +0.0593 [0.0322, 0.0943] and +0.0760 [0.0453, 0.1063];
 GPT Luna is +0.0459 [0.0037, 0.0939] and +0.0860 [0.0525, 0.1208], respectively.
 
+A post-hoc case-weighted sensitivity gives every evaluable case equal weight across
+RHELM and MemOps while resampling namespace groups within source. Namespace-minus-
+global answer-accuracy deltas remain positive for DeepSeek (+0.0624 [0.0326, 0.0915]),
+Gemini (+0.0703 [0.0480, 0.0940]), and GPT Luna (+0.0722 [0.0455, 0.1007]). This is a
+sensitivity analysis of the frozen records, not a replacement for the prespecified
+equal-source estimand.
+
 **Allowed:** Trusted namespace support improved route utility-risk and separately
 judged answer utility on the same natural sample for each reader. Additional
 released-policy deletion reduced route risk without establishing an answer-utility
@@ -433,7 +440,8 @@ judge. GPT-5.6 Luna was a sequential reader replication after the positive
 two-reader continuation gate. Namespace effects on protected and stale disclosure
 have intervals containing zero for every reader. GPT evaluated only the three
 primary routes; the text-verifier and released-field-oracle diagnostics were not
-rerun for GPT.
+rerun for GPT. The case-weighted analysis is explicitly post-hoc and must be reported
+as a sensitivity check rather than a confirmatory estimand.
 
 ## Natural Cross-Judge Audit
 

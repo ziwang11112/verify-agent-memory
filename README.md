@@ -121,6 +121,10 @@ reader bundles, a tokenized case-level audit, and an alternate-judge audit. Publ
 result files contain only derived scores, aggregates, intervals, figures, usage/cost
 receipts, and hashes.
 
+The case-level audit also reports a post-hoc aggregation sensitivity that gives each
+evaluable RHELM/MemOps case equal weight. It is computed entirely from the released
+tokenized scores and keeps the bootstrap clustered by namespace group within source.
+
 Representative frozen findings include:
 
 - namespace-constrained support improves recall and admissibility risk relative to

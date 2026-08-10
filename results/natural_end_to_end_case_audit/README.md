@@ -8,8 +8,10 @@ judge labels, and SHA-256 bindings to the private reader and judge records; it c
 no query, memory, reference-answer, prompt, model-answer, or judge-rationale text.
 
 `source_specific_deltas.csv` reports paired source-specific effects with 10,000
-namespace-group bootstrap replicates. `population_summary.csv` reports anchor-count
-and protected-target coverage without source text.
+namespace-group bootstrap replicates. `case_weighted_sensitivity.csv` is a post-hoc
+sensitivity analysis that gives every evaluable case equal weight across sources;
+its bootstrap resamples namespace groups within source. `population_summary.csv`
+reports anchor-count and protected-target coverage without source text.
 
 Run `python -m scripts.publish_natural_case_audit verify` to reconstruct the checked-in
 aggregate tables and paired intervals from `case_scores.csv`. This verification path

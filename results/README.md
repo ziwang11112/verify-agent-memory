@@ -15,7 +15,7 @@ reader prompts, raw provider responses, embeddings, or credentials.
 | `natural_end_to_end_two_reader_deterministic/` | Deterministic retrieval-side closure analysis | Main table, paired deltas, summary, manifest |
 | `natural_end_to_end_two_reader_judged/` | DeepSeek/Gemini natural route-to-reader results | Main table, paired deltas, completion receipt, summary, manifest |
 | `natural_end_to_end_gpt_luna_judged/` | Sequential GPT-reader replication | Main table, paired deltas, completion receipt, summary, manifest |
-| `natural_end_to_end_case_audit/` | Content-free case-level natural closure audit | Tokenized case scores, source-specific paired intervals, population summary, manifest |
+| `natural_end_to_end_case_audit/` | Content-free case-level natural closure audit | Tokenized case scores, source-specific intervals, case-weighted sensitivity, population summary, manifest |
 | `natural_cross_judge_audit/` | Outcome-independent 200-output alternate-judge audit | Agreement, confusion, subgroup, usage, summary, manifest |
 
 ## Verification

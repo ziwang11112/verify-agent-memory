@@ -1,7 +1,8 @@
 {
   "artifacts": {
-    "README.md": "a3f9fb3dcc1364d15b089f5250c58b1d72f3a410a9b8ac9ddea7cbb4d50b81f4",
+    "README.md": "e59797b71e58e8743da8aad8802cc3c91c05b0279622f34eec91e70088069b7a",
     "case_scores.csv": "f1c9ebf5f50cb4654c42b24ea7eba6066676546931e2828a3798212a2409c073",
+    "case_weighted_sensitivity.csv": "a3e26727294037fb715d45f45bda397227e51c3055428dd397d024b3057d7a37",
     "population_summary.csv": "b6ca19641337cae215d85d1b4ac3b9e0589c7ae69f155aa3424aab696a1238bf",
     "source_specific_deltas.csv": "0e6624fee1776632e9520f483e6e4640cae709a0598f77359dff760986018301"
   },
