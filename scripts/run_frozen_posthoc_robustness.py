@@ -289,7 +289,8 @@ def _write_readme(
             "",
         ]
     )
-    (output_dir / "README.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
+    text = "\n".join(line.rstrip() for line in lines)
+    (output_dir / "README.md").write_text(text, encoding="utf-8", newline="\n")
 
 
 def _run(cases_path: Path, response_dir: Path, output_dir: Path) -> None:
