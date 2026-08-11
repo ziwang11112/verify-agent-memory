@@ -235,6 +235,11 @@ cell, but their exposed disclosure rates are not zero and a zero paired effect i
 a zero-risk statement. Irrelevant-admissible effects are 0.046875, 0.03125, and 0.0;
 irrelevant-inadmissible effects are 0.0 for all three readers.
 
+In a post-hoc zero-call check, every leave-one-scenario-out selectivity gap remained
+positive. The ranges were `[0.9000, 0.9333]`, `[0.8000, 0.8667]`, and
+`[0.6333, 0.7000]` for OpenAI, Gemini, and DeepSeek; exact two-sided sign-flip
+`p`-values were at most `0.000244`.
+
 **Allowed:** Assigned exposure had different disclosure effects under
 construction-defined admissible and inadmissible query conditions while focal
 relevance was held fixed. In this controlled prompt-level intervention, exposure
@@ -250,7 +255,9 @@ the only causal moderator, or present this as an official benchmark.
 
 **Boundary:** The population contains sixteen constructed scenarios with literal
 markers and a fixed rule-based disclosure scorer. Axis-specific estimates have four
-scenarios each. There was no judge, retry, output repair, or selective rerun.
+scenarios each. There was no judge, retry, output repair, or selective rerun. The
+leave-one-scenario-out and sign-flip analyses are post-hoc checks of frozen pair
+scores.
 
 ## Post-Hoc Frozen-Ranking Results
 
@@ -273,15 +280,38 @@ At each depth, namespace-group bootstrap intervals under equal-source
 macro-averaging exclude zero for recall, feasibility, total v2 risk, its infeasibility component, and its feasible-prefix
 admissibility component.
 
+Frozen zero-call controls separate support identity from pool size and filter order:
+
+| Top-20 support | Mean candidates | Recall | Feasible rate |
+| --- | ---: | ---: | ---: |
+| Global dense | 90121.7 | 0.431570 | 0.237404 |
+| Size-matched random partition (10 seeds) | 1540.1 | 0.060954 | 0.024233 |
+| Trusted namespace pre-filter | 1551.2 | 0.532878 | 0.311314 |
+
+Global top-20 followed by namespace deletion retains `0.431570` recall; global
+post-filter depth 100 reaches `0.515895`, and depth 500 reaches `0.531262`. After
+scope violations are removed from the numerator, conditional upper risk is
+`0.122873` for global dense and `0.126079` for namespace support. At zero
+infeasibility cost, the namespace-minus-global residual-risk delta is `+0.007732`;
+at unit cost it is `-0.066178`. Leave-one-group-out recall deltas remain in
+`[0.097427, 0.107711]`; the exact seven-group RHELM sign-flip `p`-value is
+`0.015625`.
+
 **Allowed:** On frozen rankings, trusted namespace support improved recall,
 feasibility, and post-hoc v2 penalized admissibility upper risk at all four reported
-depths. Both risk components contributed.
+depths. Both risk components contributed. In this exact-dense control, correct
+provenance rather than candidate count alone explains the support gain; shallow late
+filtering does not recover the pre-filtered result.
 
 **Forbidden:** Do not say v2 risk selected the original settings, call this a new
-held-out run, or claim namespace support guarantees admissibility.
+held-out run, claim namespace support guarantees admissibility, generalize the random
+control to every candidate-pool effect, or claim conditional policy/lifecycle risk
+improved.
 
 **Boundary:** This is a no-retuning post-hoc rescore of released trusted namespaces.
-Original selection used the v1 penalized non-usable upper risk.
+Original selection used the v1 penalized non-usable upper risk. The random partition
+is not a semantic-cluster control, and the residual-risk advantage depends on a
+positive penalty for infeasibility.
 
 ### C10: Metadata-error asymmetry
 
@@ -348,6 +378,11 @@ overflip was 0.203125, 0.296875, and 0.265625. All overflip estimates exceeded t
 preregistered 0.05 limit. Stable-admissible false-deny rates were 0.265625, 0.531250,
 and 0.593750, respectively.
 
+A fixed zero-call threshold sweep does not reveal a safe useful hard-filter region.
+GPT reaches at most 1% required-anchor false denial only at the retain-all endpoint,
+where violation recall is zero; Gemini has no tested threshold at or below 1% false
+denial. The development-selected threshold remains unchanged.
+
 **Allowed:** Released fields expose headroom, but these text-only verifiers did not
 recover it on fixed public-development candidates. In the controlled diagnostic,
 errors concentrated in false denial of stable admissible memories.
@@ -358,7 +393,8 @@ benchmark result.
 
 **Boundary:** Both populations are public development diagnostics. Natural candidate
 pools and thresholds are fixed. The controlled set is constructed. Populations and
-models are always reported separately.
+models are always reported separately. The threshold curve is post-hoc and does not
+select a new operating point.
 
 ## Reader Replication
 

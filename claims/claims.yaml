@@ -432,6 +432,8 @@ claims:
       - "results/counterfactual_exposure/cell_metrics.csv"
       - "results/counterfactual_exposure/bootstrap_ci.csv"
       - "results/counterfactual_exposure/provider_usage.csv"
+      - "results/posthoc_robustness/counterfactual_scenario_robustness.csv"
+      - "results/posthoc_robustness/manifest.json"
     exact_values:
       openai:
         model: "gpt-5.6-sol"
@@ -459,6 +461,10 @@ claims:
       requests_per_reader: 384
       total_provider_calls_including_fixtures: 1155
       model_pooling: false
+      scenario_robustness:
+        openai: {leave_one_scenario_out_min: 0.9, leave_one_scenario_out_max: 0.9333333333333333, exact_two_sided_sign_flip_p: 0.000030517578125}
+        gemini: {leave_one_scenario_out_min: 0.8, leave_one_scenario_out_max: 0.8666666666666667, exact_two_sided_sign_flip_p: 0.00006103515625}
+        deepseek: {leave_one_scenario_out_min: 0.6333333333333333, leave_one_scenario_out_max: 0.7, exact_two_sided_sign_flip_p: 0.000244140625}
     confidence_intervals:
       - metric: "openai_relevant_admissible_effect"
         estimate: 0.90625
@@ -525,6 +531,7 @@ claims:
       - "In the controlled prompt-level intervention, exposure increased disclosure substantially more in the relevant-admissible cell than in the relevant-inadmissible cell for each separately reported reader."
       - "All three selectivity-gap intervals excluded zero."
       - "DeepSeek V4 Pro showed a positive relevant-inadmissible exposure effect, indicating residual disclosure risk when filtering is deferred to the reader."
+      - "Post-hoc leave-one-scenario-out selectivity gaps remained positive for each original reader; exact two-sided sign-flip p-values were at most 0.000244."
     forbidden_wording:
       - "The experiment estimates inadmissible-memory prevalence in natural agent histories."
       - "The readers causally used the disclosed memory in their internal reasoning."
@@ -540,6 +547,7 @@ claims:
       - "Axis-specific estimates contain only four scenarios and are diagnostic."
       - "The result applies to the exact frozen prompts and model snapshots."
       - "Observed disclosure can occur even when the manipulated candidate is withheld; a zero paired effect is not a zero-risk claim."
+      - "The leave-one-scenario-out ranges and sign-flip tests are post-hoc zero-call analyses of frozen pair scores."
     verification_tests:
       - "test_counterfactual_exposure_claim_requires_controlled_boundary"
       - "test_counterfactual_exposure_claim_requires_no_pooling_boundary"
@@ -557,6 +565,11 @@ claims:
       - "results/supplemental_natural/natural_top_k_pareto.csv"
       - "results/supplemental_natural/natural_top_k_paired_deltas.csv"
       - "results/supplemental_natural/natural_top_k_pareto_manifest.json"
+      - "results/support_controls/support_control_main.csv"
+      - "results/support_controls/target_recall_sensitivity.csv"
+      - "results/support_controls/infeasibility_cost_sensitivity.csv"
+      - "results/support_controls/few_cluster_robustness.csv"
+      - "results/support_controls/manifest.json"
     exact_values:
       top_k_10:
         global_evidence_recall: 0.3223367172107227
@@ -606,6 +619,25 @@ claims:
         penalized_admissibility_upper_risk_delta: -0.27393493576095884
         infeasibility_risk_component_delta: -0.22299559357118776
         admissibility_conditional_risk_component_delta: -0.05093934218977141
+      support_controls_top_k_20:
+        size_matched_random_seed_count: 10
+        size_matched_random_candidates: 1540.0841302548845
+        size_matched_random_evidence_recall: 0.060954023347894216
+        namespace_candidates: 1551.24455090498
+        namespace_evidence_recall: 0.5328784300057341
+        global_post_filter_20_evidence_recall: 0.4315697757162279
+        global_post_filter_100_evidence_recall: 0.5158949639092123
+        global_post_filter_500_evidence_recall: 0.5312622594931394
+        global_scope_excluded_conditional_upper_risk: 0.12287266997568323
+        namespace_scope_excluded_conditional_upper_risk: 0.12607858057826515
+        scope_excluded_penalized_risk_delta_at_zero_infeasibility_cost: 0.007731601327935902
+        scope_excluded_penalized_risk_delta_at_unit_infeasibility_cost: -0.06617804919911435
+        target_recall_grid: [0.5, 0.7, 0.8, 0.9, 1.0]
+        infeasibility_cost_grid: [0.0, 0.25, 0.5, 0.75, 1.0]
+        leave_one_group_out_recall_delta_min: 0.09742666464063565
+        leave_one_group_out_recall_delta_max: 0.10771108116796663
+        rhelm_group_count: 7
+        rhelm_exact_two_sided_sign_flip_p: 0.015625
     confidence_intervals:
       - {metric: "top_k_10_evidence_recall_delta", estimate: 0.06713221703017538, lower: 0.05415147598649556, upper: 0.08109095232893691}
       - {metric: "top_k_10_feasible_rate_delta", estimate: 0.03179041525110043, lower: 0.02213625743295429, upper: 0.04224848468892474}
@@ -630,15 +662,24 @@ claims:
     allowed_wording:
       - "On frozen natural-corpus rankings, trusted namespace support improved recall, feasibility, and post-hoc v2 penalized admissibility upper risk at top-k 10, 20, 50, and 100."
       - "The v2 risk reduction contains both an infeasibility reduction and a smaller feasible-prefix admissibility component at every reported depth."
+      - "At comparable candidate counts, the correct trusted namespace achieved 0.533 recall while a ten-seed size-matched random partition achieved 0.061 mean recall, so pool size alone does not explain the result in this exact-dense control."
+      - "Global post-filtering recovered namespace-pre-filter recall only after retrieving to depth 500; filtering a global top-20 retained global recall."
+      - "After removing scope violations from the numerator, conditional upper risk did not improve, and the penalized residual-risk advantage required a positive infeasibility cost."
+      - "Leave-one-group-out recall deltas remained positive, and the exact seven-group RHELM sign-flip p-value was 0.015625."
     forbidden_wording:
       - "The v2 admissibility metric was used for original development selection."
       - "The fixed-budget analysis is a new held-out confirmatory experiment."
       - "Namespace support guarantees admissibility at any retrieval depth."
+      - "Candidate-pool size never matters for dense retrieval."
+      - "Trusted namespace support improves conditional policy or lifecycle verification."
     known_limitations:
       - "This is a post-hoc v2 rescore of frozen rankings, not a new held-out run."
       - "No settings were retuned, and original development selection used the v1 penalized non-usable upper risk."
       - "Confidence intervals use namespace-group bootstrap resampling under equal-source macro-averaging."
       - "The result applies to released trusted namespaces in the evaluated public sources."
+      - "The support controls are post-hoc zero-call diagnostics on frozen embeddings and labels; the random partition is not a semantic-cluster control."
+      - "The pre/post-filter comparison is specific to exact dense ranking and the tested depths."
+      - "At zero infeasibility cost, namespace scope-excluded penalized risk is slightly higher than global dense; the primary residual advantage therefore depends on assigning positive cost to recall failure."
     verification_tests:
       - "test_fixed_budget_claim_requires_posthoc_no_retuning_boundary"
       - "test_confidence_intervals_contain_estimates"
@@ -746,6 +787,8 @@ claims:
       - "results/counterfactual_admissibility/bootstrap_ci.csv"
       - "results/counterfactual_admissibility/error_taxonomy.csv"
       - "results/counterfactual_admissibility/manifest.json"
+      - "results/posthoc_robustness/verifier_operating_curve.csv"
+      - "results/posthoc_robustness/manifest.json"
     exact_values:
       released_oracle:
         evidence_recall_delta: 0.0
@@ -782,6 +825,11 @@ claims:
         stable_control_overflip_rate: 0.265625
         stable_admissible_false_deny_rate: 0.59375
         stable_inadmissible_false_admit_rate: 0.015625
+      fixed_threshold_curve:
+        threshold_grid: [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0]
+        openai_points_at_or_below_one_percent_anchor_false_deny: 1
+        openai_best_violation_recall_at_or_below_one_percent_anchor_false_deny: 0.0
+        gemini_points_at_or_below_one_percent_anchor_false_deny: 0
     confidence_intervals:
       - {metric: "released_oracle_evidence_recall_delta", estimate: 0.0, lower: 0.0, upper: 0.0}
       - {metric: "released_oracle_feasible_rate_delta", estimate: 0.0, lower: 0.0, upper: 0.0}
@@ -802,12 +850,14 @@ claims:
       - "On fixed public-development candidates, the released-field oracle reduced post-hoc v2 admissibility risk without changing recall or feasibility, while the two text-only filters did not realize that headroom."
       - "In controlled public-development pairs, all evaluated text verifiers exceeded the preregistered 0.05 stable-control overflip limit."
       - "Stable-control errors were concentrated in false denial of admissible memories rather than false admission of inadmissible memories."
+      - "Across the fixed threshold grid, GPT reached at most 1 percent required-anchor false denial only by retaining every candidate and detecting no violations; Gemini had no tested point below that false-denial level."
     forbidden_wording:
       - "Text-only models cannot infer admissibility in any setting."
       - "The released-field oracle is a deployable method."
       - "Natural and controlled populations were pooled."
       - "Provider results were pooled into one estimate."
       - "The diagnostic is an official benchmark result."
+      - "The threshold sweep selected a new operating point on evaluation data."
     known_limitations:
       - "Both analyses are public-development diagnostics, not held-out confirmatory evaluations."
       - "The natural and controlled populations are separate and are never pooled."
@@ -815,6 +865,7 @@ claims:
       - "The natural diagnostic uses fixed top-20 candidates and development-selected thresholds."
       - "The controlled diagnostic uses 16 constructed scenarios and 32 focal pairs."
       - "The released-field oracle is an upper-bound diagnostic, not deployable inference."
+      - "The threshold curve is a post-hoc zero-call sensitivity analysis of frozen scores; the development-selected threshold remains unchanged."
     verification_tests:
       - "test_inference_gap_claim_requires_population_separation"
       - "test_inference_gap_claim_requires_no_pooling_boundary"

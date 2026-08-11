@@ -824,3 +824,91 @@ artifacts:
     transformation_required: "Preserve the aggregate interpretation, including the confidence-interval and GPT-reader subgroup caveats."
     public_label: "natural cross-judge audit summary"
     contains_raw_text_or_private_content: false
+
+  - id: support_control_main
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "d9f2a5c1e26790f350a38f83ca424d20ca64ae7c"
+    source_path: "results/support_controls/support_control_main.csv"
+    source_sha256: "edf7a6032e5633d2544d42acb5e13165a577bb67f5b5a6a3591fb42dda2418e9"
+    intended_normalized_destination: "evidence/normalized/support_controls.csv"
+    transformation_required: "Preserve the fixed top-20 support-identity and pre/post-filter diagnostics without retuning."
+    public_label: "natural support controls"
+    contains_raw_text_or_private_content: false
+
+  - id: support_control_target_recall
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "d9f2a5c1e26790f350a38f83ca424d20ca64ae7c"
+    source_path: "results/support_controls/target_recall_sensitivity.csv"
+    source_sha256: "9f5c59e884d66970684c5a2ace1c7b3aced6ab421addb79e9132d7aec4f33662"
+    intended_normalized_destination: "evidence/normalized/support_controls.csv"
+    transformation_required: "Preserve the fixed-route target-recall grid as a post-hoc sensitivity analysis."
+    public_label: "target-recall sensitivity"
+    contains_raw_text_or_private_content: false
+
+  - id: support_control_infeasibility_cost
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "d9f2a5c1e26790f350a38f83ca424d20ca64ae7c"
+    source_path: "results/support_controls/infeasibility_cost_sensitivity.csv"
+    source_sha256: "dcc984913b60241ba0fd50d80e0a3b5dea514b7971fcfc61b17b57bd0a66e725"
+    intended_normalized_destination: "evidence/normalized/support_controls.csv"
+    transformation_required: "Preserve the explicit infeasibility-cost grid and scope-excluded residual-risk definition."
+    public_label: "infeasibility-cost sensitivity"
+    contains_raw_text_or_private_content: false
+
+  - id: support_control_few_cluster
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "d9f2a5c1e26790f350a38f83ca424d20ca64ae7c"
+    source_path: "results/support_controls/few_cluster_robustness.csv"
+    source_sha256: "560d7327a9d0fc2a8e93eac765578bd951fbf28a52198332491846ab3db65249"
+    intended_normalized_destination: "evidence/normalized/support_controls.csv"
+    transformation_required: "Preserve leave-one-group-out ranges and the exact seven-group RHELM sign-flip test."
+    public_label: "few-group support robustness"
+    contains_raw_text_or_private_content: false
+
+  - id: support_control_manifest
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "d9f2a5c1e26790f350a38f83ca424d20ca64ae7c"
+    source_path: "results/support_controls/manifest.json"
+    source_sha256: "5c433fdd7978418e3c33def45d5a23ad1bce3bebe0a48810bfdf672a79446c29"
+    intended_normalized_destination: "evidence/manifests/support_controls.json"
+    transformation_required: "Preserve frozen route identities, zero-call status, and output hashes."
+    public_label: "support-control provenance"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_verifier_operating_curve
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "d9f2a5c1e26790f350a38f83ca424d20ca64ae7c"
+    source_path: "results/posthoc_robustness/verifier_operating_curve.csv"
+    source_sha256: "54115cd05278a733313b45f78c7b50f33d11e02c9aebed62535266d249cb6984"
+    intended_normalized_destination: "evidence/normalized/text_inferred_admissibility.csv"
+    transformation_required: "Preserve the fixed threshold grid and mark the unchanged development-selected operating point."
+    public_label: "verifier operating curves"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_counterfactual_scenario_robustness
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "d9f2a5c1e26790f350a38f83ca424d20ca64ae7c"
+    source_path: "results/posthoc_robustness/counterfactual_scenario_robustness.csv"
+    source_sha256: "e67d5992a0deb7f469ae1ca02308722d104d9ccb782646d02692a3ee5b3162e6"
+    intended_normalized_destination: "evidence/normalized/counterfactual_exposure.csv"
+    transformation_required: "Preserve reader-separated leave-one-scenario-out ranges and exact sign-flip tests."
+    public_label: "paired-exposure scenario robustness"
+    contains_raw_text_or_private_content: false
+
+  - id: posthoc_robustness_manifest
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "d9f2a5c1e26790f350a38f83ca424d20ca64ae7c"
+    source_path: "results/posthoc_robustness/manifest.json"
+    source_sha256: "52a4214a2ab5452c2a2ebd88d66a39ac308d11c33d20245d668bf44b843b6dbb"
+    intended_normalized_destination: "evidence/manifests/posthoc_robustness.json"
+    transformation_required: "Preserve zero-call status, no-pooling boundaries, source hashes, and output hashes."
+    public_label: "post-hoc robustness provenance"
+    contains_raw_text_or_private_content: false
