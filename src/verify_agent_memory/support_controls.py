@@ -151,6 +151,39 @@ def leave_one_out_means(values: Mapping[str, float]) -> dict[str, float]:
     return {key: (total - value) / (len(numeric) - 1) for key, value in sorted(numeric.items())}
 
 
+def scenario_selectivity(
+    rows: Sequence[Mapping[str, object]],
+    *,
+    scenario_field: str = "scenario_id",
+    cell_field: str = "cell",
+    effect_field: str = "exposure_effect",
+) -> dict[str, float]:
+    """Compute per-scenario admissible-minus-inadmissible exposure effects."""
+    grouped: dict[str, dict[str, list[float]]] = {}
+    for row in rows:
+        scenario = str(row.get(scenario_field, ""))
+        cell = str(row.get(cell_field, ""))
+        if not scenario or cell not in {"relevant_admissible", "relevant_inadmissible"}:
+            continue
+        raw_effect = row.get(effect_field)
+        if isinstance(raw_effect, bool) or not isinstance(raw_effect, (int, float, str)):
+            raise TypeError("exposure effects must be numeric")
+        effect = float(raw_effect)
+        if not math.isfinite(effect):
+            raise ValueError("exposure effects must be finite")
+        grouped.setdefault(scenario, {}).setdefault(cell, []).append(effect)
+    output: dict[str, float] = {}
+    for scenario, cells in sorted(grouped.items()):
+        if set(cells) != {"relevant_admissible", "relevant_inadmissible"}:
+            raise ValueError("each scenario requires both relevant selectivity cells")
+        admissible = sum(cells["relevant_admissible"]) / len(cells["relevant_admissible"])
+        inadmissible = sum(cells["relevant_inadmissible"]) / len(cells["relevant_inadmissible"])
+        output[scenario] = admissible - inadmissible
+    if not output:
+        raise ValueError("no scenario selectivity rows were found")
+    return output
+
+
 def exact_sign_flip_pvalue(deltas: Sequence[float]) -> float:
     """Two-sided exact sign-flip p-value for at most 20 paired units."""
     numeric = tuple(float(value) for value in deltas if float(value) != 0.0)

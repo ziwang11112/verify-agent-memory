@@ -7,6 +7,7 @@ from verify_agent_memory.support_controls import (
     filter_ranking,
     leave_one_out_means,
     permute_labels,
+    scenario_selectivity,
     score_matched_recall,
 )
 
@@ -89,3 +90,16 @@ def test_leave_one_out_and_exact_sign_flip_are_deterministic() -> None:
     }
     assert exact_sign_flip_pvalue((1.0, 1.0, 1.0)) == pytest.approx(0.25)
     assert exact_sign_flip_pvalue((0.0, 0.0)) == 1.0
+
+
+def test_scenario_selectivity_uses_paired_relevant_cells() -> None:
+    rows = (
+        {"scenario_id": "s1", "cell": "relevant_admissible", "exposure_effect": 1},
+        {"scenario_id": "s1", "cell": "relevant_admissible", "exposure_effect": 0},
+        {"scenario_id": "s1", "cell": "relevant_inadmissible", "exposure_effect": 0},
+        {"scenario_id": "s1", "cell": "irrelevant_admissible", "exposure_effect": 1},
+        {"scenario_id": "s2", "cell": "relevant_admissible", "exposure_effect": 1},
+        {"scenario_id": "s2", "cell": "relevant_inadmissible", "exposure_effect": 1},
+    )
+
+    assert scenario_selectivity(rows) == {"s1": 0.5, "s2": 0.0}
