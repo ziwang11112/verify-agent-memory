@@ -233,6 +233,8 @@ def _write_readme(
         "analysis partition. The original calibration-selected threshold is marked but never ",
         "changed. Curves expose precision--recall, retained-candidate coverage, required-anchor ",
         "false denial, evidence recall, feasible rate, and matched-recall risk.",
+        "Candidate precision, recall, and false denial are analysis-candidate micro averages; ",
+        "route outcomes are equal-stratum macro averages, matching the primary diagnostic.",
         "",
         "## Dev-selected verifier points",
         "",
@@ -248,6 +250,20 @@ def _write_readme(
             f"{float(row['required_anchor_false_deny_rate']):.4f} | "
             f"{float(row['penalized_admissibility_upper_risk']):.4f} |"
         )
+    for provider in sorted({str(row["provider"]) for row in curve_rows}):
+        safe = [
+            row
+            for row in curve_rows
+            if row["provider"] == provider and float(row["required_anchor_false_deny_rate"]) <= 0.01
+        ]
+        if safe:
+            best_recall = max(float(row["violation_recall"]) for row in safe)
+            lines.append(
+                f"{provider} has {len(safe)} grid point(s) at or below 1% anchor false denial; "
+                f"the best violation recall there is {best_recall:.4f}."
+            )
+        else:
+            lines.append(f"{provider} has no grid point at or below 1% anchor false denial.")
     lines.extend(
         [
             "",
