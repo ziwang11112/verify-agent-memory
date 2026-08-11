@@ -76,3 +76,18 @@ panel and Claude replication are reported separately and never pooled. Their pub
 packages contain only content-free pair scores, aggregates, execution receipts, and
 hashes; prompts, candidate text, answer text, and raw provider responses remain
 excluded.
+
+## Frozen Post-Hoc Controls
+
+The support-control analysis is bound to natural execution commit
+`8e34e3d41c56e1699696bc27be95cdac7c9528e5`, embedding checkpoint
+`d333477116735f49b7628ee5d324e92a9f608190079a7b1d699308f5ec4f1ae6`, and the
+route-bundle hashes listed in `results/support_controls/manifest.json`. It recomputes
+exact rankings locally and makes zero provider calls.
+
+The verifier operating curves are bound to complete OpenAI and Gemini structured
+response hashes `fa25549ef10ce36408fc1c88312ab801ecd5ca0a447dac8f4a18f5ff0f8ec8ab`
+and `b56bd3a1793334cbc0ff5ec75fb7b280ade5c143b13274ca0681da9dd1ce37db`.
+Only aggregate curve points are released. The paired-exposure robustness calculation
+uses the already public content-free pair-score hash
+`855f98897b9e1963d98cd0d6da7ad043c93602febd8f3813583930b644572938`.

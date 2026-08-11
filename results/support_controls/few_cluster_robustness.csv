@@ -1,0 +1,5 @@
+comparison,metric,equal_source_macro_estimate,leave_one_group_out_min,leave_one_group_out_max,group_count,groups_positive,groups_zero,groups_negative,rhelm_group_count,rhelm_exact_two_sided_sign_flip_p
+namespace_pre_filter_minus_global_dense,evidence_recall,0.10130865428950625,0.09742666464063565,0.10771108116796663,87,81,6,0,7,0.015625
+namespace_pre_filter_minus_global_dense,feasible_rate,0.07390965052705037,0.06850648666308345,0.08070071006420343,87,57,30,0,7,0.015625
+namespace_pre_filter_minus_global_dense,penalized_admissibility_upper_risk,-0.08536173477379466,-0.09385627374500599,-0.08042197430165232,87,0,21,66,7,0.015625
+namespace_pre_filter_minus_global_dense,penalized_residual_upper_risk,-0.06617804919911435,-0.07296910873626733,-0.060774885335147355,87,5,21,61,7,0.015625

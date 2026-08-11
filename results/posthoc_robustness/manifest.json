@@ -1,0 +1,33 @@
+{
+  "analysis": "posthoc-operating-curves-and-cluster-robustness-v1",
+  "analysis_commit": "2aeda4ade1a060402a205b3268d306b54351cb29",
+  "case_bundle_sha256": "b3cc5a9b1fb31682fd68a921d1fdd0014632623e3d1c57b69fbd7fc4258026fd",
+  "contains_case_candidate_scenario_or_group_ids": false,
+  "contains_raw_text_prompts_or_responses": false,
+  "counterfactual_pair_scores_sha256": "855f98897b9e1963d98cd0d6da7ad043c93602febd8f3813583930b644572938",
+  "evaluation_retuning": false,
+  "judge_calls": 0,
+  "model_pooling": false,
+  "outputs": {
+    "README.md": {
+      "sha256": "dc8925787ac441c9161035e663f177134462e3cd7a68eed01f73c25435f37470"
+    },
+    "counterfactual_scenario_robustness.csv": {
+      "rows": 3,
+      "sha256": "e67d5992a0deb7f469ae1ca02308722d104d9ccb782646d02692a3ee5b3162e6"
+    },
+    "verifier_operating_curve.csv": {
+      "rows": 42,
+      "sha256": "54115cd05278a733313b45f78c7b50f33d11e02c9aebed62535266d249cb6984"
+    }
+  },
+  "paid_calls": 0,
+  "protocol_sha256": "3ab9b7d18b8c101b346afa6ba8aad336775e436a31990e85861fc3dd11c14550",
+  "provider_calls": 0,
+  "reader_calls": 0,
+  "response_sha256": {
+    "Gemini": "b56bd3a1793334cbc0ff5ec75fb7b280ade5c143b13274ca0681da9dd1ce37db",
+    "OpenAI": "fa25549ef10ce36408fc1c88312ab801ecd5ca0a447dac8f4a18f5ff0f8ec8ab"
+  },
+  "schema_version": 1
+}

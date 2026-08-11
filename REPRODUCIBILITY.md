@@ -94,12 +94,32 @@ uv run --extra dev python -m scripts.publish_supplemental_results verify
 uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
 uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
 uv run --extra dev python -m scripts.publish_natural_case_audit verify
+uv run --extra dev python -m pytest tests/test_posthoc_robustness_results.py
 uv run --extra dev --extra plots python -m scripts.plot_counterfactual_selectivity_figure
 uv run --extra dev --extra plots python -m scripts.plot_counterfactual_exposure_figure
 ```
 
 Plot scripts consume checked-in score tables only. They do not read credentials or raw
 provider responses.
+
+The checked-in support-control and operating-curve bundles are fully hash-verifiable
+from Git. Recomputing them from frozen rankings or provider predictions additionally
+requires the excluded provenance archive:
+
+```powershell
+python -m scripts.run_frozen_natural_support_controls `
+  --archive-root ../bomi-codex-starter `
+  --output-dir tmp/support_controls
+
+python -m scripts.run_frozen_posthoc_robustness `
+  --cases tmp/inferred_admissibility/cases.jsonl `
+  --response-dir tmp/inferred_admissibility_canonical/primary_first_committed `
+  --output-dir tmp/posthoc_robustness
+```
+
+Both commands are zero-call post-hoc analyses. The first reads frozen embeddings and
+route bundles; the second reads frozen structured verifier responses. Neither command
+reads credentials or contacts a provider.
 
 ## 5. Acquire Exact Public Sources
 

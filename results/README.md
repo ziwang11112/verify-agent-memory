@@ -8,7 +8,9 @@ reader prompts, raw provider responses, embeddings, or credentials.
 | Directory | Evaluation | Main artifacts |
 | --- | --- | --- |
 | `supplemental_natural/` | Natural retrieval, top-k Pareto, released-field attribution, metadata break-even | CSV/JSON summaries and manifests |
+| `support_controls/` | Size-matched support, pre/post-filter depth, recall/cost sensitivity, few-group robustness | Aggregate CSVs, summary, manifest |
 | `inferred_admissibility/` | Natural-development text verifier | Classification, route, threshold, sensitivity, usage, and manifest files |
+| `posthoc_robustness/` | Fixed verifier operating curves and paired-exposure scenario robustness | Curve CSV, leave-one-out summary, manifest |
 | `counterfactual_admissibility/` | Controlled focal/stable verifier diagnostic | Pair scores, bootstrap intervals, error taxonomy, figures, manifest |
 | `counterfactual_exposure/` | Original three-reader paired exposure intervention | Pair scores, cell metrics, bootstrap intervals, usage, figures, manifest |
 | `claude_opus5_exposure_replication/` | Separately executed fourth-reader replication | Pair scores, cell metrics, bootstrap intervals, usage, manifest |
@@ -34,9 +36,19 @@ uv run --extra dev python -m scripts.publish_supplemental_results verify
 uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
 uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
 uv run --extra dev python -m scripts.publish_natural_case_audit verify
+uv run --extra dev python -m pytest tests/test_posthoc_robustness_results.py
 ```
 
 Interpretation boundaries are maintained in `CLAIM_CONTRACT.md` and
 `claims/claims.yaml`. Results from distinct readers, populations, or sequential
 replications must not be pooled unless the corresponding contract defines that
 estimand.
+
+The support-size control is deliberately harsh: it preserves the source-level
+namespace label counts while randomly reassigning those labels. Its failure shows
+that a smaller pool alone does not recover the correct evidence support. At the same
+time, the scope-excluded conditional risk among feasible queries is `0.1261` for
+namespace pre-filtering and `0.1229` for global dense. The lower primary penalized
+residual risk therefore comes from improved feasibility under the preregistered
+infeasibility cost, not from a demonstrated policy/lifecycle improvement. Namespace
+support should not be interpreted as a substitute for those checks.

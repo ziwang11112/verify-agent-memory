@@ -58,6 +58,7 @@ uv run --extra dev python -m scripts.publish_supplemental_results verify
 uv run --extra dev python -m scripts.publish_counterfactual_exposure_results verify
 uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
 uv run --extra dev python -m scripts.publish_natural_case_audit verify
+uv run --extra dev python -m pytest tests/test_posthoc_robustness_results.py
 ```
 
 The checks reject schema drift, non-finite data, changed hashes, incomplete result
@@ -116,10 +117,11 @@ broaden rights in incorporated datasets.
 ## Results
 
 Checked-in result families cover natural retrieval, fixed-budget and metadata
-robustness, natural and controlled verification, paired exposure, three natural
-reader bundles, a tokenized case-level audit, and an alternate-judge audit. Public
-result files contain only derived scores, aggregates, intervals, figures, usage/cost
-receipts, and hashes.
+robustness, support-size and pre/post-filter controls, verifier operating curves,
+natural and controlled verification, paired exposure, three natural reader bundles,
+a tokenized case-level audit, and an alternate-judge audit. Public result files
+contain only derived scores, aggregates, intervals, figures, usage/cost receipts,
+and hashes.
 
 The case-level audit also reports a post-hoc aggregation sensitivity that gives each
 evaluable RHELM/MemOps case equal weight. It is computed entirely from the released
@@ -129,10 +131,13 @@ Representative frozen findings include:
 
 - namespace-constrained support improves recall and admissibility risk relative to
   global dense on the natural evaluation;
+- a size-matched random partition fails badly, while global retrieval must reach
+  roughly depth 500 before post-filtering approaches namespace pre-filtering, so the
+  gain is not explained by candidate-count reduction alone;
 - released policy metadata supplies most of the incremental governance gain, while
   the evaluated coarse lifecycle-only rule removes useful evidence;
 - tested text-only verifiers over-deny stable evidence and do not recover the
-  released-field utility-risk frontier;
+  released-field utility-risk frontier across a fixed threshold sweep;
 - reader restraint is imperfect after relevant inadmissible evidence is exposed; and
 - a 200-output alternate-judge audit reaches `0.865` answer-correctness agreement,
   with a weaker `0.833` sequential GPT-reader subgroup.

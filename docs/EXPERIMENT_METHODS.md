@@ -30,6 +30,8 @@ this repository to their implementations and frozen protocols.
 | Exposure execution | `experiments/counterfactual_exposure_execution_protocol.json` | Exact reader panel, cost bounds, checkpoints, and external-unlock requirement |
 | Supplemental results | `results/supplemental_natural/` | Content-free top-k, attribution, and metadata break-even diagnostics |
 | Supplemental verifier | `scripts/publish_supplemental_results.py` | Hash, schema, row-count, and content-boundary checks for the result package |
+| Support controls | `scripts/run_frozen_natural_support_controls.py` | Size-matched random support, pre/post-filter depth, metric sensitivity, and few-group robustness |
+| Verifier curves | `scripts/run_frozen_posthoc_robustness.py` | Fixed threshold curves and leave-one-scenario-out selectivity from frozen outputs |
 
 The public retrieval path is local and zero-provider: no reader, judge, provider
 client, or model call is present in this execution path.
