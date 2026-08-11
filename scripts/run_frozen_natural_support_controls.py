@@ -17,6 +17,7 @@ from typing import Any
 
 import numpy as np
 
+import scripts as scripts_package
 from scripts.run_frozen_natural_support_expansion import (
     _first_supported,
     _namespace_support_at,
@@ -486,6 +487,9 @@ embeddings, prompts, responses, or private payloads.
 
 def _run(archive_root: Path, output_dir: Path, batch_size: int) -> None:
     protocol = _load_protocol()
+    archive_scripts = str(archive_root / "scripts")
+    if archive_scripts not in scripts_package.__path__:
+        scripts_package.__path__.append(archive_scripts)
     api = _prepare_archive_imports(archive_root)
     old_config_path = (
         archive_root / "experiments" / "configs" / "stage3_natural_corpus_public_eval.json"
