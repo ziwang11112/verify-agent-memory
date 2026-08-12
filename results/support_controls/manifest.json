@@ -1,6 +1,6 @@
 {
   "analysis": "natural-support-controls-v1",
-  "analysis_commit": "771271ec6bc49c829bfb5942a3c717d05801b046",
+  "analysis_commit": "8e6ab7208a490e84d897a894d38a6fee0f99af8b",
   "base_execution_commit": "8e34e3d41c56e1699696bc27be95cdac7c9528e5",
   "contains_query_memory_or_group_ids": false,
   "contains_raw_text_embeddings_prompts_or_responses": false,
@@ -15,7 +15,7 @@
   "provider_calls": 0,
   "published_files": {
     "README.md": {
-      "sha256": "afabd85b6c701e824a8f76003e3156ef46350edeb38fa7c7403815483e531c3b"
+      "sha256": "32571942992f179a6d5a7e1a5af867e48dc09d6bb41b3c9b83ecfaef12dc92c4"
     },
     "few_cluster_robustness.csv": {
       "row_count": 4,
@@ -27,19 +27,19 @@
     },
     "infeasibility_cost_sensitivity.csv": {
       "row_count": 30,
-      "sha256": "dcc984913b60241ba0fd50d80e0a3b5dea514b7971fcfc61b17b57bd0a66e725"
+      "sha256": "6093b284d444d82152df5b623e6f9c2402a6ae38b5d648b55ff9bd74bdac55be"
     },
     "support_control_main.csv": {
       "row_count": 6,
-      "sha256": "edf7a6032e5633d2544d42acb5e13165a577bb67f5b5a6a3591fb42dda2418e9"
+      "sha256": "4fe6124815a99bbf13f4fea0d30f5a61517a41050fea15152775a99a41ebfe50"
     },
     "support_control_seed_rows.csv": {
       "row_count": 375,
-      "sha256": "e46bdb0ed02cc468232e7a238cd78d14edf1cb8697388e5b91b524b84b568ea2"
+      "sha256": "3a7faf4e16cba0f4edcf5cfc821a295b9d75a5b94cd6f292af89f8fcb8b20a93"
     },
     "target_recall_sensitivity.csv": {
       "row_count": 30,
-      "sha256": "9f5c59e884d66970684c5a2ace1c7b3aced6ab421addb79e9132d7aec4f33662"
+      "sha256": "e5abbaba2ff928b192043f9365f57543c8722033c9742fcc6f59293194a7cb25"
     }
   },
   "query_count": 3767,
