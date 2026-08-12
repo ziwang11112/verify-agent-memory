@@ -21,6 +21,9 @@ class MatchedRecallScore:
     residual_upper_risk: float | None
     penalized_admissibility_upper_risk: float
     penalized_residual_upper_risk: float
+    known_admissibility_violation_count: int | None
+    any_known_admissibility_violation: bool | None
+    upper_admissibility_violation_count: int | None
 
 
 def identity_seed(seed: int, channel: str, *identity: str) -> int:
@@ -109,6 +112,9 @@ def score_matched_recall(
             residual_upper_risk=None,
             penalized_admissibility_upper_risk=infeasibility_cost,
             penalized_residual_upper_risk=infeasibility_cost,
+            known_admissibility_violation_count=None,
+            any_known_admissibility_violation=None,
+            upper_admissibility_violation_count=None,
         )
 
     hits = 0
@@ -121,9 +127,11 @@ def score_matched_recall(
     if not prefix:
         raise RuntimeError("feasible ranking lacks a matched-recall prefix")
 
-    full_upper = sum(admissibility_statuses[memory_id] is not True for memory_id in prefix) / len(
-        prefix
+    known_violation_count = sum(admissibility_statuses[memory_id] is False for memory_id in prefix)
+    upper_violation_count = sum(
+        admissibility_statuses[memory_id] is not True for memory_id in prefix
     )
+    full_upper = upper_violation_count / len(prefix)
     residual_upper = sum(residual_statuses[memory_id] is not True for memory_id in prefix) / len(
         prefix
     )
@@ -135,6 +143,9 @@ def score_matched_recall(
         residual_upper_risk=residual_upper,
         penalized_admissibility_upper_risk=full_upper,
         penalized_residual_upper_risk=residual_upper,
+        known_admissibility_violation_count=known_violation_count,
+        any_known_admissibility_violation=known_violation_count > 0,
+        upper_admissibility_violation_count=upper_violation_count,
     )
 
 

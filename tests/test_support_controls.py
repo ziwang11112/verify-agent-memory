@@ -56,6 +56,33 @@ def test_matched_recall_scores_full_and_scope_excluded_risk() -> None:
     assert score.matched_prefix == ranked[:3]
     assert score.admissibility_upper_risk == pytest.approx(2 / 3)
     assert score.residual_upper_risk == pytest.approx(1 / 3)
+    assert score.known_admissibility_violation_count == 2
+    assert score.any_known_admissibility_violation is True
+    assert score.upper_admissibility_violation_count == 2
+
+
+def test_non_dilutable_violation_companions_survive_admissible_padding() -> None:
+    ranked = ("wrong-scope", "padding-1", "padding-2", "anchor")
+    statuses = {
+        "wrong-scope": False,
+        "padding-1": True,
+        "padding-2": True,
+        "anchor": True,
+    }
+
+    score = score_matched_recall(
+        ranked,
+        {"anchor"},
+        statuses,
+        statuses,
+        target_recall=0.8,
+        infeasibility_cost=1.0,
+    )
+
+    assert score.admissibility_upper_risk == pytest.approx(0.25)
+    assert score.known_admissibility_violation_count == 1
+    assert score.any_known_admissibility_violation is True
+    assert score.upper_admissibility_violation_count == 1
 
 
 def test_infeasibility_cost_is_explicit_and_does_not_change_recall() -> None:
@@ -80,6 +107,9 @@ def test_infeasibility_cost_is_explicit_and_does_not_change_recall() -> None:
     assert low.evidence_recall == high.evidence_recall == 0.0
     assert low.penalized_admissibility_upper_risk == 0.25
     assert high.penalized_admissibility_upper_risk == 1.0
+    assert low.known_admissibility_violation_count is None
+    assert low.any_known_admissibility_violation is None
+    assert low.upper_admissibility_violation_count is None
 
 
 def test_leave_one_out_and_exact_sign_flip_are_deterministic() -> None:

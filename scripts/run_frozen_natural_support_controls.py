@@ -73,6 +73,9 @@ class Aggregate:
     conditional_residual_risk: float = 0.0
     returned_wrong_scope: float = 0.0
     matched_wrong_scope: float = 0.0
+    any_known_violation: float = 0.0
+    known_violation_count: float = 0.0
+    upper_violation_count: float = 0.0
     route_width: float = 0.0
     candidates_scored: float = 0.0
 
@@ -98,6 +101,9 @@ class Aggregate:
             self.conditional_risk += float(score.admissibility_upper_risk)
             self.conditional_residual_risk += float(score.residual_upper_risk)
             self.matched_wrong_scope += float(matched_wrong_scope)
+            self.any_known_violation += float(score.any_known_admissibility_violation)
+            self.known_violation_count += float(score.known_admissibility_violation_count)
+            self.upper_violation_count += float(score.upper_admissibility_violation_count)
 
     def means(self) -> dict[str, float | int | None]:
         if not self.query_count:
@@ -121,6 +127,15 @@ class Aggregate:
             "matched_prefix_wrong_scope_rate": (
                 self.matched_wrong_scope / matched if matched else None
             ),
+            "matched_prefix_any_known_admissibility_violation_rate": (
+                self.any_known_violation / matched if matched else None
+            ),
+            "matched_prefix_mean_known_admissibility_violation_count": (
+                self.known_violation_count / matched if matched else None
+            ),
+            "matched_prefix_mean_upper_admissibility_violation_count": (
+                self.upper_violation_count / matched if matched else None
+            ),
             "mean_route_width": self.route_width / denominator,
             "mean_candidates_scored": self.candidates_scored / denominator,
         }
@@ -141,6 +156,9 @@ class Aggregate:
             ),
             returned_wrong_scope=self.returned_wrong_scope - other.returned_wrong_scope,
             matched_wrong_scope=self.matched_wrong_scope - other.matched_wrong_scope,
+            any_known_violation=self.any_known_violation - other.any_known_violation,
+            known_violation_count=self.known_violation_count - other.known_violation_count,
+            upper_violation_count=self.upper_violation_count - other.upper_violation_count,
             route_width=self.route_width - other.route_width,
             candidates_scored=self.candidates_scored - other.candidates_scored,
         )
@@ -448,10 +466,13 @@ def _write_readme(output_dir: Path, main_rows: Sequence[Mapping[str, object]]) -
         feasible = float(row["mean_feasible_rate"])
         risk = float(row["mean_penalized_admissibility_upper_risk"])
         residual = float(row["mean_penalized_residual_upper_risk"])
+        any_violation = float(row["mean_matched_prefix_any_known_admissibility_violation_rate"])
+        violation_count = float(row["mean_matched_prefix_mean_known_admissibility_violation_count"])
         candidates = float(row["mean_mean_candidates_scored"])
         return (
             f"| {label} | {recall:.4f} | {feasible:.4f} | {risk:.4f} | "
-            f"{residual:.4f} | {candidates:.1f} |"
+            f"{residual:.4f} | {any_violation:.4f} | {violation_count:.3f} | "
+            f"{candidates:.1f} |"
         )
 
     text = f"""# Natural Support Controls
@@ -462,8 +483,8 @@ route limit is 20 and the primary matched-recall target is 0.8.
 
 ## Main comparison
 
-| Arm | Recall | Feasible rate | Penalized risk | Residual risk | Candidates scored |
-| --- | ---: | ---: | ---: | ---: | ---: |
+| Arm | Recall | Feasible | Risk | Residual | Any violation | Mean violations | Candidates |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 {table_row("Global dense", global_row)}
 {table_row("Size-matched random partition", random_row)}
 {table_row("Namespace pre-filter", namespace_row)}
@@ -475,6 +496,10 @@ namespace result. Post-filter arms test whether a shallow global retrieval can r
 the same support as filtering before ranking. Residual risk removes scope violations
 from the numerator and retains released policy/lifecycle violations and unresolved
 labels, so it is not mechanically reduced by the namespace check itself.
+The two known-violation columns are calculated only on feasible matched-recall
+prefixes. Unlike fractional risk, neither the any-violation indicator nor the count
+can be reduced by inserting additional established-positive records before the
+recall target.
 
 Sensitivity files report target recall 0.5--1.0 and infeasibility cost 0--1. The
 few-cluster file reports leave-one-namespace-out ranges and an exact two-sided sign-flip
