@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "claim_id": "C1",
+  "source_repository_commit": "a28093110325968c26906223e9eb0f1e078f6aad",
+  "source_artifacts": [
+    {
+      "artifact_id": "audited_public_source_packets",
+      "sha256": "1b170937d612eb9f6b7a2ac752786495c820406319e6007f7df00bd706af75b0"
+    },
+    {
+      "artifact_id": "source_derived_gold_labels",
+      "sha256": "749f01b6a5da3a743063ff3562fc771fb2d72991b0e6c5ec0d0eef49a9c3ed71"
+    }
+  ],
+  "text_policy": "Abridged from audited public-source RHELM and MemOps packets. Ellipses and compacted wording are editorial only; labels and verdicts are unchanged.",
+  "cases": [
+    {
+      "case_id": "wrong_namespace_market",
+      "source": "RHELM",
+      "failure_type": "WRONG NAMESPACE",
+      "packet_id": "rhelm/David_R._Ellis/temporal_d2b78a",
+      "query": "Which seasonal ingredients did Monica choose at the market?",
+      "memories": [
+        {
+          "memory_id": "David_R._Ellis/conversation/2024-06-23/turn-16",
+          "text": "Ripe strawberries, fresh basil, heirloom tomatoes, and rainbow chard.",
+          "relevance": "required",
+          "scope": "allowed",
+          "state": "current",
+          "prohibited": false,
+          "usable": true
+        },
+        {
+          "memory_id": "Dr._Marcus_Ellison/conversation/2024-07-27/turn-14",
+          "text": "Smoked trout and greens felt connected to the morning at the market.",
+          "relevance": "not_useful",
+          "scope": "disallowed",
+          "state": "current",
+          "prohibited": true,
+          "usable": false
+        }
+      ],
+      "lesson": "Topic overlap cannot authorize another principal's memory."
+    },
+    {
+      "case_id": "superseded_lisbon_date",
+      "source": "MemOps",
+      "failure_type": "SUPERSEDED STATE",
+      "packet_id": "memops/C06_trajectory_ops/p3_state_transition/longitudinal_operation",
+      "query": "What Lisbon departure date belongs in my out-of-office reply?",
+      "memories": [
+        {
+          "memory_id": "C06_trajectory_ops/message/segment-8/item-9",
+          "text": "The Lisbon departure is March 7.",
+          "relevance": "not_useful",
+          "scope": "allowed",
+          "state": "superseded",
+          "prohibited": true,
+          "usable": false
+        },
+        {
+          "memory_id": "C06_trajectory_ops/message/segment-19/item-15",
+          "text": "The airline confirmed the original March 14 flight is going ahead.",
+          "relevance": "required",
+          "scope": "allowed",
+          "state": "current",
+          "prohibited": false,
+          "usable": true
+        }
+      ],
+      "lesson": "A current-state query must not revive an invalidated value."
+    },
+    {
+      "case_id": "forgotten_phone_detail",
+      "source": "MemOps",
+      "failure_type": "USER-FORGOTTEN DETAIL",
+      "packet_id": "memops/D01_forget/p2_target_binding/longitudinal_operation",
+      "query": "Which phone details remain usable after my forget request?",
+      "memories": [
+        {
+          "memory_id": "D01_forget/message/segment-10/item-9",
+          "text": "I keep the battery between 20 and 80 percent; AccuBattery shows 100 percent health.",
+          "relevance": "not_useful",
+          "scope": "allowed",
+          "state": "stale",
+          "prohibited": true,
+          "usable": false
+        },
+        {
+          "memory_id": "D01_forget/message/segment-16/item-11",
+          "text": "Forget battery health and charging habits; keep model, storage, color, date, and carrier.",
+          "relevance": "required",
+          "scope": "allowed",
+          "state": "current",
+          "prohibited": false,
+          "usable": true
+        }
+      ],
+      "lesson": "The forget instruction remains usable; the forgotten detail does not."
+    },
+    {
+      "case_id": "historical_metformin_timeline",
+      "source": "MemOps",
+      "failure_type": "HISTORY QUERY NEEDS OLD STATES",
+      "packet_id": "memops/A11_update/p1_operation_trace/longitudinal_operation",
+      "query": "How did my metformin timing change over time?",
+      "memories": [
+        {
+          "memory_id": "A11_update/message/segment-5/item-1",
+          "text": "Initially: breakfast and dinner.",
+          "relevance": "required",
+          "scope": "allowed",
+          "state": "superseded",
+          "prohibited": false,
+          "usable": true
+        },
+        {
+          "memory_id": "A11_update/message/segment-5/item-5",
+          "text": "Then: breakfast and an afternoon snack.",
+          "relevance": "required",
+          "scope": "allowed",
+          "state": "superseded",
+          "prohibited": false,
+          "usable": true
+        },
+        {
+          "memory_id": "A11_update/message/segment-34/item-3",
+          "text": "Now: back to breakfast and dinner.",
+          "relevance": "required",
+          "scope": "allowed",
+          "state": "current",
+          "prohibited": false,
+          "usable": true
+        }
+      ],
+      "lesson": "Superseded evidence is still admissible when the query asks for history."
+    }
+  ]
+}

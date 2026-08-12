@@ -1,0 +1,85 @@
+{
+  "checkpoint_recovery_commit": "0ede9a8e415cf9d553fba122e629f48ee6e3c66d",
+  "comparison_eligible_providers": [
+    "OpenAI",
+    "Gemini"
+  ],
+  "contains_query_memory_or_case_ids": false,
+  "contains_raw_text_prompts_or_responses": false,
+  "contract_incomplete_providers": [
+    "DeepSeek",
+    "Anthropic"
+  ],
+  "evaluation_or_heldout_access": false,
+  "evaluation_retuning": false,
+  "files": {
+    "README.md": {
+      "sha256": "32f2f355b6601939a332dc9c3030f53901941ad89755341abdf1927f2f84c641"
+    },
+    "checkpoint_recovery.json": {
+      "sha256": "ce773b06814e8072261d54ca1dcb0871945c6de526288cd87df41f1da132d17d"
+    },
+    "classification_metrics.csv": {
+      "row_count": 32,
+      "sha256": "4d30a58254e3fbccc654e331f41ad07798dab420cbc79e226d0da6263efe3a73"
+    },
+    "filter_metrics.csv": {
+      "row_count": 16,
+      "sha256": "f400bec797847cee09e72ec609496de0c1da6ee619bea68c14598bbdbb49f9dd"
+    },
+    "paired_route_deltas.csv": {
+      "row_count": 40,
+      "sha256": "9d2ba2b6ef69ee9d107aeea2582b5e2f20263bf7d23da694c6b32199ff96d170"
+    },
+    "provider_execution_status.csv": {
+      "row_count": 4,
+      "sha256": "28be47037963a918432baae01a5f5cda4f37173fa7232fe4658de0e83852292e"
+    },
+    "provider_fixtures.csv": {
+      "row_count": 4,
+      "sha256": "fd1b9c3856acd46039238a16d2b2c5de02d65f63f2851eecd009a44005fe3284"
+    },
+    "provider_usage.csv": {
+      "row_count": 2,
+      "sha256": "34b3d71ea5b33fbe594d56846d78176d64b81dc1fb574267289f5343affee9ee"
+    },
+    "route_metrics.csv": {
+      "row_count": 32,
+      "sha256": "9ce682fb64a89c8720df2e590ce893c7668a5ec3fb16a4a44a88ceb95eed2e6e"
+    },
+    "scoring_manifest.json": {
+      "sha256": "476d7571b901f30fd8892ade2ca17dea13b0da56df507c3aeb29f2d462cc721b"
+    },
+    "selected_thresholds.csv": {
+      "row_count": 4,
+      "sha256": "2a25e7c4d62d8666a3455ce4ec4455c931277fe686afef9c7295d25c85219299"
+    },
+    "sensitivity_scoring_manifest.json": {
+      "sha256": "fee21dd6aaf23d78bca54f4284207d4621ccdb11dc981275fce64ce3a49cd3f7"
+    },
+    "sensitivity_summary.json": {
+      "sha256": "ded6117b9a6bd144a48f528b960375c8e018206001f06de1ae4813647e04b9ae"
+    }
+  },
+  "judge_calls": 0,
+  "official_result": false,
+  "population": {
+    "analysis_cases": 72,
+    "calibration_cases": 24,
+    "candidate_depth": 20,
+    "cases": 96,
+    "sources": [
+      "RHELM",
+      "MemOps"
+    ]
+  },
+  "prompt_sha256": "933d2f15971f59e4fd1dcdee87539248b26f47018eaca9eb0aa13ca548fa43b1",
+  "protocol_sha256": "9ddd7575321ae8f15d832249dc94262799b39477c8a330b116feee533fc584cc",
+  "provider_execution_commit": "9c665b43afbac3954fda92e70f8940b3efd98d90",
+  "publisher": "scripts/publish_inferred_admissibility_results.py",
+  "publisher_sha256": "6f4dbb16c7f6abacf6c8444d40d502c8a3adff9fa3b8b0354b460907b6e733e5",
+  "reader_calls": 0,
+  "schema_version": 1,
+  "scoring_commit": "0af6ecfebadcac92a78e4c11f2e28e4ab9f187e8",
+  "status": "public_dev_text_inferred_admissibility_diagnostic_not_official_benchmark"
+}

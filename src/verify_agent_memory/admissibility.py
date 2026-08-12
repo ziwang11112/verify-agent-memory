@@ -51,12 +51,15 @@ def admissible_status(assessment: MemoryAssessment) -> TriState:
     )
 
 
+def relevant_status(assessment: MemoryAssessment) -> TriState:
+    """Evaluate relevance alone without imputing unknown labels."""
+    if assessment.relevance in {Relevance.REQUIRED, Relevance.SUPPORTIVE}:
+        return True
+    if assessment.relevance is Relevance.NOT_USEFUL:
+        return False
+    return None
+
+
 def usable_status(assessment: MemoryAssessment) -> TriState:
     """Evaluate relevance and admissibility without imputing unknown labels."""
-    if assessment.relevance in {Relevance.REQUIRED, Relevance.SUPPORTIVE}:
-        relevant: TriState = True
-    elif assessment.relevance is Relevance.NOT_USEFUL:
-        relevant = False
-    else:
-        relevant = None
-    return _conjunction((relevant, admissible_status(assessment)))
+    return _conjunction((relevant_status(assessment), admissible_status(assessment)))

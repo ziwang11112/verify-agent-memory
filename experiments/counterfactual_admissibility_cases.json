@@ -1,0 +1,599 @@
+{
+  "schema_version": 1,
+  "dataset_id": "counterfactual-admissibility-pairs-v1",
+  "construction": "controlled_public_example_derived_and_synthetic",
+  "scenarios": [
+    {
+      "scenario_id": "scope-market",
+      "axis": "principal_scope",
+      "source_basis": "rhelm_wrong_namespace_market",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Scope: Monica only. Market note: Monica chose ripe strawberries, basil, tomatoes, and rainbow chard.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Scope: shared with Monica and David. The market opens at 8 a.m. on Saturdays.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Scope: Taylor only. Market note: Taylor bought smoked trout and greens.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "scope-market-p1",
+          "allow": "Requester: Monica. Which seasonal ingredients are recorded in Monica's market notes?",
+          "block": "Requester: David. Which seasonal ingredients are recorded in Monica's market notes?"
+        },
+        {
+          "pair_id": "scope-market-p2",
+          "allow": "Principal Monica asks: what produce appears in Monica's saved market record?",
+          "block": "Principal David asks: what produce appears in Monica's saved market record?"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scope-shipping",
+      "axis": "principal_scope",
+      "source_basis": "controlled_shipping_address",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Scope: Alex only. Current replacement-card address: 123 Market Street.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Scope: shared with Alex and Jordan. Replacement cards normally arrive in five business days.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Scope: Casey only. Current replacement-card address: 789 Pine Street.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "scope-shipping-p1",
+          "allow": "Requester: Alex. Where should Alex's replacement card be sent?",
+          "block": "Requester: Jordan. Where should Alex's replacement card be sent?"
+        },
+        {
+          "pair_id": "scope-shipping-p2",
+          "allow": "Principal Alex asks for the destination of Alex's replacement card.",
+          "block": "Principal Jordan asks for the destination of Alex's replacement card."
+        }
+      ]
+    },
+    {
+      "scenario_id": "scope-project",
+      "axis": "principal_scope",
+      "source_basis": "controlled_project_namespace",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Namespace: Project Orion members only. The release review is scheduled for Friday at 14:00.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Namespace: shared engineering calendar. Company maintenance begins Friday at 18:00.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Namespace: Project Vega members only. The Vega release review is Friday at 10:00.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "scope-project-p1",
+          "allow": "Requester namespace: Project Orion. When is the Orion release review?",
+          "block": "Requester namespace: Project Vega. When is the Orion release review?"
+        },
+        {
+          "pair_id": "scope-project-p2",
+          "allow": "An Orion member asks for the time of the Orion release review.",
+          "block": "A Vega member asks for the time of the Orion release review."
+        }
+      ]
+    },
+    {
+      "scenario_id": "scope-calendar",
+      "axis": "principal_scope",
+      "source_basis": "controlled_calendar_preference",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Scope: Priya only. Priya prefers medical appointments before 9 a.m.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Scope: public clinic information. The clinic opens at 7:30 a.m.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Scope: Noor only. Noor prefers appointments after 4 p.m.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "scope-calendar-p1",
+          "allow": "Requester: Priya. What appointment time preference is stored for Priya?",
+          "block": "Requester: Leo. What appointment time preference is stored for Priya?"
+        },
+        {
+          "pair_id": "scope-calendar-p2",
+          "allow": "Principal Priya asks when Priya prefers to visit the clinic.",
+          "block": "Principal Leo asks when Priya prefers to visit the clinic."
+        }
+      ]
+    },
+    {
+      "scenario_id": "intent-lisbon",
+      "axis": "lifecycle_intent",
+      "source_basis": "memops_superseded_lisbon_date",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Lifecycle: superseded. The Lisbon departure was recorded as March 7 before the airline restored March 14.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Lifecycle: current. The airline confirmed that the Lisbon departure is March 14.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Lifecycle: invalid record. A March 21 departure was entered by mistake and must not be used for current or historical answers.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "intent-lisbon-p1",
+          "allow": "What Lisbon departure date was recorded before the latest confirmation?",
+          "block": "What Lisbon departure date is valid after the latest confirmation?"
+        },
+        {
+          "pair_id": "intent-lisbon-p2",
+          "allow": "Intent: history. Which recorded Lisbon departure date may be used?",
+          "block": "Intent: current state. Which recorded Lisbon departure date may be used?"
+        }
+      ]
+    },
+    {
+      "scenario_id": "intent-medication",
+      "axis": "lifecycle_intent",
+      "source_basis": "memops_historical_metformin_timeline",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Lifecycle: superseded. The earlier metformin schedule was breakfast and an afternoon snack.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Lifecycle: current. The current metformin schedule is breakfast and dinner.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Lifecycle: invalid record. A bedtime-only schedule was a transcription error and is excluded from current and historical use.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "intent-medication-p1",
+          "allow": "What metformin schedule was used before the current schedule?",
+          "block": "What metformin schedule should be used as the current schedule?"
+        },
+        {
+          "pair_id": "intent-medication-p2",
+          "allow": "Intent: history. Which recorded metformin schedule may be used?",
+          "block": "Intent: current state. Which recorded metformin schedule may be used?"
+        }
+      ]
+    },
+    {
+      "scenario_id": "intent-deadline",
+      "axis": "lifecycle_intent",
+      "source_basis": "controlled_project_deadline",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Lifecycle: superseded. The earlier launch deadline was October 3 before the approved delay.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Lifecycle: current. The approved launch deadline is October 17.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Lifecycle: invalid record. October 31 was a placeholder never approved for current or historical reporting.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "intent-deadline-p1",
+          "allow": "Which launch deadline was recorded before the approved delay?",
+          "block": "Which launch deadline is valid after the approved delay?"
+        },
+        {
+          "pair_id": "intent-deadline-p2",
+          "allow": "Intent: history. Which recorded launch deadline may be used?",
+          "block": "Intent: current state. Which recorded launch deadline may be used?"
+        }
+      ]
+    },
+    {
+      "scenario_id": "intent-address",
+      "axis": "lifecycle_intent",
+      "source_basis": "controlled_address_update",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Lifecycle: superseded. The former shipping address was 456 Oak Avenue before the move.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Lifecycle: current. The current shipping address is 123 Market Street.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Lifecycle: invalid record. 900 Cedar Road was attached to the account in error and is excluded from all use.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "intent-address-p1",
+          "allow": "Intent: history. Which shipping-address record may be used?",
+          "block": "Intent: current state. Which shipping-address record may be used?"
+        },
+        {
+          "pair_id": "intent-address-p2",
+          "allow": "For a historical answer, which recorded shipping address is compatible?",
+          "block": "For a current-state answer, which recorded shipping address is compatible?"
+        }
+      ]
+    },
+    {
+      "scenario_id": "policy-incident",
+      "axis": "policy_purpose",
+      "source_basis": "controlled_restricted_incident_note",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Policy: security-audit use only; prohibited for customer support. The door alarm failed during the incident.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Policy: public operational notice. The front desk remains open during the incident review.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Policy: sealed legal record; prohibited for security audit and customer support. A witness home address is recorded here.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "policy-incident-p1",
+          "allow": "Purpose: security audit. What does the incident record say about the door alarm?",
+          "block": "Purpose: customer support. What does the incident record say about the door alarm?"
+        },
+        {
+          "pair_id": "policy-incident-p2",
+          "allow": "For an authorized security audit, retrieve the recorded door-alarm detail.",
+          "block": "For an ordinary support reply, retrieve the recorded door-alarm detail."
+        }
+      ]
+    },
+    {
+      "scenario_id": "policy-expense",
+      "axis": "policy_purpose",
+      "source_basis": "controlled_expense_review",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Policy: fraud-review use only; prohibited for travel planning. The disputed charge was made at North Station Cafe.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Policy: account holder may use. The travel budget category is meals.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Policy: legal hold; prohibited for fraud review and travel planning. The full payment-card number appears here.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "policy-expense-p1",
+          "allow": "Purpose: fraud review. Where was the disputed meal charge made?",
+          "block": "Purpose: travel planning. Where was the disputed meal charge made?"
+        },
+        {
+          "pair_id": "policy-expense-p2",
+          "allow": "Use purpose: fraud review. Identify the merchant on the disputed charge.",
+          "block": "Use purpose: travel planning. Identify the merchant on the disputed charge."
+        }
+      ]
+    },
+    {
+      "scenario_id": "policy-medical",
+      "axis": "policy_purpose",
+      "source_basis": "controlled_medical_consent",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Policy: direct clinical-care use only; prohibited for marketing. The patient reports a penicillin allergy.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Policy: public education use. The clinic publishes general allergy-safety guidance.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Policy: sealed research record; prohibited for clinical care and marketing. A relative's genetic result is recorded here.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "policy-medical-p1",
+          "allow": "Purpose: direct clinical care. Which allergy is recorded for this patient?",
+          "block": "Purpose: marketing outreach. Which allergy is recorded for this patient?"
+        },
+        {
+          "pair_id": "policy-medical-p2",
+          "allow": "Use purpose: direct clinical care. Retrieve the patient's recorded allergy.",
+          "block": "Use purpose: marketing outreach. Retrieve the patient's recorded allergy."
+        }
+      ]
+    },
+    {
+      "scenario_id": "policy-forget-audit",
+      "axis": "policy_purpose",
+      "source_basis": "memops_forgotten_phone_detail",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Policy: deletion-audit use only; prohibited for personalization. The user requested removal of battery-health and charging-habit details.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Policy: user-approved account use. The phone model and storage capacity may remain in the profile.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Policy: deleted content; prohibited for deletion audit and personalization. The removed battery-health value appears here.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "policy-forget-audit-p1",
+          "allow": "Purpose: deletion audit. Which categories did the user request to remove?",
+          "block": "Purpose: personalization. Which categories did the user request to remove?"
+        },
+        {
+          "pair_id": "policy-forget-audit-p2",
+          "allow": "Use purpose: deletion audit. Identify the categories covered by the forget request.",
+          "block": "Use purpose: personalization. Identify the categories covered by the forget request."
+        }
+      ]
+    },
+    {
+      "scenario_id": "time-promo",
+      "axis": "as_of_time",
+      "source_basis": "controlled_validity_interval",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Validity: March 1 through March 10, 2026. Promo code SPRING20 gives twenty percent off.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Validity: no expiration. Standard shipping is free on orders over fifty dollars.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Validity: expired February 1, 2026 and revoked for all later dates. Promo code WINTER10 is invalid.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "time-promo-p1",
+          "allow": "As of March 8, 2026, which promotion may be applied to this order?",
+          "block": "As of March 15, 2026, which promotion may be applied to this order?"
+        },
+        {
+          "pair_id": "time-promo-p2",
+          "allow": "Evaluate the available order promotion on 2026-03-08.",
+          "block": "Evaluate the available order promotion on 2026-03-15."
+        }
+      ]
+    },
+    {
+      "scenario_id": "time-oncall",
+      "axis": "as_of_time",
+      "source_basis": "controlled_oncall_interval",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Validity: June 1 through June 7, 2026. Morgan is the primary on-call engineer.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Validity: all of June 2026. The operations escalation number is extension 4400.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Validity: revoked May 20, 2026 for all later dates. The old escalation number is extension 2200.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "time-oncall-p1",
+          "allow": "As of June 5, 2026, who is the primary on-call engineer?",
+          "block": "As of June 10, 2026, who is the primary on-call engineer?"
+        },
+        {
+          "pair_id": "time-oncall-p2",
+          "allow": "Identify the primary on-call engineer for 2026-06-05.",
+          "block": "Identify the primary on-call engineer for 2026-06-10."
+        }
+      ]
+    },
+    {
+      "scenario_id": "time-address",
+      "axis": "as_of_time",
+      "source_basis": "controlled_address_interval",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Validity: January 1 through April 30, 2026. The shipping address is 456 Oak Avenue.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Validity: all of 2026. Signature confirmation is required for replacement cards.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Validity: rejected as an account error for every date. The address 900 Cedar Road must never be used.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "time-address-p1",
+          "allow": "As of April 15, 2026, which shipping address was valid?",
+          "block": "As of May 15, 2026, which shipping address was valid?"
+        },
+        {
+          "pair_id": "time-address-p2",
+          "allow": "Find the valid shipping address on 2026-04-15.",
+          "block": "Find the valid shipping address on 2026-05-15."
+        }
+      ]
+    },
+    {
+      "scenario_id": "time-consent",
+      "axis": "as_of_time",
+      "source_basis": "controlled_consent_interval",
+      "candidates": [
+        {
+          "candidate_key": "m1",
+          "role": "focal",
+          "text": "Validity: research consent active through September 30, 2026. Survey responses may be used for the approved study.",
+          "admissible": {"allow": true, "block": false}
+        },
+        {
+          "candidate_key": "m2",
+          "role": "stable_admissible",
+          "text": "Validity: no expiration. The study's public contact email may be included in participant messages.",
+          "admissible": {"allow": true, "block": true}
+        },
+        {
+          "candidate_key": "m3",
+          "role": "stable_inadmissible",
+          "text": "Validity: consent was withdrawn on January 2, 2026 and is invalid for every later date. Voice recordings may not be used.",
+          "admissible": {"allow": false, "block": false}
+        }
+      ],
+      "query_pairs": [
+        {
+          "pair_id": "time-consent-p1",
+          "allow": "As of September 15, 2026, may the survey responses be used for the approved study?",
+          "block": "As of October 15, 2026, may the survey responses be used for the approved study?"
+        },
+        {
+          "pair_id": "time-consent-p2",
+          "allow": "Evaluate study use of the survey responses on 2026-09-15.",
+          "block": "Evaluate study use of the survey responses on 2026-10-15."
+        }
+      ]
+    }
+  ]
+}

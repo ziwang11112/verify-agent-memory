@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-cross-judge-posthoc-audit-v1",
+  "status": "frozen_before_any_strong_judge_provider_call",
+  "frozen_date": "2026-08-09",
+  "objective": "Audit whether the shared blinded Claude Haiku 4.5 answer-correctness labels are robust to one stronger cross-provider judge on an outcome-independent sample of exact-deduplicated natural reader outputs.",
+  "interpretation": {
+    "posthoc_outcome_independent_robustness_audit": true,
+    "independently_preregistered_replication": false,
+    "reader_estimates_pooled": false,
+    "official_benchmark_claim": false,
+    "output_repair": false,
+    "selective_rerun": false
+  },
+  "source_bundles": {
+    "two_reader": {
+      "execution_protocol_path": "experiments/natural_end_to_end_two_reader_protocol.json",
+      "execution_protocol_sha256": "598be211d469520b16e4dfcf8c8bac28c7740ae533f55b53cfbd8775f4c983ca",
+      "judge_protocol_path": "experiments/natural_end_to_end_two_reader_judge_protocol.json",
+      "judge_protocol_sha256": "92fab9c54a283b2e56f5cecf6059ff3a4eb23d96846cd5734e3a9ae51487e26a",
+      "reader_runtime": "tmp/natural_end_to_end/two_reader_runtime",
+      "judge_runtime": "tmp/natural_end_to_end/two_reader_judge_runtime_v2",
+      "completion_path": "tmp/natural_end_to_end/two_reader_judge_runtime_v2/judge/anthropic-claude-haiku-4-5-20251001/completion.json",
+      "completion_sha256": "97f4fe0d210135e1f7a520d3e16334f5f9e774a6267cf4a6017721465a322294",
+      "request_count": 8790,
+      "response_set_sha256": "28e4603e2c5c2dea41b4c63629804071d17e3893304d80422bb39fc9ca71941e"
+    },
+    "gpt_reader": {
+      "reader_protocol_path": "experiments/natural_end_to_end_gpt_reader_protocol.json",
+      "reader_protocol_sha256": "cec44c31c91f36cdb6ca4e2cff81af63d93a2d9f12602d9a4f2218dcefebd1ef",
+      "judge_protocol_path": "experiments/natural_end_to_end_gpt_judge_protocol.json",
+      "judge_protocol_sha256": "2067d0fdb3b11500397ee989c8330e3950aa00565ed38f903ef69e8411a63c77",
+      "judge_runtime": "tmp/natural_end_to_end/gpt_luna_replication_runtime",
+      "completion_path": "tmp/natural_end_to_end/gpt_luna_replication_runtime/judge/anthropic-claude-haiku-4-5-20251001/completion.json",
+      "completion_sha256": "8e06589c40d35b477de6f224b948c32216f2e851de0c2ab8eb50eaf3bc6aede0",
+      "request_count": 3397,
+      "response_set_sha256": "05020462821d18813d42dd02e7c459b04611f200119efe3f363c7dd095a8c3dc"
+    }
+  },
+  "sampling": {
+    "sample_count": 200,
+    "reader_providers": [
+      "DeepSeek",
+      "Gemini",
+      "OpenAI"
+    ],
+    "sources": [
+      "memops",
+      "rhelm"
+    ],
+    "arms": [
+      "global_dense",
+      "namespace_dense",
+      "namespace_policy_gate"
+    ],
+    "selection_fields": [
+      "request_id",
+      "case_id",
+      "reader_provider",
+      "source",
+      "route_arm"
+    ],
+    "selection_uses_outcomes_or_answer_content": false,
+    "exact_payload_deduplication": true,
+    "seed": "natural-cross-judge-posthoc-v1|2026-08-09|sha256-rank",
+    "stratum_quotas": [
+      {"reader": "DeepSeek", "source": "memops", "arm": "global_dense", "count": 11},
+      {"reader": "DeepSeek", "source": "memops", "arm": "namespace_dense", "count": 11},
+      {"reader": "DeepSeek", "source": "memops", "arm": "namespace_policy_gate", "count": 11},
+      {"reader": "DeepSeek", "source": "rhelm", "arm": "global_dense", "count": 12},
+      {"reader": "DeepSeek", "source": "rhelm", "arm": "namespace_dense", "count": 11},
+      {"reader": "DeepSeek", "source": "rhelm", "arm": "namespace_policy_gate", "count": 11},
+      {"reader": "Gemini", "source": "memops", "arm": "global_dense", "count": 11},
+      {"reader": "Gemini", "source": "memops", "arm": "namespace_dense", "count": 12},
+      {"reader": "Gemini", "source": "memops", "arm": "namespace_policy_gate", "count": 11},
+      {"reader": "Gemini", "source": "rhelm", "arm": "global_dense", "count": 11},
+      {"reader": "Gemini", "source": "rhelm", "arm": "namespace_dense", "count": 11},
+      {"reader": "Gemini", "source": "rhelm", "arm": "namespace_policy_gate", "count": 11},
+      {"reader": "OpenAI", "source": "memops", "arm": "global_dense", "count": 11},
+      {"reader": "OpenAI", "source": "memops", "arm": "namespace_dense", "count": 11},
+      {"reader": "OpenAI", "source": "memops", "arm": "namespace_policy_gate", "count": 11},
+      {"reader": "OpenAI", "source": "rhelm", "arm": "global_dense", "count": 11},
+      {"reader": "OpenAI", "source": "rhelm", "arm": "namespace_dense", "count": 11},
+      {"reader": "OpenAI", "source": "rhelm", "arm": "namespace_policy_gate", "count": 11}
+    ],
+    "expected_request_id_set_sha256": "cc67032ad18e9c94a162fef305e5d0d8174765e56fda9b50bd6714a035ba024a",
+    "sample_manifest_path": "experiments/manifests/natural_cross_judge_sample.json",
+    "sample_manifest_sha256": "6843262b71afd10ba0f9651e82e672092ff5a16065302b9cc563226e76ff7ced"
+  },
+  "judge": {
+    "provider": "OpenAI",
+    "model": "gpt-5-pro-2025-10-06",
+    "api_surface": "responses",
+    "effort": "high",
+    "strict_json_schema": true,
+    "prompt_path": "experiments/prompts/natural_end_to_end_judge_v1.txt",
+    "prompt_sha256": "7f6a306e87c972e8a4c06bc68df724351d7da70fee3ef460e091516be0f0c412",
+    "input_usd_per_million": 15.0,
+    "output_usd_per_million": 120.0,
+    "maximum_output_tokens": 512,
+    "timeout_seconds": 180,
+    "maximum_transport_retries": 0,
+    "maximum_model_contract_recovery_attempts": 0,
+    "arm_and_reader_blinded": true
+  },
+  "budget": {
+    "fixture_hard_cap_usd": 0.25,
+    "input_token_reservation_per_call": 2304,
+    "output_token_reservation_per_call": 512,
+    "per_call_reservation_usd": 0.096,
+    "planned_fixture_plus_calls_bound_usd": 19.45,
+    "total_incremental_hard_cap_usd": 20.0
+  },
+  "analysis": {
+    "primary_endpoint": "answer_correct_exact_agreement",
+    "agreement_gate": 0.85,
+    "secondary_agreement_statistics": [
+      "cohen_kappa",
+      "gwet_ac1",
+      "answer_quality_quadratic_weighted_kappa",
+      "answer_quality_mean_absolute_error"
+    ],
+    "bootstrap_iterations": 10000,
+    "bootstrap_seed": 260809,
+    "report_by": [
+      "reader",
+      "source",
+      "route",
+      "reader_source_route"
+    ],
+    "disagreement_content_review": false
+  },
+  "outputs": {
+    "public_directory": "results/natural_cross_judge_audit",
+    "private_runtime": "tmp/natural_cross_judge_audit",
+    "public_outputs_contain_raw_content": false,
+    "paper_update_requires_complete_audit": true
+  }
+}

@@ -4,6 +4,7 @@ venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest-tmp/
 .ruff_cache/
 .evidence-test-*/
 .coverage
@@ -26,6 +27,8 @@ private/
 model_responses/
 responses/
 prompts/
+!experiments/prompts/
+!experiments/prompts/**
 
 # Large generated runtime artifacts
 embeddings/
@@ -36,20 +39,7 @@ routes/
 *.npy
 *.npz
 
-# Generated paper files
-paper/build/
 /tmp/
-paper/*.aux
-paper/*.bbl
-paper/*.bcf
-paper/*.blg
-paper/*.fdb_latexmk
-paper/*.fls
-paper/*.log
-paper/*.out
-paper/*.pdf
-paper/*.run.xml
-paper/*.synctex.gz
 
 # Editor and operating-system files
 .DS_Store

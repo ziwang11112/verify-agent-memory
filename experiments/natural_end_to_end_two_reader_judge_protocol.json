@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-heldout-two-reader-semantic-judge-v1",
+  "status": "frozen_after_output_ceiling_recovery_before_semantic_scoring",
+  "frozen_date": "2026-08-08",
+  "objective": "estimate_semantic_answer_outcomes_for_the_complete_paired_route_panel_within_the_approved_judge_budget",
+  "source_execution": {
+    "protocol_path": "experiments/natural_end_to_end_two_reader_protocol.json",
+    "protocol_sha256": "598be211d469520b16e4dfcf8c8bac28c7740ae533f55b53cfbd8775f4c983ca",
+    "runtime": "tmp/natural_end_to_end/two_reader_runtime",
+    "case_bundle_path": "tmp/natural_end_to_end/cases.jsonl.gz",
+    "case_bundle_sha256": "6fde7b2e1f6a4ec5f52876a4740b02580704b816dfa32e3043bc2a9a5849396e",
+    "reader_completions": {
+      "Gemini": "b962d44cc5537762baf1a6248c317ccce74de6db1c02f1ba4ae6edaef2a3b0b2",
+      "DeepSeek": "42d29e59594aeac3b6945a04b09cbfec8ad44bbc5b821091dda8e01891c33f97"
+    }
+  },
+  "continuation_gate": {
+    "analysis_protocol_path": "experiments/natural_end_to_end_two_reader_analysis_protocol.json",
+    "analysis_protocol_sha256": "85b9b3d7650d0d7f9bb41738cca4bd367c5c68b15aa47aa5ab48586c8d23c669",
+    "analysis_implementation_commit": "8f785cd8735fe1276d8e4d24ca0aa589a28fbdd3",
+    "deterministic_manifest_path": "results/natural_end_to_end_two_reader_deterministic/manifest.json",
+    "deterministic_manifest_sha256": "d52df597b6b603baf0b320d843ca2ed382de3d59f1d234de519973f15fa2b03c",
+    "runtime_gate_path": "tmp/natural_end_to_end/two_reader_runtime/deterministic_gate.json",
+    "runtime_gate_sha256": "e4a354e2941b658585a71aa46f6d73fe4eee50b7aba883e6c4951a84b834cb40",
+    "required_status": "deterministic_gate_passed",
+    "provider_calls_in_gate": 0
+  },
+  "provider_contract_recovery": {
+    "previous_protocol_sha256": "93bd92d8f677220a0ca931257d4a85ba462dda18c02a9b3a9eb175f6c74831cc",
+    "failed_fixture_implementation_commit": "3912b7d08e1153d7796e1cc1da80d2276978a49e",
+    "failed_fixture_stage": "synthetic_fixture_only",
+    "failed_fixture_http_status": 400,
+    "failed_fixture_response_accepted": false,
+    "failed_fixture_cost_recorded_usd": null,
+    "benchmark_payload_sent": false,
+    "semantic_judge_response_count_before_recovery": 0,
+    "diagnosis": "claude_haiku_4_5_does_not_support_output_config_effort",
+    "recovery": "pin_the_dated_haiku_snapshot_and_omit_only_the_unsupported_effort_field",
+    "sample_prompt_schema_metrics_and_budget_unchanged": true,
+    "max_token_recovery": {
+      "previous_protocol_sha256": "2ba5b2d153eb252b64789610ef8b661625082ca415499ab15cb4dcd4e54ab6c0",
+      "execution_implementation_commit": "6284018e6425f830d914788d88c7912b20622b5e",
+      "source_runtime": "tmp/natural_end_to_end/two_reader_judge_runtime",
+      "target_runtime": "tmp/natural_end_to_end/two_reader_judge_runtime_v2",
+      "prior_maximum_output_tokens": 256,
+      "recovered_maximum_output_tokens": 512,
+      "accepted_response_count": 168,
+      "accepted_response_file_set_sha256": "515e5777e1d866e0afee2d6d57cedb70a12f4acc31e8733af95fa16dbeda2302",
+      "accepted_response_content_set_sha256": "d7c39f2ceb421522ac80f7f97aeb731d8eb64e26261a782e25b28e97d64d5717",
+      "accepted_response_cost_usd": 0.295295,
+      "failure_count": 2,
+      "failure_file_set_sha256": "9bd1ffb46434082fa028a97935161551b1bccd0d467efee4964bf23269e87b53",
+      "failure_cost_bound_usd": 0.013165,
+      "fixture_sha256": "6475ac9ae71e661a6e12c1ad84ab6a6709a7e12c39afb6aee809dd10f92b2427",
+      "fixture_attestation_sha256": "077348f4a40bf0970eb5ebd22682c784d5f3ea165d9865bf4eeccd6ef90a230a",
+      "fixture_cost_usd": 0.00105,
+      "plan_sha256": "437d9736753b4e277957f81ab222f6bda3ece6a7ecc7d896c4bda7d10800ce2b",
+      "accepted_responses_reused_only_after_end_turn_and_schema_validation": true,
+      "response_content_must_remain_unchanged": true,
+      "selection_uses_contract_completion_only_not_performance": true,
+      "old_runtime_preserved_byte_for_byte": true
+    }
+  },
+  "sampling": {
+    "selection_stage": "before_any_semantic_judge_call_or_outcome",
+    "selection_fields": [
+      "source",
+      "case_id"
+    ],
+    "outcome_or_route_dependent_selection": false,
+    "rhelm": {
+      "method": "census",
+      "population_count": 523,
+      "sample_count": 523
+    },
+    "memops": {
+      "method": "deterministic_simple_random_sample_without_replacement",
+      "population_count": 3244,
+      "sample_count": 1000,
+      "ranking": "ascending_sha256_then_case_id",
+      "salt": "natural-two-reader-judge-v1|",
+      "population_namespace_group_count": 80,
+      "sample_namespace_group_count": 80
+    },
+    "sample_case_count": 1523,
+    "sample_case_id_set_sha256": "a39e1f6a2313ed8f6918d27bcc2ac4516fc2acc1d34c9bc7dffcacca07105491",
+    "arms": [
+      "global_dense",
+      "namespace_dense",
+      "namespace_policy_gate",
+      "namespace_text_verifier",
+      "released_field_oracle"
+    ],
+    "reader_providers": [
+      "Gemini",
+      "DeepSeek"
+    ],
+    "pairing": "every_selected_case_crossed_with_every_arm_and_reader"
+  },
+  "judge": {
+    "provider": "Anthropic",
+    "model": "claude-haiku-4-5-20251001",
+    "prompt_sha256": "7f6a306e87c972e8a4c06bc68df724351d7da70fee3ef460e091516be0f0c412",
+    "thinking": "disabled",
+    "effort": "omitted",
+    "arm_and_reader_blinded": true,
+    "exact_prompt_deduplication": true,
+    "expected_unique_request_count": 8790,
+    "expected_request_id_set_sha256": "0725e15d54c7fd280361f0d3648d7ffe50c4d772b9d6580cbaffd56bbe280ac9",
+    "maximum_output_tokens": 512,
+    "semantic_or_output_repair": false,
+    "selective_rerun": false,
+    "reader_estimates_pooled": false
+  },
+  "budget": {
+    "currency": "USD",
+    "fixture_hard_cap_usd": 0.01,
+    "planned_calls_conservative_cap_usd": 55.1,
+    "total_incremental_hard_cap_usd": 60.0,
+    "fixture_success_and_conservative_failure_reservations_all_count_toward_total": true
+  },
+  "uncertainty": {
+    "method": "paired_namespace_group_bootstrap",
+    "replicates": 10000,
+    "seed_base": 20260808,
+    "source_specific_and_equal_source_macro": true
+  },
+  "outputs": {
+    "runtime": "tmp/natural_end_to_end/two_reader_judge_runtime_v2",
+    "directory": "results/natural_end_to_end_two_reader_judged"
+  },
+  "official_rhelm_or_memops_claim": false
+}

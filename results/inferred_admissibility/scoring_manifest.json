@@ -1,0 +1,54 @@
+{
+  "analysis_cases": 72,
+  "calibration_cases": 24,
+  "case_count": 96,
+  "evaluation_or_heldout_access": false,
+  "excluded_providers": [
+    "DeepSeek",
+    "Anthropic"
+  ],
+  "official_result": false,
+  "outputs": {
+    "classification_metrics.csv": "4d30a58254e3fbccc654e331f41ad07798dab420cbc79e226d0da6263efe3a73",
+    "filter_metrics.csv": "f400bec797847cee09e72ec609496de0c1da6ee619bea68c14598bbdbb49f9dd",
+    "paired_route_deltas.csv": "9d2ba2b6ef69ee9d107aeea2582b5e2f20263bf7d23da694c6b32199ff96d170",
+    "provider_usage.csv": "34b3d71ea5b33fbe594d56846d78176d64b81dc1fb574267289f5343affee9ee",
+    "route_metrics.csv": "9ce682fb64a89c8720df2e590ce893c7668a5ec3fb16a4a44a88ceb95eed2e6e",
+    "selected_thresholds.csv": "2a25e7c4d62d8666a3455ce4ec4455c931277fe686afef9c7295d25c85219299"
+  },
+  "prompt_sha256": "933d2f15971f59e4fd1dcdee87539248b26f47018eaca9eb0aa13ca548fa43b1",
+  "protocol_providers": [
+    "OpenAI",
+    "DeepSeek",
+    "Gemini",
+    "Anthropic"
+  ],
+  "protocol_sha256": "9ddd7575321ae8f15d832249dc94262799b39477c8a330b116feee533fc584cc",
+  "raw_text_or_responses_published": false,
+  "response_receipts": {
+    "Gemini": {
+      "cases": 96,
+      "cost_usd": 2.2407705,
+      "input_tokens": 438657,
+      "model": "gemini-3.6-flash",
+      "output_tokens": 211038,
+      "provider_calls": 96,
+      "sha256": "b56bd3a1793334cbc0ff5ec75fb7b280ade5c143b13274ca0681da9dd1ce37db"
+    },
+    "OpenAI": {
+      "cases": 96,
+      "cost_usd": 7.443175,
+      "input_tokens": 424235,
+      "model": "gpt-5.6-sol",
+      "output_tokens": 177400,
+      "provider_calls": 96,
+      "sha256": "fa25549ef10ce36408fc1c88312ab801ecd5ca0a447dac8f4a18f5ff0f8ec8ab"
+    }
+  },
+  "schema_version": 1,
+  "scored_complete_providers": [
+    "OpenAI",
+    "Gemini"
+  ],
+  "status": "public_dev_text_inferred_admissibility_diagnostic"
+}

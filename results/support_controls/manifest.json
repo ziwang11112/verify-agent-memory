@@ -1,0 +1,54 @@
+{
+  "analysis": "natural-support-controls-v1",
+  "analysis_commit": "8e6ab7208a490e84d897a894d38a6fee0f99af8b",
+  "base_execution_commit": "8e34e3d41c56e1699696bc27be95cdac7c9528e5",
+  "contains_query_memory_or_group_ids": false,
+  "contains_raw_text_embeddings_prompts_or_responses": false,
+  "embedding_checkpoint_sha256": "d333477116735f49b7628ee5d324e92a9f608190079a7b1d699308f5ec4f1ae6",
+  "evaluation_retuning": false,
+  "global_ranking_checks": 3767,
+  "group_count": 87,
+  "judge_calls": 0,
+  "namespace_ranking_checks": 3767,
+  "paid_calls": 0,
+  "protocol_sha256": "4578a7a13f8b3bf573070ac194364c19184ec112de839fe1e58a2ae3b717aea8",
+  "provider_calls": 0,
+  "published_files": {
+    "README.md": {
+      "sha256": "32571942992f179a6d5a7e1a5af867e48dc09d6bb41b3c9b83ecfaef12dc92c4"
+    },
+    "few_cluster_robustness.csv": {
+      "row_count": 4,
+      "sha256": "560d7327a9d0fc2a8e93eac765578bd951fbf28a52198332491846ab3db65249"
+    },
+    "group_level_deltas.csv": {
+      "row_count": 348,
+      "sha256": "f6085beea795b1453350d7df81bc6ff0375013a3f2ebc26146389a2dfc971c9c"
+    },
+    "infeasibility_cost_sensitivity.csv": {
+      "row_count": 30,
+      "sha256": "6093b284d444d82152df5b623e6f9c2402a6ae38b5d648b55ff9bd74bdac55be"
+    },
+    "support_control_main.csv": {
+      "row_count": 6,
+      "sha256": "4fe6124815a99bbf13f4fea0d30f5a61517a41050fea15152775a99a41ebfe50"
+    },
+    "support_control_seed_rows.csv": {
+      "row_count": 375,
+      "sha256": "3a7faf4e16cba0f4edcf5cfc821a295b9d75a5b94cd6f292af89f8fcb8b20a93"
+    },
+    "target_recall_sensitivity.csv": {
+      "row_count": 30,
+      "sha256": "e5abbaba2ff928b192043f9365f57543c8722033c9742fcc6f59293194a7cb25"
+    }
+  },
+  "query_count": 3767,
+  "reader_calls": 0,
+  "route_bundle_sha256": {
+    "001-rhelm-25ea22a7b2be.jsonl.gz": "c6116bf1c236e1a3aa32306e82e724294905066d4fd634f843c17d1a73c4c891",
+    "004-rhelm-ed4a7e3ae49d.jsonl.gz": "b82876e3c9d8ace3a45a1bc3dcaac875513628d03faafdf700ba87d9c587792e",
+    "010-memops-25ea22a7b2be.jsonl.gz": "09aba7af617129bc3cf4d4171771899b7899fca63af14ccdb76e8aa97ed8763f",
+    "013-memops-ed4a7e3ae49d.jsonl.gz": "dad0d3b933caf9c2a35188c473766b939e014db546e2b173e101a248977038dc"
+  },
+  "schema_version": 1
+}

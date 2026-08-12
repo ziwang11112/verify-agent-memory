@@ -1,0 +1,62 @@
+{
+  "comparison_eligible_providers": [
+    {
+      "model": "gpt-5.6-sol",
+      "provider": "OpenAI"
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "provider": "DeepSeek"
+    },
+    {
+      "model": "gemini-3.6-flash",
+      "provider": "Gemini"
+    }
+  ],
+  "dataset_sha256": "86af56417cc538600052cf76bbf0e3b8bb2e0d6f22d4f50c4112b6ae306a442f",
+  "excluded_providers": [
+    {
+      "model": "claude-sonnet-5",
+      "provider": "Anthropic",
+      "reason": "frozen_failure"
+    }
+  ],
+  "expected_cases_per_provider": 64,
+  "official_result": false,
+  "outputs": [
+    {
+      "path": "pair_scores.csv",
+      "sha256": "59ff810b7df8e6b9bd31927c72b87e3ed1c1363b86d9853edc60f5166bf0777d"
+    },
+    {
+      "path": "aggregate_metrics.csv",
+      "sha256": "946ece00ed99963f6f2b846b2320983cdb029fca941a99b85f8db0946d3c2b98"
+    },
+    {
+      "path": "bootstrap_ci.csv",
+      "sha256": "ec616b52194ae579f66d52ce79a6b0eea7ba425cf9bd18872ae8f2e9b8956055"
+    },
+    {
+      "path": "provider_usage.csv",
+      "sha256": "cdf6b7e71a597d1060704a2f56dd94a1a849bf4922b82742587f98ea3d981865"
+    },
+    {
+      "path": "paired_deltas.csv",
+      "sha256": "eff8e90131c306730ad410976981d3a2c746bf88187ac6480ac5f283facce22a"
+    }
+  ],
+  "prefix_scoring": false,
+  "prompt_sha256": "1c1f5e9998635a3c716a20066dc6d4753a2a1741a0379b40c7f8f07f77d9d71f",
+  "protocol_sha256": "b41376b8bb422a29cb197511bb248e6ef455af51dc940a321b437bf49b62eb66",
+  "reader_or_judge": false,
+  "schema_version": 1,
+  "scored_models": [
+    "released_oracle",
+    "no_verifier_keep_all",
+    "OpenAI/gpt-5.6-sol",
+    "DeepSeek/deepseek-v4-pro",
+    "Gemini/gemini-3.6-flash"
+  ],
+  "selection_or_tuning": false,
+  "status": "controlled_public_dev_diagnostic_not_official_benchmark_result"
+}

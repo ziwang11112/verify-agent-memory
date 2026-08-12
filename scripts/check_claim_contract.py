@@ -27,7 +27,6 @@ REQUIRED_CLAIM_FIELDS = {
     "allowed_wording",
     "forbidden_wording",
     "known_limitations",
-    "paper_locations",
     "verification_tests",
 }
 
@@ -42,13 +41,27 @@ REQUIRED_SOURCE_FIELDS = {
     "source_sha256",
     "intended_normalized_destination",
     "transformation_required",
-    "public_paper_label",
+    "public_label",
     "contains_raw_text_or_private_content",
 }
-SOURCE_CATEGORIES = {"PORT_AND_REFACTOR", "IMPORT_AS_FROZEN_AGGREGATE"}
+SOURCE_CATEGORIES = {
+    "PORT_AND_REFACTOR",
+    "IMPORT_AS_FROZEN_AGGREGATE",
+    "GENERATED_FROM_HASH_BOUND_EXECUTION",
+    "GENERATED_FROM_FROZEN_POSTHOC",
+    "GENERATED_FROM_PUBLIC_DIAGNOSTIC",
+    "GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION",
+    "GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT",
+}
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 MIGRATION_SNAPSHOT = "a28093110325968c26906223e9eb0f1e078f6aad"
 NATURAL_EXECUTION_COMMIT = "8e34e3d41c56e1699696bc27be95cdac7c9528e5"
+COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT = "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+CLAUDE_OPUS5_EXPOSURE_EXECUTION_COMMIT = "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+NATURAL_END_TO_END_SOURCE_SNAPSHOT = "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+NATURAL_POSTHOC_IMPLEMENTATION_COMMIT = "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+CROSS_JUDGE_EXECUTION_COMMIT = "3007717b6dc1dc038e6f79c946f533b2369caffe"
 
 
 def _is_sequence(value: Any) -> bool:
@@ -162,6 +175,24 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
     if smoke and full and smoke.get("population") == full.get("population"):
         errors.append("C4 and C5 must not use identical populations")
 
+    if full:
+        exact_values = full.get("exact_values")
+        wording = _combined_text(full.get("allowed_wording"))
+        if not isinstance(exact_values, Mapping) or (
+            "penalized_non_usable_upper_risk_delta" not in exact_values
+        ):
+            errors.append("C5 must name the frozen v1 penalized non-usable upper risk")
+        if "non-usable" not in wording:
+            errors.append("C5 allowed wording must identify the non-usable risk family")
+
+    historical = claim_by_id.get("C7")
+    if historical:
+        limitations = _combined_text(historical.get("known_limitations"))
+        if historical.get("status") != "frozen_historical_released_field_v1":
+            errors.append("C7 must remain the frozen historical released-field v1 claim")
+        if "v1 arm" not in limitations or "corrected v2" not in limitations:
+            errors.append("C7 must distinguish the historical v1 and corrected v2 semantics")
+
     for claim_id in GATEMEM_CLAIM_IDS:
         claim = claim_by_id.get(claim_id)
         if not claim:
@@ -172,11 +203,115 @@ def validate_contract(data: Any, readable_contract: str | None = None) -> list[s
         if "same-provider" not in limitations:
             errors.append(f"{claim_id} must include a same-provider limitation")
 
-    human = claim_by_id.get("C8")
-    if human:
-        limitations = _combined_text(human.get("known_limitations"))
-        if "prohibited" not in limitations or "reliability" not in limitations:
-            errors.append("C8 must include the prohibited-label reliability limitation")
+    exposure = claim_by_id.get("C8")
+    if exposure:
+        limitations = _combined_text(exposure.get("known_limitations"))
+        if exposure.get("status") != "controlled_prompt_intervention":
+            errors.append("C8 must remain a controlled prompt intervention")
+        exact_values = exposure.get("exact_values")
+        if not isinstance(exact_values, Mapping) or exact_values.get("model_pooling") is not False:
+            errors.append("C8.model_pooling must be false")
+        if "constructed" not in limitations:
+            errors.append("C8 must include a constructed-scenario limitation")
+        if "never pooled" not in limitations:
+            errors.append("C8 must include a no-pooling limitation")
+
+    fixed_budget = claim_by_id.get("C9")
+    if fixed_budget:
+        limitations = _combined_text(fixed_budget.get("known_limitations"))
+        if fixed_budget.get("status") != "post_hoc_frozen_ranking_decomposition":
+            errors.append("C9 must remain a post-hoc frozen-ranking decomposition")
+        if "post-hoc" not in limitations or "no settings were retuned" not in limitations:
+            errors.append("C9 must include post-hoc and no-retuning boundaries")
+        if "namespace-group" not in limitations or "equal-source" not in limitations:
+            errors.append("C9 must identify the bootstrap unit")
+
+    metadata = claim_by_id.get("C10")
+    if metadata:
+        limitations = _combined_text(metadata.get("known_limitations"))
+        wording = _combined_text(metadata.get("allowed_wording"))
+        if metadata.get("status") != "post_hoc_metadata_robustness_diagnostic":
+            errors.append("C10 must remain a post-hoc metadata-robustness diagnostic")
+        if "observed brackets" not in limitations or "not population thresholds" not in limitations:
+            errors.append("C10 must preserve the observed-grid boundary")
+        if "aggregate weak dominance does not imply zero" not in limitations:
+            errors.append("C10 must distinguish aggregate dominance from zero leakage")
+        if "corrected v2 attribution" not in wording or "policy metadata" not in wording:
+            errors.append("C10 must preserve corrected-v2 policy attribution")
+
+    inference = claim_by_id.get("C11")
+    if inference:
+        limitations = _combined_text(inference.get("known_limitations"))
+        if inference.get("status") != "public_development_inference_gap_diagnostic":
+            errors.append("C11 must remain a public-development inference-gap diagnostic")
+        if "populations are separate" not in limitations or "never pooled" not in limitations:
+            errors.append("C11 must keep natural and controlled populations separate")
+        if "model estimates are reported separately" not in limitations:
+            errors.append("C11 must keep model estimates separate")
+
+    opus_replication = claim_by_id.get("C12")
+    if opus_replication:
+        limitations = _combined_text(opus_replication.get("known_limitations"))
+        if opus_replication.get("status") != "controlled_prompt_reader_replication":
+            errors.append("C12 must remain a controlled prompt reader replication")
+        exact_values = opus_replication.get("exact_values")
+        if not isinstance(exact_values, Mapping) or exact_values.get("model_pooling") is not False:
+            errors.append("C12.model_pooling must be false")
+        if "separate reader replication" not in limitations:
+            errors.append("C12 must preserve its separate-execution boundary")
+        if "constructed" not in limitations:
+            errors.append("C12 must include a constructed-scenario limitation")
+        if "never pooled" not in limitations:
+            errors.append("C12 must include a no-pooling limitation")
+
+    natural_end_to_end = claim_by_id.get("C13")
+    if natural_end_to_end:
+        limitations = _combined_text(natural_end_to_end.get("known_limitations"))
+        forbidden = _combined_text(natural_end_to_end.get("forbidden_wording"))
+        if natural_end_to_end.get("status") != "natural_same_population_route_to_reader_evaluation":
+            errors.append("C13 must remain a natural same-population route-to-reader evaluation")
+        for phrase, message in (
+            ("never pooled", "C13 must preserve the no-pooling boundary"),
+            ("share one blinded claude haiku judge", "C13 must preserve the shared-judge boundary"),
+            (
+                "sequential reader replication",
+                "C13 must preserve the sequential-replication boundary",
+            ),
+            (
+                "no general disclosure reduction",
+                "C13 must preserve the disclosure null-result boundary",
+            ),
+        ):
+            if phrase not in limitations:
+                errors.append(message)
+        if "official rhelm or memops" not in forbidden:
+            errors.append("C13 must forbid an official benchmark interpretation")
+
+    cross_judge = claim_by_id.get("C14")
+    if cross_judge:
+        limitations = _combined_text(cross_judge.get("known_limitations"))
+        forbidden = _combined_text(cross_judge.get("forbidden_wording"))
+        exact_values = cross_judge.get("exact_values")
+        if cross_judge.get("status") != "post_hoc_outcome_independent_cross_judge_audit":
+            errors.append("C14 must remain a post-hoc outcome-independent cross-judge audit")
+        for phrase, message in (
+            ("post-hoc", "C14 must preserve the post-hoc boundary"),
+            (
+                "not independently preregistered",
+                "C14 must preserve the non-preregistered boundary",
+            ),
+            ("does not re-score", "C14 must preserve the 200-output sample boundary"),
+            ("gpt-reader subgroup", "C14 must preserve the weaker GPT-reader subgroup"),
+        ):
+            if phrase not in limitations:
+                errors.append(message)
+        if (
+            not isinstance(exact_values, Mapping)
+            or exact_values.get("independently_preregistered_replication") is not False
+        ):
+            errors.append("C14.independently_preregistered_replication must be false")
+        if "official rhelm or memops" not in forbidden:
+            errors.append("C14 must forbid an official benchmark interpretation")
 
     if readable_contract is not None:
         for claim_id in claim_by_id:
@@ -222,9 +357,33 @@ def validate_source_index(source_data: Any, contract_data: Any) -> list[str]:
         source_hash = artifact.get("source_sha256")
         if not isinstance(source_hash, str) or not SHA256_PATTERN.fullmatch(source_hash):
             errors.append(f"{artifact_id}.source_sha256 must be a lowercase SHA-256")
-        if artifact.get("frozen_commit") != MIGRATION_SNAPSHOT:
+        category = artifact.get("category")
+        if category == "GENERATED_FROM_HASH_BOUND_EXECUTION":
+            if artifact.get("frozen_commit") not in {
+                COUNTERFACTUAL_EXPOSURE_EXECUTION_COMMIT,
+                CLAUDE_OPUS5_EXPOSURE_EXECUTION_COMMIT,
+            }:
+                errors.append(f"{artifact_id}.frozen_commit must match a paired-exposure execution")
+        elif category == "GENERATED_FROM_HASH_BOUND_NATURAL_EVALUATION":
+            if artifact.get("frozen_commit") != NATURAL_END_TO_END_SOURCE_SNAPSHOT:
+                errors.append(
+                    f"{artifact_id}.frozen_commit must match the natural end-to-end snapshot"
+                )
+        elif category == "GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT":
+            if artifact.get("frozen_commit") != CROSS_JUDGE_EXECUTION_COMMIT:
+                errors.append(f"{artifact_id}.frozen_commit must match the cross-judge execution")
+        elif category == "GENERATED_FROM_FROZEN_POSTHOC":
+            if artifact.get("frozen_commit") != NATURAL_POSTHOC_IMPLEMENTATION_COMMIT:
+                errors.append(
+                    f"{artifact_id}.frozen_commit must match the natural-posthoc implementation"
+                )
+        elif category == "GENERATED_FROM_PUBLIC_DIAGNOSTIC":
+            frozen_commit = artifact.get("frozen_commit")
+            if not isinstance(frozen_commit, str) or not COMMIT_PATTERN.fullmatch(frozen_commit):
+                errors.append(f"{artifact_id}.frozen_commit must be a lowercase Git commit")
+        elif artifact.get("frozen_commit") != MIGRATION_SNAPSHOT:
             errors.append(f"{artifact_id}.frozen_commit must match the migration snapshot")
-        if artifact.get("category") not in SOURCE_CATEGORIES:
+        if category not in SOURCE_CATEGORIES:
             errors.append(f"{artifact_id}.category is not allowed")
         if not isinstance(artifact.get("contains_raw_text_or_private_content"), bool):
             errors.append(f"{artifact_id}.contains_raw_text_or_private_content must be boolean")

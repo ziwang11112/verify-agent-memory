@@ -52,10 +52,10 @@ def test_missing_required_field_is_rejected() -> None:
 
 def test_duplicate_ids_are_rejected() -> None:
     data = load_valid_contract()
-    duplicate = deepcopy(claim(data, "C8"))
+    duplicate = deepcopy(claim(data, "C7"))
     duplicate["claim"] = "Duplicate fixture."
     data["claims"].append(duplicate)
-    assert "duplicate claim id: C8" in validate(data)
+    assert "duplicate claim id: C7" in validate(data)
 
 
 def test_nonfinite_exact_value_is_rejected() -> None:
@@ -101,6 +101,21 @@ def test_smoke_and_full_populations_are_distinct() -> None:
     assert "C4 and C5 must not use identical populations" in validate(data)
 
 
+def test_full_natural_claim_names_non_usable_risk_family() -> None:
+    data = load_valid_contract()
+    full = claim(data, "C5")
+    full["exact_values"]["penalized_contamination_upper_delta"] = full["exact_values"].pop(
+        "penalized_non_usable_upper_risk_delta"
+    )
+    assert "C5 must name the frozen v1 penalized non-usable upper risk" in validate(data)
+
+
+def test_historical_arm_claim_distinguishes_v1_and_v2() -> None:
+    data = load_valid_contract()
+    claim(data, "C7")["known_limitations"] = ["Released-field upper bound."]
+    assert "C7 must distinguish the historical v1 and corrected v2 semantics" in validate(data)
+
+
 def test_gatemem_claim_requires_non_causal_limitation() -> None:
     data = load_valid_contract()
     gate_claim = claim(data, "C2")
@@ -119,20 +134,161 @@ def test_gatemem_claim_requires_same_provider_limitation() -> None:
     assert "C3 must include a same-provider limitation" in validate(data)
 
 
-def test_prohibited_reliability_limitation_is_required() -> None:
+def test_counterfactual_exposure_claim_requires_controlled_boundary() -> None:
     data = load_valid_contract()
-    human_claim = claim(data, "C8")
-    human_claim["known_limitations"] = [
-        item
-        for item in human_claim["known_limitations"]
-        if not ("prohibited" in item and "reliability" in item)
+    exposure = claim(data, "C8")
+    exposure["known_limitations"] = [
+        item for item in exposure["known_limitations"] if "constructed" not in item
     ]
-    assert "C8 must include the prohibited-label reliability limitation" in validate(data)
+    assert "C8 must include a constructed-scenario limitation" in validate(data)
+
+
+def test_counterfactual_exposure_claim_requires_no_pooling_boundary() -> None:
+    data = load_valid_contract()
+    exposure = claim(data, "C8")
+    exposure["known_limitations"] = [
+        item for item in exposure["known_limitations"] if "never pooled" not in item
+    ]
+    assert "C8 must include a no-pooling limitation" in validate(data)
+
+
+def test_counterfactual_exposure_claim_forbids_model_pooling() -> None:
+    data = load_valid_contract()
+    claim(data, "C8")["exact_values"]["model_pooling"] = None
+    assert "C8.model_pooling must be false" in validate(data)
+
+
+def test_fixed_budget_claim_requires_posthoc_no_retuning_boundary() -> None:
+    data = load_valid_contract()
+    fixed_budget = claim(data, "C9")
+    fixed_budget["known_limitations"] = ["Source-clustered bootstrap intervals."]
+    assert "C9 must include post-hoc and no-retuning boundaries" in validate(data)
+
+
+def test_metadata_reliability_claim_requires_grid_boundary() -> None:
+    data = load_valid_contract()
+    metadata = claim(data, "C10")
+    metadata["known_limitations"] = [
+        item for item in metadata["known_limitations"] if "observed brackets" not in item
+    ]
+    assert "C10 must preserve the observed-grid boundary" in validate(data)
+
+
+def test_metadata_reliability_claim_requires_zero_leakage_boundary() -> None:
+    data = load_valid_contract()
+    metadata = claim(data, "C10")
+    metadata["known_limitations"] = [
+        item
+        for item in metadata["known_limitations"]
+        if "aggregate weak dominance does not imply zero" not in item.lower()
+    ]
+    assert "C10 must distinguish aggregate dominance from zero leakage" in validate(data)
+
+
+def test_metadata_reliability_claim_requires_corrected_v2_semantics() -> None:
+    data = load_valid_contract()
+    metadata = claim(data, "C10")
+    metadata["allowed_wording"] = ["Metadata errors differ."]
+    assert "C10 must preserve corrected-v2 policy attribution" in validate(data)
+
+
+def test_inference_gap_claim_requires_population_separation() -> None:
+    data = load_valid_contract()
+    inference = claim(data, "C11")
+    inference["known_limitations"] = [
+        item for item in inference["known_limitations"] if "populations are separate" not in item
+    ]
+    assert "C11 must keep natural and controlled populations separate" in validate(data)
+
+
+def test_inference_gap_claim_requires_no_pooling_boundary() -> None:
+    data = load_valid_contract()
+    inference = claim(data, "C11")
+    inference["known_limitations"] = [
+        item
+        for item in inference["known_limitations"]
+        if "model estimates are reported separately" not in item.lower()
+    ]
+    assert "C11 must keep model estimates separate" in validate(data)
+
+
+def test_opus_replication_claim_requires_separate_execution_boundary() -> None:
+    data = load_valid_contract()
+    replication = claim(data, "C12")
+    replication["known_limitations"] = [
+        item
+        for item in replication["known_limitations"]
+        if "separate reader replication" not in item.lower()
+    ]
+    assert "C12 must preserve its separate-execution boundary" in validate(data)
+
+
+def test_opus_replication_claim_requires_no_pooling_boundary() -> None:
+    data = load_valid_contract()
+    replication = claim(data, "C12")
+    replication["known_limitations"] = [
+        item for item in replication["known_limitations"] if "never pooled" not in item.lower()
+    ]
+    assert "C12 must include a no-pooling limitation" in validate(data)
+
+
+def test_natural_end_to_end_claim_requires_no_pooling_boundary() -> None:
+    data = load_valid_contract()
+    natural = claim(data, "C13")
+    natural["known_limitations"] = [
+        item for item in natural["known_limitations"] if "never pooled" not in item.lower()
+    ]
+    assert "C13 must preserve the no-pooling boundary" in validate(data)
+
+
+def test_natural_end_to_end_claim_requires_shared_judge_boundary() -> None:
+    data = load_valid_contract()
+    natural = claim(data, "C13")
+    natural["known_limitations"] = [
+        item for item in natural["known_limitations"] if "share one blinded" not in item.lower()
+    ]
+    assert "C13 must preserve the shared-judge boundary" in validate(data)
+
+
+def test_natural_end_to_end_claim_requires_sequential_replication_boundary() -> None:
+    data = load_valid_contract()
+    natural = claim(data, "C13")
+    natural["known_limitations"] = [
+        item for item in natural["known_limitations"] if "sequential reader" not in item.lower()
+    ]
+    assert "C13 must preserve the sequential-replication boundary" in validate(data)
+
+
+def test_natural_end_to_end_claim_forbids_general_disclosure_gain() -> None:
+    data = load_valid_contract()
+    natural = claim(data, "C13")
+    natural["known_limitations"] = [
+        item
+        for item in natural["known_limitations"]
+        if "no general disclosure reduction" not in item.lower()
+    ]
+    assert "C13 must preserve the disclosure null-result boundary" in validate(data)
+
+
+def test_cross_judge_claim_requires_posthoc_sample_boundaries() -> None:
+    data = load_valid_contract()
+    audit = claim(data, "C14")
+    audit["known_limitations"] = [
+        item
+        for item in audit["known_limitations"]
+        if "not independently preregistered" not in item.lower()
+        and "does not re-score" not in item.lower()
+        and "gpt-reader subgroup" not in item.lower()
+    ]
+    errors = validate(data)
+    assert "C14 must preserve the non-preregistered boundary" in errors
+    assert "C14 must preserve the 200-output sample boundary" in errors
+    assert "C14 must preserve the weaker GPT-reader subgroup" in errors
 
 
 def test_readable_contract_must_render_every_claim() -> None:
     data = load_valid_contract()
-    assert "CLAIM_CONTRACT.md does not render C8" in validate_contract(data, "### C1: only")
+    assert "CLAIM_CONTRACT.md does not render C7" in validate_contract(data, "### C1: only")
 
 
 def test_source_index_covers_empirical_claims() -> None:
@@ -160,6 +316,28 @@ def test_duplicate_source_path_is_rejected() -> None:
     sources["artifacts"].append(duplicate)
     errors = validate_source_index(sources, load_valid_contract())
     assert any("duplicate source artifact path" in error for error in errors)
+
+
+def test_posthoc_source_must_use_frozen_implementation_commit() -> None:
+    sources = load_valid_source_index()
+    posthoc = next(
+        item for item in sources["artifacts"] if item["category"] == "GENERATED_FROM_FROZEN_POSTHOC"
+    )
+    posthoc["frozen_commit"] = "0" * 40
+    errors = validate_source_index(sources, load_valid_contract())
+    assert any("must match the natural-posthoc implementation" in error for error in errors)
+
+
+def test_cross_judge_source_must_use_execution_commit() -> None:
+    sources = load_valid_source_index()
+    audit = next(
+        item
+        for item in sources["artifacts"]
+        if item["category"] == "GENERATED_FROM_HASH_BOUND_CROSS_JUDGE_AUDIT"
+    )
+    audit["frozen_commit"] = "0" * 40
+    errors = validate_source_index(sources, load_valid_contract())
+    assert any("must match the cross-judge execution" in error for error in errors)
 
 
 def test_governance_documents_preserve_boundaries() -> None:

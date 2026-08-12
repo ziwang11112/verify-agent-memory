@@ -1,0 +1,79 @@
+{
+  "archetype": "quantitative_grid",
+  "backend": "python_matplotlib",
+  "bootstrap_replicates": 10000,
+  "bootstrap_stratification": "axis",
+  "bootstrap_unit": "scenario",
+  "core_conclusion": "controlled exposure increases admissible literal-marker disclosure selectively; DeepSeek has a strictly positive relevant-inadmissible prompt-level effect, and Claude Opus 5 separately replicates the positive selectivity gap",
+  "final_height_in": 3.2,
+  "final_width_in": 7.2,
+  "image_integrity": "direct_vector_plot_from_published_csv_no_image_adjustment",
+  "inputs": [
+    {
+      "path": "results/counterfactual_exposure/cell_metrics.csv",
+      "sha256": "98c9bd7fb04f5c945aa90b08ff05d4d265c461f736be85a5c46e87ef70072140"
+    },
+    {
+      "path": "results/counterfactual_exposure/bootstrap_ci.csv",
+      "sha256": "3e745921ba8e66304e656bcaca96bc63a4db0303c5c01c93fad5a1200a391dd9"
+    },
+    {
+      "path": "results/counterfactual_exposure/manifest.json",
+      "sha256": "a8574e39b2fa23a65491ead0329954251bd9cde51344330ee94e39e3c4afeda1"
+    },
+    {
+      "path": "results/claude_opus5_exposure_replication/cell_metrics.csv",
+      "sha256": "b90a9a28d9879e4e57c488bc8f897422cdcae9653275b0287a3b397e380ad738"
+    },
+    {
+      "path": "results/claude_opus5_exposure_replication/bootstrap_ci.csv",
+      "sha256": "0bbf273cb8e17f0f2235dadffee51eb76b7d60f8d3edef8f4c35fbfa6801f93e"
+    },
+    {
+      "path": "results/claude_opus5_exposure_replication/manifest.json",
+      "sha256": "b738a330efbf4072dbba30a1a5ff879072414523053e261ec58a52500eaa0963"
+    }
+  ],
+  "model_pooling": false,
+  "official_result": false,
+  "outputs": [
+    {
+      "bytes": 2996,
+      "path": "counterfactual_exposure_source_data.csv",
+      "sha256": "0a394ca0835d5386e8a6f9faa39687144d9f3ace17db6aae5a3c9e841cdaf47d"
+    },
+    {
+      "bytes": 1314,
+      "path": "counterfactual_exposure_caption.md",
+      "sha256": "072b90751c35acba59888d380aa6ec4ad74ae0e43d61c4345ac70a3cc9d37c6f"
+    },
+    {
+      "bytes": 45443,
+      "path": "counterfactual_exposure.svg",
+      "sha256": "aee7e4539ac965044f02ad88589189022944dc9ffdc11faacc093367a66a6114"
+    },
+    {
+      "bytes": 66725,
+      "path": "counterfactual_exposure.pdf",
+      "sha256": "ad194cd0d7f10516b1d4016412d2ed7e4a0ed4a368352f77e78f869f225bb56f"
+    },
+    {
+      "bytes": 157784,
+      "path": "counterfactual_exposure.png",
+      "sha256": "15dec3fb8e63a548b6f94d193d1a9b4889c660cd3c8015bdbba7f3074f09d00b"
+    }
+  ],
+  "png_dpi": 300,
+  "png_pixel_audit": {
+    "channel_max": 255,
+    "channel_min": 0,
+    "height_px": 960,
+    "nonwhite_fraction": 0.17221498842592592,
+    "width_px": 2160
+  },
+  "provider_call_count": 0,
+  "schema_version": 1,
+  "script_sha256": "1a63ae17a596ee5549c3dd5758f8e4efabe38efd9b60b12b9ad61de6b77e43b5",
+  "status": "publication_figure_from_controlled_content_free_results",
+  "svg_text_editable": true
+}

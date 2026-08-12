@@ -1,0 +1,77 @@
+{
+  "archetype": "quantitative_grid",
+  "backend": "python_matplotlib",
+  "core_conclusion": "focal counterfactual success does not establish selective admissibility verification",
+  "final_height_in": 3.4,
+  "final_width_in": 7.2,
+  "image_integrity": "direct_vector_plot_from_published_csv_no_image_adjustment",
+  "inputs": [
+    {
+      "path": "aggregate_metrics.csv",
+      "sha256": "946ece00ed99963f6f2b846b2320983cdb029fca941a99b85f8db0946d3c2b98"
+    },
+    {
+      "path": "bootstrap_ci.csv",
+      "sha256": "ec616b52194ae579f66d52ce79a6b0eea7ba425cf9bd18872ae8f2e9b8956055"
+    },
+    {
+      "path": "error_taxonomy.csv",
+      "sha256": "48cb67a351023094517079f501f124974ea6a5c50a6bdcea7cb9a0e03de2cb88"
+    },
+    {
+      "path": "stable_control_outcomes.csv",
+      "sha256": "278507ecea6e82a29db8c10d98d10657b6cca3988ddc4352845abf702a34c3b7"
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "d3d7b468eda4dd388b5a0d8a9df32d7404f94a676f37dd7224db2776cc2800e6"
+    },
+    {
+      "path": "posthoc_manifest.json",
+      "sha256": "3c999b89dc15cebee43c5a62f7544db9ba710da44643b8b2840afcfa4b9ae90c"
+    }
+  ],
+  "official_result": false,
+  "outputs": [
+    {
+      "bytes": 3046,
+      "path": "counterfactual_selectivity_source_data.csv",
+      "sha256": "41beae76e3005f9deaa027753cc3c95660774772f68404a6011f9931b5146a64"
+    },
+    {
+      "bytes": 1068,
+      "path": "counterfactual_selectivity_caption.md",
+      "sha256": "a520649cf11c942255aecd8bfe6feb12d3922c55a7b47f6f68cd0b63a47f2a40"
+    },
+    {
+      "bytes": 38244,
+      "path": "counterfactual_selectivity.svg",
+      "sha256": "06db3de409e510bda245a2d3018d505e1bbee8f96feda5900483a30554928466"
+    },
+    {
+      "bytes": 58285,
+      "path": "counterfactual_selectivity.pdf",
+      "sha256": "d6cb041a80c59065240b222e5635740d9ed832f713827e15a2444ec5527b368c"
+    },
+    {
+      "bytes": 148421,
+      "path": "counterfactual_selectivity.png",
+      "sha256": "134d68e3b9fda09a2be7206e2200f3220d9bc0be104aedc55c8191c33dcacd97"
+    }
+  ],
+  "panel_a_analysis": "preregistered",
+  "panels_b_c_analysis": "posthoc_descriptive",
+  "png_dpi": 300,
+  "png_pixel_audit": {
+    "channel_max": 255,
+    "channel_min": 0,
+    "height_px": 1020,
+    "nonwhite_fraction": 0.1868677378358751,
+    "width_px": 2160
+  },
+  "provider_call_count": 0,
+  "schema_version": 1,
+  "script_sha256": "e48fa2b3a5462bcf5abdc722292367df4a5fb22f070dfbd4e84c3e61cc765225",
+  "status": "publication_figure_from_frozen_aggregate_results",
+  "svg_text_editable": true
+}

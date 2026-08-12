@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "protocol_id": "admissibility-attribution-v2",
+  "target_recall": 0.8,
+  "selection_risk": "admissibility_upper_bound",
+  "selection": "none_fixed_settings_only",
+  "settings": [
+    {
+      "setting_id": "attribution-global-dense-k100",
+      "arm": "global_dense",
+      "top_k": 100
+    },
+    {
+      "setting_id": "attribution-namespace-dense-k100",
+      "arm": "namespace_dense",
+      "top_k": 100
+    },
+    {
+      "setting_id": "attribution-policy-only-k100",
+      "arm": "namespace_policy_only",
+      "top_k": 100
+    },
+    {
+      "setting_id": "attribution-lifecycle-only-k100",
+      "arm": "namespace_lifecycle_only",
+      "top_k": 100
+    },
+    {
+      "setting_id": "attribution-governance-v2-k100",
+      "arm": "released_governance_oracle_v2",
+      "top_k": 100
+    }
+  ],
+  "invariants": {
+    "same_dense_ranker": true,
+    "same_top_k": true,
+    "dev_tuning": false,
+    "evaluation_retuning": false,
+    "provider_calls": 0,
+    "reader_calls": 0,
+    "judge_calls": 0
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "complete_bundle": true,
+  "fixture_cost_usd": 0.0018725,
+  "implementation_commit": "3007717b6dc1dc038e6f79c946f533b2369caffe",
+  "input_tokens": 127189,
+  "model": "gpt-5.1-2025-11-13",
+  "official_benchmark_result": false,
+  "output_tokens": 125875,
+  "prior_budget_consumption_usd": 0.14907,
+  "private_scored_pair_sha256": "ebb50da77d25e74fb148e1221d54c57ca59c01d43fbca83958c170cf1ce33a83",
+  "protocol_sha256": "aab8876f2e5ddf669287d8ea6f83ade449825d6c068e4a845659ec8d4340d8b2",
+  "provider": "OpenAI",
+  "raw_payload_or_response_content_included": false,
+  "request_count": 200,
+  "response_cost_usd": 1.41773625,
+  "response_set_sha256": "9f4011611b0746746df48b3e0eaca3b08d445a0e83fce4ed5603f7d51f223bba",
+  "sample_manifest_sha256": "6843262b71afd10ba0f9651e82e672092ff5a16065302b9cc563226e76ff7ced",
+  "schema_version": 1,
+  "total_incremental_cost_usd": 1.5686787500000003,
+  "total_incremental_hard_cap_usd": 20.0
+}

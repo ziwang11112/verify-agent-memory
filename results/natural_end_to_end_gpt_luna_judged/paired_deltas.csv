@@ -1,0 +1,17 @@
+reader_provider,reader_model,arm,reference,metric,mean_delta_arm_minus_reference,bootstrap_ci95_lower,bootstrap_ci95_upper,paired_query_count,namespace_group_count,bootstrap_replicates
+OpenAI,gpt-5.6-luna,namespace_dense,global_dense,evidence_recall,0.10402099722298097,0.0832315950259246,0.1245884851508086,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_dense,global_dense,feasible,0.07493307839388146,0.05547275002844465,0.09596528896045804,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_dense,global_dense,penalized_admissibility_upper_risk,-0.08474888331632655,-0.10684475523619832,-0.062196236513653864,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_dense,global_dense,answer_correct,0.06594455066921606,0.038953880676646895,0.0961025641025641,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_dense,global_dense,answer_quality,0.047618355640535376,0.03104415584415585,0.06646392601163251,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_dense,global_dense,over_refusal,-0.03813671128107075,-0.0589171876821509,-0.014836016696481812,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_dense,global_dense,protected_disclosure,-0.007623888182973317,-0.026854219948849106,0.012953367875647668,787,80,10000
+OpenAI,gpt-5.6-luna,namespace_dense,global_dense,stale_disclosure,0.004,-0.013039117352056168,0.022115384615384617,1000,80,10000
+OpenAI,gpt-5.6-luna,namespace_policy_gate,namespace_dense,evidence_recall,0.0,0.0,0.0,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_policy_gate,namespace_dense,feasible,0.0,0.0,0.0,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_policy_gate,namespace_dense,penalized_admissibility_upper_risk,-0.019200305740011622,-0.022969620190249163,-0.015570558942042526,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_policy_gate,namespace_dense,answer_correct,-0.0055,-0.01780264496439471,0.006429277942631058,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_policy_gate,namespace_dense,answer_quality,-0.0031999999999999997,-0.009830866807610994,0.0032825880114176983,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_policy_gate,namespace_dense,over_refusal,0.0045,-0.002446183953033268,0.011549566891241578,1523,87,10000
+OpenAI,gpt-5.6-luna,namespace_policy_gate,namespace_dense,protected_disclosure,0.0,-0.017241379310344827,0.016908212560386472,787,80,10000
+OpenAI,gpt-5.6-luna,namespace_policy_gate,namespace_dense,stale_disclosure,0.002,-0.014585232452142206,0.018147086914995225,1000,80,10000

@@ -1,0 +1,22 @@
+{
+  "benchmark_payload_or_response_content_included": false,
+  "combined_reader_and_judge_cost_usd": 21.778532,
+  "complete_bundle": true,
+  "judge_conservative_failure_cost_usd": 0.0,
+  "judge_fixture_cost_usd": 0.00096,
+  "judge_model": "claude-haiku-4-5-20251001",
+  "judge_protocol_sha256": "2067d0fdb3b11500397ee989c8330e3950aa00565ed38f903ef69e8411a63c77",
+  "judge_provider": "Anthropic",
+  "judge_request_count": 3397,
+  "judge_response_cost_usd": 5.898901,
+  "judge_total_cost_usd": 5.8998610000000005,
+  "official_benchmark_result": false,
+  "reader_cost_usd": 15.878671,
+  "reader_model": "gpt-5.6-luna",
+  "reader_protocol_sha256": "cec44c31c91f36cdb6ca4e2cff81af63d93a2d9f12602d9a4f2218dcefebd1ef",
+  "reader_provider": "OpenAI",
+  "reader_request_count": 3157,
+  "reader_response_set_sha256": "3599e9b43ebe9191fb4471d4d7e03455396ad68459270b4b5e540be7f9105955",
+  "sample_case_count": 1523,
+  "schema_version": 1
+}

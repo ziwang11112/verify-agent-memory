@@ -265,7 +265,9 @@ def _mechanism_smoke_rows(source: FrozenSource) -> list[dict[str, object]]:
     }
     metric_map = {
         "mean_evidence_recall": "evidence_recall",
-        "contamination_at_matched_recall": "measured_contamination",
+        # The source field predates the relevance/admissibility split. It counts
+        # every resolved non-usable item, not only admissibility violations.
+        "contamination_at_matched_recall": "measured_non_usable_rate",
         "wrong_namespace_leakage_rate": "wrong_scope_leakage",
     }
     output: list[dict[str, object]] = []
@@ -462,10 +464,89 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
         ),
     ]
 
+    public_arms = {
+        "flat_bm25": "global_bm25",
+        "flat_dense": "global_dense",
+        "flat_bm25_dense_rrf": "global_bm25_dense_rrf",
+        "recency_dense": "global_recency_dense",
+        "namespace_dense": "namespace_dense",
+        "namespace_current_only": "namespace_current_only",
+        "namespace_source_intent_lifecycle": "released_intent_lifecycle_upper_bound",
+        "ncr_threshold": "threshold_router",
+        "ncr_a5": "cluster_router",
+    }
+    arm_metrics = {
+        "mean_evidence_recall": "evidence_recall",
+        "feasible_rate": "feasible_rate",
+        "conservative_contamination_upper": "penalized_non_usable_upper_risk",
+        "mean_candidates_scored": "mean_candidates_scored",
+    }
+    for source_arm, public_arm in public_arms.items():
+        for source_metric, public_metric in arm_metrics.items():
+            if public_arm == "global_dense" and public_metric == "evidence_recall":
+                continue
+            if public_arm == "namespace_dense" and public_metric == "evidence_recall":
+                continue
+            notes = "source_macro;descriptive_full_arm_table;not_official_benchmark_submission"
+            if public_arm == "released_intent_lifecycle_upper_bound":
+                notes += ";released_field_upper_bound"
+            if public_metric == "penalized_non_usable_upper_risk":
+                notes += ";infeasible_or_unresolved_equals_one"
+            if public_metric == "mean_candidates_scored":
+                notes += ";diagnostic_only;not_production_latency"
+            output.append(
+                _evidence_row(
+                    claim_id="C5",
+                    family="natural_evaluation",
+                    population=population,
+                    source="RHELM and MemOps public sources",
+                    contrast=public_arm,
+                    metric=public_metric,
+                    estimate=_source_macro(
+                        main,
+                        arm=source_arm,
+                        metric=source_metric,
+                    ),
+                    n=query_rows,
+                    notes=notes,
+                )
+            )
+
+    for source_arm, public_arm in (
+        ("flat_dense", "global_dense"),
+        ("namespace_dense", "namespace_dense"),
+    ):
+        for source_metric, public_metric in {
+            "mean_contamination_at_matched_recall": "known_non_usable_rate",
+            "mean_contamination_label_coverage": "non_usable_label_coverage",
+            "mean_contamination_lower_bound": "non_usable_lower_bound",
+            "mean_contamination_upper_bound": "non_usable_upper_bound",
+        }.items():
+            output.append(
+                _evidence_row(
+                    claim_id="C5",
+                    family="natural_evaluation",
+                    population=population,
+                    source="RHELM and MemOps public sources",
+                    contrast=f"{public_arm}_matched_prefix",
+                    metric=public_metric,
+                    estimate=_source_macro(
+                        main,
+                        arm=source_arm,
+                        metric=source_metric,
+                    ),
+                    n=query_rows,
+                    notes=(
+                        "source_macro;feasible_matched_prefix_only;"
+                        "descriptive_incomplete_label_diagnostic"
+                    ),
+                )
+            )
+
     for source_metric, public_metric in {
         "evidence_recall": "recall_delta",
         "feasible_rate": "feasible_rate_delta",
-        "conservative_contamination_upper": "conservative_contamination_delta",
+        "conservative_contamination_upper": "penalized_non_usable_upper_risk_delta",
     }.items():
         output.append(
             _paired_evidence(
@@ -476,7 +557,11 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
                 metric=source_metric,
                 public_contrast="namespace_dense_minus_global_dense",
                 public_metric=public_metric,
-                notes="source_macro;trusted_released_namespace",
+                notes=(
+                    "source_macro;trusted_released_namespace;infeasible_or_unresolved_equals_one"
+                    if public_metric == "penalized_non_usable_upper_risk_delta"
+                    else "source_macro;trusted_released_namespace"
+                ),
             )
         )
 
@@ -486,7 +571,7 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
     ):
         for source_metric, public_metric in {
             "evidence_recall": "recall_delta",
-            "conservative_contamination_upper": "conservative_contamination_delta",
+            "conservative_contamination_upper": "penalized_non_usable_upper_risk_delta",
         }.items():
             output.append(
                 _paired_evidence(
@@ -501,9 +586,44 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
                 )
             )
 
+    output.extend(
+        (
+            _evidence_row(
+                claim_id="C6",
+                family="natural_evaluation",
+                population=population,
+                source="RHELM and MemOps public sources",
+                contrast="threshold_router",
+                metric="fallback_rate",
+                estimate=_source_macro(
+                    main,
+                    arm="ncr_threshold",
+                    metric="fallback_rate",
+                ),
+                n=query_rows,
+                notes="diagnostic_router;namespace_local_fallback",
+            ),
+            _evidence_row(
+                claim_id="C6",
+                family="natural_evaluation",
+                population=population,
+                source="RHELM and MemOps public sources",
+                contrast="cluster_router",
+                metric="mean_route_width",
+                estimate=_source_macro(
+                    main,
+                    arm="ncr_a5",
+                    metric="mean_route_width",
+                ),
+                n=query_rows,
+                notes="diagnostic_router;selected_clusters",
+            ),
+        )
+    )
+
     for source_metric, public_metric in {
         "evidence_recall": "recall_delta",
-        "conservative_contamination_upper": "conservative_contamination_delta",
+        "conservative_contamination_upper": "penalized_non_usable_upper_risk_delta",
         "prohibited_stale_exposure_rate": "prohibited_stale_exposure_delta",
         "prohibited_superseded_exposure_rate": "prohibited_superseded_exposure_delta",
     }.items():
@@ -516,41 +636,11 @@ def _natural_rows(source: FrozenSource) -> list[dict[str, object]]:
                 metric=source_metric,
                 public_contrast=("released_intent_lifecycle_upper_bound_minus_namespace_dense"),
                 public_metric=public_metric,
-                notes="released_field_upper_bound;not_deployable_blind_inference",
+                notes=(
+                    "frozen_historical_v1;released_field_upper_bound;not_deployable_blind_inference"
+                ),
             )
         )
-    return output
-
-
-def _human_rows(source: FrozenSource) -> list[dict[str, object]]:
-    path = "reports/stage3_admissibility_label_suite/human_agreement_summary.json"
-    summary = json.loads(source.read(path))
-    output: list[dict[str, object]] = []
-    for row in summary["agreement_rows"]:
-        axis = str(row["axis"])
-        for source_metric, public_metric in (
-            ("exact_agreement", "exact_agreement"),
-            ("krippendorff_alpha_nominal", "krippendorff_alpha"),
-        ):
-            output.append(
-                _evidence_row(
-                    claim_id="C8",
-                    family="human_agreement",
-                    population="207 selected audit records",
-                    source="two independent human reviewers",
-                    contrast=axis,
-                    metric=public_metric,
-                    estimate=_finite_float(
-                        row[source_metric],
-                        f"{axis} {source_metric}",
-                    ),
-                    n=_integer(row["records"], f"{axis} records"),
-                    notes=(
-                        "raw_pre_adjudication;not_population_wide_human_gold"
-                        + (";prevalence_limited_reliability" if axis == "prohibited" else "")
-                    ),
-                )
-            )
     return output
 
 
@@ -602,7 +692,6 @@ def import_evidence(
         ("gatemem", _gatemem_rows),
         ("mechanism_smoke", _mechanism_smoke_rows),
         ("natural_evaluation", _natural_rows),
-        ("human_agreement", _human_rows),
     )
     written: list[Path] = []
     for family, builder in families:

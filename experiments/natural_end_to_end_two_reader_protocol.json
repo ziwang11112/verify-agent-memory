@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-heldout-route-to-reader-two-reader-v3",
+  "status": "frozen_nonofficial_cost_aware_two_reader_completion",
+  "objective": "measure_same_population_route_to_reader_outcomes_with_a_cost_selected_two_provider_panel",
+  "amendment": {
+    "source_protocol_id": "natural-heldout-route-to-reader-v2",
+    "source_protocol_sha256": "df16d1fea462235c2953a5f078fb90459f49d7e1d7c1e3edd1a6a5b95c577ab8",
+    "source_implementation_commit": "8432abe7a34c1b44c4a943bcdd150858ad43f6b9",
+    "selection_date": "2026-08-08",
+    "selection_basis": "provider_cost_and_checkpoint_availability_before_any_reader_performance_scoring",
+    "comparison_providers": [
+      "Gemini",
+      "DeepSeek"
+    ],
+    "source_runtime": "tmp/natural_end_to_end/provider_runtime",
+    "target_runtime": "tmp/natural_end_to_end/two_reader_runtime",
+    "response_content_must_remain_unchanged": true,
+    "partial_or_prefix_scoring": false
+  },
+  "source_contract": {
+    "rhelm_revision": "726fc42ea0d5c11085c1a961ade10d702ba187d3",
+    "memops_revision": "0b85a27bba856c287405a36e53a39e59e424c4e9",
+    "route_checkpoint_sha256": "70ff69fb3d36e8367a16bfe70c796e88c4b3cec5ff4096f0fa7ab1bd0ad709ec",
+    "split": "frozen_eval",
+    "query_counts": {
+      "rhelm": 523,
+      "memops": 3244,
+      "total": 3767
+    },
+    "answer_gold_coverage": {
+      "rhelm": 523,
+      "memops": 3244,
+      "total": 3767
+    },
+    "protected_disclosure_contract": "source_defined_memops_targets_only_rhelm_unevaluable"
+  },
+  "retrieval": {
+    "embedding_model": "Qwen/Qwen3-Embedding-8B",
+    "embedding_revision": "1d8ad4ca9b3dd8059ad90a75d4983776a23d44af",
+    "candidate_depth": 20,
+    "target_recall": 0.8,
+    "base_rankings": {
+      "global_dense": "flat_dense/25ea22a7b2be",
+      "namespace_dense": "namespace_dense/ed4a7e3ae49d"
+    },
+    "gate_semantics": "delete_only_from_frozen_top20_without_backfill_or_reranking",
+    "arms": [
+      "global_dense",
+      "namespace_dense",
+      "namespace_policy_gate",
+      "namespace_text_verifier",
+      "released_field_oracle"
+    ],
+    "reader_memory_max_utf8_bytes": 8192,
+    "verifier_memory_max_utf8_bytes": 2048,
+    "truncation": "utf8_prefix_without_splitting_characters"
+  },
+  "text_verifier": {
+    "provider": "OpenAI",
+    "model": "gpt-5.6-sol",
+    "api_surface": "responses",
+    "effort": "low",
+    "prompt": {
+      "path": "experiments/prompts/inferred_admissibility_v1.txt",
+      "sha256": "933d2f15971f59e4fd1dcdee87539248b26f47018eaca9eb0aa13ca548fa43b1"
+    },
+    "violation_threshold": 0.95,
+    "threshold_source": "public_dev_calibration_only",
+    "input_usd_per_million": 5.0,
+    "output_usd_per_million": 30.0,
+    "maximum_calls": 3768,
+    "hard_cap_usd": 1000.0
+  },
+  "reader": {
+    "prompt": {
+      "path": "experiments/prompts/natural_end_to_end_reader_v1.txt",
+      "sha256": "c91220748045eb81555cc2d47f97d198090de4662318aa1a6c36ff897b4d7466"
+    },
+    "response_schema": "strict_action_and_answer_json",
+    "exact_visible_prompt_deduplication": true,
+    "models_reported_separately": true,
+    "providers": [
+      {
+        "provider": "Gemini",
+        "model": "gemini-3.6-flash",
+        "api_surface": "generate_content",
+        "thinking_level": "minimal",
+        "input_usd_per_million": 1.5,
+        "output_usd_per_million": 7.5,
+        "hard_cap_usd": 1000.0
+      },
+      {
+        "provider": "DeepSeek",
+        "model": "deepseek-v4-pro",
+        "api_surface": "chat_completions",
+        "thinking": "disabled",
+        "input_usd_per_million": 0.87,
+        "output_usd_per_million": 1.74,
+        "hard_cap_usd": 500.0
+      }
+    ]
+  },
+  "judge": {
+    "provider": "Anthropic",
+    "model": "claude-haiku-4-5",
+    "api_surface": "messages",
+    "thinking": "disabled",
+    "effort": "low",
+    "prompt": {
+      "path": "experiments/prompts/natural_end_to_end_judge_v1.txt",
+      "sha256": "7f6a306e87c972e8a4c06bc68df724351d7da70fee3ef460e091516be0f0c412"
+    },
+    "arm_and_reader_blinded": true,
+    "input_usd_per_million": 1.0,
+    "output_usd_per_million": 5.0,
+    "maximum_calls_before_exact_prompt_deduplication": 37670,
+    "hard_cap_usd": 60.0,
+    "execution_locked_until_deterministic_gate": true
+  },
+  "metrics": {
+    "retrieval_and_exposure": [
+      "matched_evidence_recall",
+      "feasible_rate_at_0.8",
+      "penalized_admissibility_upper_risk",
+      "wrong_namespace_exposure",
+      "policy_disallowed_exposure",
+      "lifecycle_incompatible_exposure",
+      "unresolved_exposure",
+      "prompt_width"
+    ],
+    "answer": [
+      "judge_answer_accuracy",
+      "judge_answer_quality",
+      "over_refusal",
+      "literal_reference_contains",
+      "source_defined_protected_disclosure_with_coverage",
+      "stale_disclosure",
+      "reader_contract_failure"
+    ],
+    "aggregation": "reader_specific_source_specific_and_equal_source_macro_no_reader_pooling",
+    "uncertainty": "paired_namespace_group_bootstrap_10000_replicates"
+  },
+  "execution": {
+    "maximum_reader_calls_per_provider_before_exact_prompt_deduplication": 18835,
+    "maximum_output_tokens_reader": 2048,
+    "maximum_output_tokens_verifier": 4096,
+    "maximum_output_tokens_judge": 256,
+    "timeout_seconds": 180,
+    "maximum_transport_retries": 2,
+    "maximum_model_contract_recovery_attempts": 1,
+    "checkpoint_after_each_successful_call": true,
+    "semantic_or_output_repair": false,
+    "selective_rerun": false,
+    "outcome_selective_rerun": false,
+    "complete_bundle_required_for_comparison": true,
+    "reader_incremental_hard_cap_usd": {
+      "Gemini": 29.0,
+      "DeepSeek": 16.0
+    },
+    "reader_fixture_hard_cap_usd": {
+      "Gemini": 0.02,
+      "DeepSeek": 0.01
+    },
+    "checkpoint_reuse": {
+      "source_protocol_sha256": "df16d1fea462235c2953a5f078fb90459f49d7e1d7c1e3edd1a6a5b95c577ab8",
+      "source_implementation_commit": "8432abe7a34c1b44c4a943bcdd150858ad43f6b9",
+      "verifier_completion_sha256": "3a3d1936b5d2ccf8dda35e3144ab0e39cf3ed24b3adb8d59d1e0a7836aa67d7f",
+      "verifier_compatibility_import_sha256": "233352dc557d395153d279a7f55025f6df5c8411cfe08b0da207c868b24cdb50",
+      "readers": {
+        "Gemini": {
+          "response_count": 3233,
+          "response_file_set_sha256": "4ee0d6e87d4d4aae5d3e9470e42e051f8f5739bad4442cc996c3cc0ff364a5c2",
+          "failure_count": 11,
+          "failure_file_set_sha256": "14d0f4b3c7c701c4a4579e7f3abc97fa2f03b1b79c1f0872d9152f54f345e08b"
+        },
+        "DeepSeek": {
+          "response_count": 2741,
+          "response_file_set_sha256": "8f5441e7d86f8c7b56e6d9418a8927ea6608ea8501859d8ee2351dd03f0bee5b",
+          "failure_count": 5,
+          "failure_file_set_sha256": "4a74048d1d59652c4396d6e250f251411395d37bde43ca1d52f340ee9ec1c724"
+        }
+      },
+      "required_checks": "exact_protocol_payload_request_body_schema_parser_response_and_file_set_identity"
+    },
+    "total_hard_cap_usd": 2560.0,
+    "official_rhelm_or_memops_claim": false
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "case_count": 96,
+  "primary_rule": "first_response_committed_to_append_only_checkpoint",
+  "protocol_sha256": "9ddd7575321ae8f15d832249dc94262799b39477c8a330b116feee533fc584cc",
+  "providers": [
+    {
+      "duplicate_call_cost_usd": 0.0,
+      "duplicate_calls": 0,
+      "duplicate_case_groups": 0,
+      "duplicate_groups_with_different_predictions": 0,
+      "model": "gpt-5.6-sol",
+      "primary_selected_cost_usd": 7.443175,
+      "primary_sha256": "fa25549ef10ce36408fc1c88312ab801ecd5ca0a447dac8f4a18f5ff0f8ec8ab",
+      "provider": "OpenAI",
+      "raw_cost_usd": 7.443175,
+      "raw_rows": 96,
+      "sensitivity_sha256": "fa25549ef10ce36408fc1c88312ab801ecd5ca0a447dac8f4a18f5ff0f8ec8ab",
+      "source_sha256": "fa25549ef10ce36408fc1c88312ab801ecd5ca0a447dac8f4a18f5ff0f8ec8ab",
+      "unique_cases": 96
+    },
+    {
+      "duplicate_call_cost_usd": 0.13366349999999994,
+      "duplicate_calls": 7,
+      "duplicate_case_groups": 7,
+      "duplicate_groups_with_different_predictions": 2,
+      "model": "gemini-3.6-flash",
+      "primary_selected_cost_usd": 2.2407705,
+      "primary_sha256": "b56bd3a1793334cbc0ff5ec75fb7b280ade5c143b13274ca0681da9dd1ce37db",
+      "provider": "Gemini",
+      "raw_cost_usd": 2.374434,
+      "raw_rows": 103,
+      "sensitivity_sha256": "77dc0f1a677041b5466b6d8c34a184f98e26c04cfae9726ef18a359e1ea377e6",
+      "source_sha256": "e4f2504470e4b89f9160054e89a3c999a9bed8a750510a094fc1da640a781c86",
+      "unique_cases": 96
+    }
+  ],
+  "raw_checkpoints_modified": false,
+  "schema_version": 1,
+  "sensitivity_rule": "last_response_committed_for_duplicate_cases_only"
+}

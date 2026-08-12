@@ -1,10 +1,10 @@
 schema_version: 1
-title: "The Wrong Memory at the Right Time: Verifying Retrieval Admissibility in Long-Term Agents"
+title: "Retrieval Admissibility Evaluation Claim Contract"
 claims:
   - id: C1
     status: definition
     claim: "A memory can be relevant and still be inadmissible for the current query."
-    estimand: "Not applicable; this is the paper's formal distinction."
+    estimand: "Not applicable; this is the evaluation's formal distinction."
     population: "Conceptual definition over a memory, query, governing policy, and query time."
     source_repository: null
     source_snapshot_commit: null
@@ -23,10 +23,6 @@ claims:
     known_limitations:
       - "The definition does not itself provide an inference procedure for latent policy or intent."
       - "Security harm, factual invalidity, and policy inadmissibility remain distinct outcomes."
-    paper_locations:
-      - "Introduction"
-      - "Formulation"
-      - "Figure 1"
     verification_tests:
       - "test_definition_has_no_empirical_source_requirement"
 
@@ -102,10 +98,6 @@ claims:
       - "Both readers are from OpenAI, so this is same-provider cross-reader robustness, not cross-provider replication."
       - "Reader estimates are reported separately and are never pooled."
       - "The result is open-label and is not an official GateMem benchmark submission."
-    paper_locations:
-      - "Exposure and Utility"
-      - "Figure 2"
-      - "Abstract"
     verification_tests:
       - "test_gatemem_claim_requires_non_causal_limitation"
       - "test_gatemem_claim_requires_same_provider_limitation"
@@ -154,10 +146,6 @@ claims:
       - "The estimates come from one OpenAI reader and do not constitute a cross-provider result; the broader reader evidence is same-provider."
       - "Leakage and bounded utility use different eligible checkpoint populations."
       - "Utility accuracy is benchmark-bounded and is not a complete measure of user value."
-    paper_locations:
-      - "Exposure and Utility"
-      - "Figure 2"
-      - "Discussion"
     verification_tests:
       - "test_gatemem_claim_requires_non_causal_limitation"
       - "test_gatemem_claim_requires_same_provider_limitation"
@@ -187,8 +175,8 @@ claims:
       namespace_dense_recall: 1.0
       global_dense_wrong_namespace_leakage: 0.025
       namespace_dense_wrong_namespace_leakage: 0.0
-      global_dense_measured_contamination: 0.11889880952380952
-      namespace_dense_measured_contamination: 0.08244047619047619
+      global_dense_measured_non_usable_rate: 0.11889880952380952
+      namespace_dense_measured_non_usable_rate: 0.08244047619047619
     confidence_intervals: []
     allowed_wording:
       - "The candidate-pool smoke validates metric behavior under known scope and recall changes."
@@ -202,15 +190,12 @@ claims:
       - "The four development packets make setting selection high variance."
       - "No downstream reader or answer leakage was evaluated."
       - "This is a mechanism smoke, not a natural-corpus estimate."
-    paper_locations:
-      - "Evaluation Protocol"
-      - "Appendix"
     verification_tests:
       - "test_smoke_and_full_populations_are_distinct"
 
   - id: C5
     status: frozen_public_source_evaluation
-    claim: "Trusted namespace support improves evidence recall and feasible rate while reducing conservative contamination on the full public-source evaluation."
+    claim: "Trusted namespace support improves evidence recall and feasible rate while reducing the preregistered penalized non-usable upper risk on the full public-source evaluation; this frozen v1 risk combines relevance and admissibility, while conditional matched-prefix diagnostics retain substantial unresolved-label uncertainty."
     estimand: "Source-macro namespace-dense minus global-dense differences under settings frozen on development data."
     population: "87 public-evaluation groups, 182,908 memories, and 3,767 queries from public RHELM and MemOps sources."
     source_repository: "ziwang11112/bomi"
@@ -231,8 +216,63 @@ claims:
       namespace_dense_recall: 0.8656633800606317
       recall_delta: 0.14882826330375917
       feasible_rate_delta: 0.22299559357118776
-      conservative_contamination_delta: -0.03595773739158996
+      penalized_non_usable_upper_risk_delta: -0.03595773739158996
       namespace_wrong_scope_leakage: 0.0
+      arm_summary:
+        global_bm25:
+          evidence_recall: 0.44776903140185376
+          feasible_rate: 0.283601672038156
+          penalized_non_usable_upper_risk: 0.9133942077399828
+          mean_candidates_scored: 90121.7017208413
+        global_dense:
+          feasible_rate: 0.5388709970223009
+          penalized_non_usable_upper_risk: 0.87262599261847
+          mean_candidates_scored: 90121.7017208413
+        global_bm25_dense_rrf:
+          evidence_recall: 0.6912213957478431
+          feasible_rate: 0.5026252319328167
+          penalized_non_usable_upper_risk: 0.8825852235335776
+          mean_candidates_scored: 90121.7017208413
+        global_recency_dense:
+          evidence_recall: 0.7280520903395933
+          feasible_rate: 0.5504411144091872
+          penalized_non_usable_upper_risk: 0.8643161513639288
+          mean_candidates_scored: 90121.7017208413
+        namespace_dense:
+          feasible_rate: 0.7618665905934887
+          penalized_non_usable_upper_risk: 0.83666825522688
+          mean_candidates_scored: 1551.24455090498
+        namespace_current_only:
+          evidence_recall: 0.8241231984310543
+          feasible_rate: 0.6724707829486058
+          penalized_non_usable_upper_risk: 0.8454370075050248
+          mean_candidates_scored: 1549.2815422736608
+        released_intent_lifecycle_upper_bound:
+          evidence_recall: 0.8685655633342699
+          feasible_rate: 0.7630996362161767
+          penalized_non_usable_upper_risk: 0.8280008822515305
+          mean_candidates_scored: 1525.3117518914164
+        threshold_router:
+          evidence_recall: 0.8426619415074053
+          feasible_rate: 0.7350478483000238
+          penalized_non_usable_upper_risk: 0.838768546153027
+          mean_candidates_scored: 1470.2036564635873
+        cluster_router:
+          evidence_recall: 0.8650541968065657
+          feasible_rate: 0.7609418063764727
+          penalized_non_usable_upper_risk: 0.8368345912489837
+          mean_candidates_scored: 1530.5978691651362
+      matched_prefix_diagnostics:
+        global_dense:
+          known_non_usable_rate: 0.5753141896331887
+          non_usable_label_coverage: 0.5380305342399545
+          non_usable_lower_bound: 0.3078604096597722
+          non_usable_upper_bound: 0.7698298754198178
+        namespace_dense:
+          known_non_usable_rate: 0.3478583416917444
+          non_usable_label_coverage: 0.35548034155637087
+          non_usable_lower_bound: 0.13368622297660057
+          non_usable_upper_bound: 0.7782058814202297
       provider_calls: 0
       reader_calls: 0
       judge_calls: 0
@@ -246,28 +286,28 @@ claims:
         estimate: 0.22299559357118776
         lower: 0.19215639764499312
         upper: 0.2550192349092993
-      - metric: "conservative_contamination_delta"
+      - metric: "penalized_non_usable_upper_risk_delta"
         estimate: -0.03595773739158996
         lower: -0.04161096210584043
         upper: -0.030300871013945373
     allowed_wording:
-      - "Trusted namespace support improved recall and feasible rate while reducing the conservative contamination upper bound on this public-source evaluation."
+      - "Trusted namespace support improved recall and feasible rate while reducing the preregistered penalized non-usable upper risk on this public-source evaluation."
       - "Namespace-constrained arms had zero measured wrong-scope leakage under trusted released namespaces."
+      - "Descriptively, the resolved non-usable rate and lower bound were smaller inside feasible matched prefixes, but non-usable label coverage was also lower and the conditional upper bound remained high."
     forbidden_wording:
       - "This is an official RHELM or MemOps benchmark submission."
-      - "Namespace support improves downstream answer quality."
+      - "C5 alone establishes a downstream answer-quality improvement."
       - "The result generalizes to noisy or inferred namespaces."
-      - "The conservative contamination bound is fully resolved contamination."
+      - "The non-usable upper bound is a pure admissibility-violation estimate."
+      - "The penalized non-usable upper risk is a pure conditional contamination estimate."
+      - "Namespace support reduced the conditional matched-prefix upper bound."
     known_limitations:
       - "This is a public-source evaluation, not an official RHELM or MemOps leaderboard result."
-      - "There is no downstream reader outcome for this population."
-      - "Non-required same-namespace memories remain unresolved, so the conservative upper bound is primary."
+      - "The full 3,767-query route population has no downstream reader outcome; C13 evaluates a frozen 1,523-case subset separately."
+      - "The preregistered penalized non-usable upper risk assigns 1.0 to infeasible queries and feasible queries without a resolved non-usable label."
+      - "Non-required same-namespace memories remain unresolved; the namespace-dense conditional matched-prefix label coverage is 0.3555 and its upper bound is 0.7782."
       - "The result applies to trusted released namespaces, not noisy or inferred scope."
       - "Confidence intervals are source-macro bootstrap intervals."
-    paper_locations:
-      - "Public-Source Audit"
-      - "Figure 3"
-      - "Main Results Table"
     verification_tests:
       - "test_smoke_and_full_populations_are_distinct"
       - "test_confidence_intervals_contain_estimates"
@@ -288,16 +328,18 @@ claims:
     exact_values:
       threshold_router:
         recall_delta: -0.02300143855322647
-        conservative_contamination_delta: 0.002100290926146948
+        penalized_non_usable_upper_risk_delta: 0.002100290926146948
+        fallback_rate: 0.9654434838372002
       cluster_router:
         recall_delta: -0.0006091832540661147
-        conservative_contamination_delta: 0.00016633602210371686
+        penalized_non_usable_upper_risk_delta: 0.00016633602210371686
+        mean_route_width: 1.0
     confidence_intervals:
       - metric: "threshold_router_recall_delta"
         estimate: -0.02300143855322647
         lower: -0.028847707336523126
         upper: -0.017317948465240634
-      - metric: "threshold_router_conservative_contamination_delta"
+      - metric: "threshold_router_penalized_non_usable_upper_risk_delta"
         estimate: 0.002100290926146948
         lower: 0.0014764578849710322
         upper: 0.0028535816018647026
@@ -305,13 +347,13 @@ claims:
         estimate: -0.0006091832540661147
         lower: -0.0018749435257974158
         upper: 0.0
-      - metric: "cluster_router_conservative_contamination_delta"
+      - metric: "cluster_router_penalized_non_usable_upper_risk_delta"
         estimate: 0.00016633602210371686
         lower: -0.0000005268072220290817
         upper: 0.0005125056073667471
     allowed_wording:
       - "Additional threshold and cluster routing did not establish practical incremental utility beyond trusted namespace support."
-      - "The threshold router reduced recall and slightly increased conservative contamination."
+      - "The threshold router reduced recall and slightly increased the preregistered penalized non-usable upper risk."
       - "The cluster router was practically indistinguishable from namespace-dense retrieval on primary quality metrics."
     forbidden_wording:
       - "A novel router outperformed the baseline."
@@ -321,17 +363,13 @@ claims:
       - "This is a negative result for two frozen diagnostic variants, not all possible routers."
       - "Local timing and candidate counts do not establish a production cost claim."
       - "The cluster-router contamination interval crosses zero."
-    paper_locations:
-      - "Public-Source Audit"
-      - "Figure 3"
-      - "Discussion"
     verification_tests:
       - "test_confidence_intervals_contain_estimates"
 
   - id: C7
-    status: released_field_upper_bound
-    claim: "Released query intent and lifecycle fields reveal measurable upper-bound headroom without a detected recall loss."
-    estimand: "Source-macro released-intent lifecycle upper-bound minus namespace-dense differences."
+    status: frozen_historical_released_field_v1
+    claim: "The frozen historical released-field v1 arm reduced penalized non-usable upper risk and stale or superseded exposure without a detected recall loss; corrected v2 attribution shows that this result must not be interpreted as lifecycle-only headroom."
+    estimand: "Source-macro historical released-intent lifecycle v1 minus namespace-dense differences under the original route semantics."
     population: "The full public-source evaluation, using released query intent and lifecycle state fields unavailable to a blind deployable router."
     source_repository: "ziwang11112/bomi"
     source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
@@ -344,7 +382,7 @@ claims:
       - "reports/stage3_natural_corpus_admissibility_eval/summary.md"
     exact_values:
       recall_delta: 0.002902183273638267
-      conservative_contamination_delta: -0.008667372975349542
+      penalized_non_usable_upper_risk_delta: -0.008667372975349542
       prohibited_stale_exposure_delta: -0.0024748348518966855
       prohibited_superseded_exposure_delta: -0.010397352446049897
     confidence_intervals:
@@ -352,7 +390,7 @@ claims:
         estimate: 0.002902183273638267
         lower: -0.002335748541581875
         upper: 0.00789680524506095
-      - metric: "conservative_contamination_delta"
+      - metric: "penalized_non_usable_upper_risk_delta"
         estimate: -0.008667372975349542
         lower: -0.010697065709710664
         upper: -0.006749619443899795
@@ -365,76 +403,876 @@ claims:
         lower: -0.011767800847179462
         upper: -0.009085607368030274
     allowed_wording:
-      - "Released intent and lifecycle fields provide an upper bound on lifecycle-aware retrieval headroom."
-      - "The upper-bound arm reduced conservative contamination and prohibited stale or superseded exposure without a detected recall loss."
+      - "The historical v1 released-field arm reduced the preregistered penalized non-usable upper risk and prohibited stale or superseded exposure without a detected recall loss."
+      - "This frozen v1 result is retained for reproducibility and is not evidence that lifecycle filtering alone helps."
     forbidden_wording:
       - "We developed a deployable lifecycle filter that improves retrieval."
       - "The system inferred query intent and lifecycle state from raw inputs."
       - "All stale memories should be deleted."
+      - "Lifecycle metadata drives the incremental retrieval gain."
     known_limitations:
       - "This is a released-field upper bound, not a deployable blind method."
       - "Query intent and lifecycle state are provided to the diagnostic arm rather than inferred."
       - "The recall interval includes zero."
       - "Historical queries can require records that are stale for current-state queries."
-    paper_locations:
-      - "Public-Source Audit"
-      - "Discussion"
-      - "Limitations"
+      - "The v1 arm applies released policy filtering only to current-state queries; corrected v2 attribution is reported separately."
     verification_tests:
       - "test_confidence_intervals_contain_estimates"
 
   - id: C8
-    status: raw_human_agreement
-    claim: "Two independent humans showed strong agreement on relevance, scope, and usable evidence, moderate agreement on state, and a prevalence-limited prohibited-label alpha."
-    estimand: "Raw pre-adjudication exact agreement and nominal Krippendorff alpha by label axis."
-    population: "207 records from a 20-packet audit; this is an overlap audit, not population-wide human gold."
-    source_repository: "ziwang11112/bomi"
-    source_snapshot_commit: "a28093110325968c26906223e9eb0f1e078f6aad"
-    execution_commit: null
+    status: controlled_prompt_intervention
+    claim: "In fixed constructed scenarios, assigned exposure had different target-disclosure effects under construction-defined admissible and inadmissible query conditions while focal relevance was held fixed; DeepSeek V4 Pro also showed a positive relevant-inadmissible exposure effect."
+    estimand: "Within-unit exposed-minus-withheld target-disclosure effects in four construction-defined relevance-by-admissibility cells, plus the relevant-admissible minus relevant-inadmissible effect contrast."
+    population: "Sixteen controlled scenarios spanning principal scope, policy purpose, lifecycle intent, and as-of time; 192 paired units and 384 stateless requests per reader."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
+    execution_commit: "82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af"
     source_artifacts:
-      - "reports/stage3_admissibility_label_suite/human_agreement_summary.json"
-      - "reports/stage3_admissibility_label_suite/human_agreement_summary.md"
-      - "reports/stage3_admissibility_label_suite/agreement.csv"
-      - "reports/stage3_admissibility_label_suite/label_distribution.csv"
-      - "reports/stage3_admissibility_label_suite/mapping_coverage.csv"
-      - "reports/stage3_admissibility_label_suite/audit_selection_manifest.json"
+      - "results/counterfactual_exposure/manifest.json"
+      - "results/counterfactual_exposure/cell_metrics.csv"
+      - "results/counterfactual_exposure/bootstrap_ci.csv"
+      - "results/counterfactual_exposure/provider_usage.csv"
+      - "results/posthoc_robustness/counterfactual_scenario_robustness.csv"
+      - "results/posthoc_robustness/manifest.json"
     exact_values:
-      records: 207
-      reviewers: 2
-      adjudication_applied: false
-      model_assisted_labels_counted_as_human: false
-      relevance:
-        exact_agreement: 0.893719806763285
-        krippendorff_alpha: 0.8135248845561827
-      scope:
-        exact_agreement: 0.9951690821256038
-        krippendorff_alpha: 0.9808201365346213
-      state:
-        exact_agreement: 0.8599033816425121
-        krippendorff_alpha: 0.670309926635724
-      prohibited:
-        exact_agreement: 0.8840579710144928
-        krippendorff_alpha: 0.08290155440414537
-      usable_evidence:
-        exact_agreement: 0.9710144927536232
-        krippendorff_alpha: 0.9404670382471652
-    confidence_intervals: []
+      openai:
+        model: "gpt-5.6-sol"
+        relevant_admissible_effect: 0.90625
+        relevant_inadmissible_effect: 0.0
+        irrelevant_admissible_effect: 0.046875
+        irrelevant_inadmissible_effect: 0.0
+        selectivity_gap: 0.90625
+      gemini:
+        model: "gemini-3.6-flash"
+        relevant_admissible_effect: 0.8125
+        relevant_inadmissible_effect: 0.0
+        irrelevant_admissible_effect: 0.03125
+        irrelevant_inadmissible_effect: 0.0
+        selectivity_gap: 0.8125
+      deepseek:
+        model: "deepseek-v4-pro"
+        relevant_admissible_effect: 0.8125
+        relevant_inadmissible_effect: 0.15625
+        irrelevant_admissible_effect: 0.0
+        irrelevant_inadmissible_effect: 0.0
+        selectivity_gap: 0.65625
+      scenarios: 16
+      paired_units_per_reader: 192
+      requests_per_reader: 384
+      total_provider_calls_including_fixtures: 1155
+      model_pooling: false
+      scenario_robustness:
+        openai: {leave_one_scenario_out_min: 0.9, leave_one_scenario_out_max: 0.9333333333333333, exact_two_sided_sign_flip_p: 0.000030517578125}
+        gemini: {leave_one_scenario_out_min: 0.8, leave_one_scenario_out_max: 0.8666666666666667, exact_two_sided_sign_flip_p: 0.00006103515625}
+        deepseek: {leave_one_scenario_out_min: 0.6333333333333333, leave_one_scenario_out_max: 0.7, exact_two_sided_sign_flip_p: 0.000244140625}
+    confidence_intervals:
+      - metric: "openai_relevant_admissible_effect"
+        estimate: 0.90625
+        lower: 0.71875
+        upper: 1.0
+      - metric: "openai_relevant_inadmissible_effect"
+        estimate: 0.0
+        lower: -0.15625
+        upper: 0.125
+      - metric: "openai_irrelevant_admissible_effect"
+        estimate: 0.046875
+        lower: 0.0
+        upper: 0.140625
+      - metric: "openai_irrelevant_inadmissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "openai_selectivity_gap"
+        estimate: 0.90625
+        lower: 0.8125
+        upper: 0.96875
+      - metric: "gemini_relevant_admissible_effect"
+        estimate: 0.8125
+        lower: 0.6875
+        upper: 0.9375
+      - metric: "gemini_relevant_inadmissible_effect"
+        estimate: 0.0
+        lower: -0.0625
+        upper: 0.0625
+      - metric: "gemini_irrelevant_admissible_effect"
+        estimate: 0.03125
+        lower: 0.0
+        upper: 0.09375
+      - metric: "gemini_irrelevant_inadmissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "gemini_selectivity_gap"
+        estimate: 0.8125
+        lower: 0.6875
+        upper: 0.9375
+      - metric: "deepseek_relevant_admissible_effect"
+        estimate: 0.8125
+        lower: 0.71875
+        upper: 0.875
+      - metric: "deepseek_relevant_inadmissible_effect"
+        estimate: 0.15625
+        lower: 0.03125
+        upper: 0.3125
+      - metric: "deepseek_irrelevant_admissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "deepseek_irrelevant_inadmissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "deepseek_selectivity_gap"
+        estimate: 0.65625
+        lower: 0.5
+        upper: 0.8125
     allowed_wording:
-      - "Raw two-human agreement was strong for relevance, scope, and usable evidence, and moderate for state."
-      - "The prohibited axis had high exact agreement but low alpha under strong prevalence imbalance."
+      - "Assigned exposure had different disclosure effects under construction-defined admissible and inadmissible query conditions while focal relevance was held fixed."
+      - "In the controlled prompt-level intervention, exposure increased disclosure substantially more in the relevant-admissible cell than in the relevant-inadmissible cell for each separately reported reader."
+      - "All three selectivity-gap intervals excluded zero."
+      - "DeepSeek V4 Pro showed a positive relevant-inadmissible exposure effect, indicating residual disclosure risk when filtering is deferred to the reader."
+      - "Post-hoc leave-one-scenario-out selectivity gaps remained positive for each original reader; exact two-sided sign-flip p-values were at most 0.000244."
     forbidden_wording:
-      - "All five axes were highly reliable."
-      - "The 207 records are population-wide human gold."
-      - "Model-assisted labels were counted as independent human labels."
+      - "The experiment estimates inadmissible-memory prevalence in natural agent histories."
+      - "The readers causally used the disclosed memory in their internal reasoning."
+      - "A positive selectivity gap establishes deployment safety."
+      - "GPT-5.6 Sol and Gemini have zero inadmissible-disclosure risk."
+      - "The three readers were pooled into one effect estimate."
+      - "Admissibility itself was isolated as the only causal moderator of disclosure."
+      - "This is an official benchmark result."
     known_limitations:
-      - "The prohibited-label reliability limitation is material: alpha was 0.0829 despite high exact agreement, consistent with prevalence sensitivity."
-      - "The audit covers 207 selected records and is not population-wide human gold."
-      - "Agreement is raw and pre-adjudication."
-      - "A distinct execution commit is not recorded in the public summary; Phase 2 must resolve or explicitly preserve this provenance gap."
-      - "Model-assisted labels are excluded from the human agreement calculation."
-    paper_locations:
-      - "Evaluation Protocol"
-      - "Limitations"
-      - "Appendix"
+      - "The intervention uses sixteen constructed scenarios with literal target markers rather than a natural retrieval population."
+      - "Disclosure is detected by a fixed literal scorer and does not identify the reader's internal reasoning."
+      - "Provider estimates are reported separately and are never pooled."
+      - "Axis-specific estimates contain only four scenarios and are diagnostic."
+      - "The result applies to the exact frozen prompts and model snapshots."
+      - "Observed disclosure can occur even when the manipulated candidate is withheld; a zero paired effect is not a zero-risk claim."
+      - "The leave-one-scenario-out ranges and sign-flip tests are post-hoc zero-call analyses of frozen pair scores."
     verification_tests:
-      - "test_prohibited_reliability_limitation_is_required"
+      - "test_counterfactual_exposure_claim_requires_controlled_boundary"
+      - "test_counterfactual_exposure_claim_requires_no_pooling_boundary"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C9
+    status: post_hoc_frozen_ranking_decomposition
+    claim: "Across practical top-k budgets, trusted namespace support improved evidence recall and feasibility while reducing the post-hoc v2 penalized admissibility upper risk on frozen natural-corpus rankings."
+    estimand: "Source-clustered namespace-dense minus global-dense differences at top-k in {10, 20, 50, 100}, with total risk decomposed into infeasibility and feasible-prefix admissibility components."
+    population: "The same 87 public-evaluation groups, 182,908 memories, and 3,767 queries as C5; rankings and settings are frozen and only prefix depth and v2 scoring vary."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    execution_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_artifacts:
+      - "results/supplemental_natural/natural_top_k_pareto.csv"
+      - "results/supplemental_natural/natural_top_k_paired_deltas.csv"
+      - "results/supplemental_natural/natural_top_k_pareto_manifest.json"
+      - "results/support_controls/support_control_main.csv"
+      - "results/support_controls/target_recall_sensitivity.csv"
+      - "results/support_controls/infeasibility_cost_sensitivity.csv"
+      - "results/support_controls/few_cluster_robustness.csv"
+      - "results/support_controls/manifest.json"
+    exact_values:
+      top_k_10:
+        global_evidence_recall: 0.3223367172107227
+        global_feasible_rate: 0.1702805355614601
+        global_penalized_admissibility_upper_risk: 0.8460547594498226
+        namespace_evidence_recall: 0.3894689342408979
+        namespace_feasible_rate: 0.20207095081256057
+        namespace_penalized_admissibility_upper_risk: 0.8074283935203224
+        evidence_recall_delta: 0.06713221703017538
+        feasible_rate_delta: 0.03179041525110043
+        penalized_admissibility_upper_risk_delta: -0.038626365929500056
+        infeasibility_risk_component_delta: -0.03179041525110043
+        admissibility_conditional_risk_component_delta: -0.006835950678399629
+      top_k_20:
+        global_evidence_recall: 0.4315697757162279
+        global_feasible_rate: 0.23740430929405193
+        global_penalized_admissibility_upper_risk: 0.7980664441257406
+        namespace_evidence_recall: 0.5328784300057341
+        namespace_feasible_rate: 0.31131395982110227
+        namespace_penalized_admissibility_upper_risk: 0.7127047093519459
+        evidence_recall_delta: 0.10130865428950661
+        feasible_rate_delta: 0.07390965052705038
+        penalized_admissibility_upper_risk_delta: -0.08536173477379465
+        infeasibility_risk_component_delta: -0.07390965052705038
+        admissibility_conditional_risk_component_delta: -0.011452084246744251
+      top_k_50:
+        global_evidence_recall: 0.6032211289041816
+        global_feasible_rate: 0.3990558831365097
+        global_penalized_admissibility_upper_risk: 0.6983508942334946
+        namespace_evidence_recall: 0.7398917416237083
+        namespace_feasible_rate: 0.551670034162201
+        namespace_penalized_admissibility_upper_risk: 0.5185300374139988
+        evidence_recall_delta: 0.1366706127195266
+        feasible_rate_delta: 0.1526141510256912
+        penalized_admissibility_upper_risk_delta: -0.17982085681949506
+        infeasibility_risk_component_delta: -0.1526141510256912
+        admissibility_conditional_risk_component_delta: -0.027206705793804013
+      top_k_100:
+        global_evidence_recall: 0.7168351167568718
+        global_feasible_rate: 0.5388709970223009
+        global_penalized_admissibility_upper_risk: 0.6276493730238182
+        namespace_evidence_recall: 0.8656633800606315
+        namespace_feasible_rate: 0.7618665905934887
+        namespace_penalized_admissibility_upper_risk: 0.3537144372628587
+        evidence_recall_delta: 0.14882826330375906
+        feasible_rate_delta: 0.22299559357118776
+        penalized_admissibility_upper_risk_delta: -0.27393493576095884
+        infeasibility_risk_component_delta: -0.22299559357118776
+        admissibility_conditional_risk_component_delta: -0.05093934218977141
+      support_controls_top_k_20:
+        size_matched_random_seed_count: 10
+        size_matched_random_candidates: 1540.0841302548845
+        size_matched_random_evidence_recall: 0.060954023347894216
+        namespace_candidates: 1551.24455090498
+        namespace_evidence_recall: 0.5328784300057341
+        global_post_filter_20_evidence_recall: 0.4315697757162279
+        global_post_filter_100_evidence_recall: 0.5158949639092123
+        global_post_filter_500_evidence_recall: 0.5312622594931394
+        global_scope_excluded_conditional_upper_risk: 0.12287266997568323
+        namespace_scope_excluded_conditional_upper_risk: 0.12607858057826515
+        scope_excluded_penalized_risk_delta_at_zero_infeasibility_cost: 0.007731601327935902
+        scope_excluded_penalized_risk_delta_at_unit_infeasibility_cost: -0.06617804919911435
+        target_recall_grid: [0.5, 0.7, 0.8, 0.9, 1.0]
+        infeasibility_cost_grid: [0.0, 0.25, 0.5, 0.75, 1.0]
+        leave_one_group_out_recall_delta_min: 0.09742666464063565
+        leave_one_group_out_recall_delta_max: 0.10771108116796663
+        rhelm_group_count: 7
+        rhelm_exact_two_sided_sign_flip_p: 0.015625
+    confidence_intervals:
+      - {metric: "top_k_10_evidence_recall_delta", estimate: 0.06713221703017538, lower: 0.05415147598649556, upper: 0.08109095232893691}
+      - {metric: "top_k_10_feasible_rate_delta", estimate: 0.03179041525110043, lower: 0.02213625743295429, upper: 0.04224848468892474}
+      - {metric: "top_k_10_penalized_admissibility_upper_risk_delta", estimate: -0.038626365929500056, lower: -0.04921849772137167, upper: -0.028055171738481367}
+      - {metric: "top_k_10_infeasibility_risk_component_delta", estimate: -0.03179041525110043, lower: -0.042248484688924746, upper: -0.022136257432954293}
+      - {metric: "top_k_10_admissibility_conditional_risk_component_delta", estimate: -0.006835950678399629, lower: -0.009381262683206222, upper: -0.004092282097607112}
+      - {metric: "top_k_20_evidence_recall_delta", estimate: 0.10130865428950661, lower: 0.08225413057659439, upper: 0.12040251537864088}
+      - {metric: "top_k_20_feasible_rate_delta", estimate: 0.07390965052705038, lower: 0.05579616108791878, upper: 0.09467092101238662}
+      - {metric: "top_k_20_penalized_admissibility_upper_risk_delta", estimate: -0.08536173477379465, lower: -0.10699340752686742, upper: -0.06416454269139718}
+      - {metric: "top_k_20_infeasibility_risk_component_delta", estimate: -0.07390965052705038, lower: -0.09467092101238664, upper: -0.05579616108791879}
+      - {metric: "top_k_20_admissibility_conditional_risk_component_delta", estimate: -0.011452084246744251, lower: -0.016138339480099545, upper: -0.006536993998337914}
+      - {metric: "top_k_50_evidence_recall_delta", estimate: 0.1366706127195266, lower: 0.11439280079741619, upper: 0.15763115370548839}
+      - {metric: "top_k_50_feasible_rate_delta", estimate: 0.1526141510256912, lower: 0.12476583243697258, upper: 0.17917670117461051}
+      - {metric: "top_k_50_penalized_admissibility_upper_risk_delta", estimate: -0.17982085681949506, lower: -0.2122158818845426, upper: -0.14449638021123745}
+      - {metric: "top_k_50_infeasibility_risk_component_delta", estimate: -0.1526141510256912, lower: -0.17917670117461051, upper: -0.12476583243697258}
+      - {metric: "top_k_50_admissibility_conditional_risk_component_delta", estimate: -0.027206705793804013, lower: -0.03752878052520413, upper: -0.015894944795739153}
+      - {metric: "top_k_100_evidence_recall_delta", estimate: 0.14882826330375906, lower: 0.1295318175494812, upper: 0.1686701504404007}
+      - {metric: "top_k_100_feasible_rate_delta", estimate: 0.22299559357118776, lower: 0.191691519764103, upper: 0.2550229613185381}
+      - {metric: "top_k_100_penalized_admissibility_upper_risk_delta", estimate: -0.27393493576095884, lower: -0.30970609573192986, upper: -0.23538435309248837}
+      - {metric: "top_k_100_infeasibility_risk_component_delta", estimate: -0.22299559357118776, lower: -0.2550229613185381, upper: -0.191691519764103}
+      - {metric: "top_k_100_admissibility_conditional_risk_component_delta", estimate: -0.05093934218977141, lower: -0.06842618818753983, upper: -0.03367666071398375}
+    allowed_wording:
+      - "On frozen natural-corpus rankings, trusted namespace support improved recall, feasibility, and post-hoc v2 penalized admissibility upper risk at top-k 10, 20, 50, and 100."
+      - "The v2 risk reduction contains both an infeasibility reduction and a smaller feasible-prefix admissibility component at every reported depth."
+      - "At comparable candidate counts, the correct trusted namespace achieved 0.533 recall while a ten-seed size-matched random partition achieved 0.061 mean recall, so pool size alone does not explain the result in this exact-dense control."
+      - "Global post-filtering recovered namespace-pre-filter recall only after retrieving to depth 500; filtering a global top-20 retained global recall."
+      - "After removing scope violations from the numerator, conditional upper risk did not improve, and the penalized residual-risk advantage required a positive infeasibility cost."
+      - "Leave-one-group-out recall deltas remained positive, and the exact seven-group RHELM sign-flip p-value was 0.015625."
+    forbidden_wording:
+      - "The v2 admissibility metric was used for original development selection."
+      - "The fixed-budget analysis is a new held-out confirmatory experiment."
+      - "Namespace support guarantees admissibility at any retrieval depth."
+      - "Candidate-pool size never matters for dense retrieval."
+      - "Trusted namespace support improves conditional policy or lifecycle verification."
+    known_limitations:
+      - "This is a post-hoc v2 rescore of frozen rankings, not a new held-out run."
+      - "No settings were retuned, and original development selection used the v1 penalized non-usable upper risk."
+      - "Confidence intervals use namespace-group bootstrap resampling under equal-source macro-averaging."
+      - "The result applies to released trusted namespaces in the evaluated public sources."
+      - "The support controls are post-hoc zero-call diagnostics on frozen embeddings and labels; the random partition is not a semantic-cluster control."
+      - "The pre/post-filter comparison is specific to exact dense ranking and the tested depths."
+      - "At zero infeasibility cost, namespace scope-excluded penalized risk is slightly higher than global dense; the primary residual advantage therefore depends on assigning positive cost to recall failure."
+    verification_tests:
+      - "test_fixed_budget_claim_requires_posthoc_no_retuning_boundary"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C10
+    status: post_hoc_metadata_robustness_diagnostic
+    claim: "The value of retrieval constraints is asymmetric in metadata error type: false-deny errors cross their channel-specific weak-dominance boundary earlier than the tested fail-open errors, and the corrected attribution gain is policy-driven while the coarse lifecycle-only rule hurts retrieval."
+    estimand: "Post-hoc v2 axis attribution relative to namespace dense, plus ten-seed mean weak-dominance brackets and selected full-natural reranking points under frozen corruption mechanisms. Namespace channels use global dense as reference; policy, lifecycle, and intent channels use clean namespace dense."
+    population: "The same full public-source evaluation as C5 and C9, evaluated under the explicitly tested metadata-corruption mechanisms and grid only."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    execution_commit: "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+    source_artifacts:
+      - "results/supplemental_natural/natural_admissibility_attribution_deltas.csv"
+      - "results/supplemental_natural/natural_namespace_break_even.json"
+      - "results/supplemental_natural/natural_governance_break_even.json"
+      - "results/supplemental_natural/natural_namespace_support_expansion_summary.csv"
+      - "results/supplemental_natural/natural_namespace_support_expansion_break_even.json"
+      - "results/supplemental_natural/manifest.json"
+    exact_values:
+      policy_only:
+        evidence_recall_delta: 0.026547423326091616
+        feasible_rate_delta: 0.057644882860665846
+        penalized_admissibility_upper_risk_delta: -0.14672349588930514
+      lifecycle_only:
+        evidence_recall_delta: -0.015782983970406887
+        feasible_rate_delta: -0.037916152897657214
+        penalized_admissibility_upper_risk_delta: 0.017592488030749552
+      governance_v2:
+        evidence_recall_delta: 0.010489205957763334
+        feasible_rate_delta: 0.016954377311960544
+        penalized_admissibility_upper_risk_delta: -0.12355443791299539
+      namespace_false_deny: {last_observed_dominating_rate: 0.1, first_observed_non_dominating_rate: 0.2}
+      namespace_missing: {last_observed_dominating_rate: 0.1, first_observed_non_dominating_rate: 0.2}
+      lifecycle_false_current: {last_observed_dominating_rate: 0.5}
+      lifecycle_false_stale: {last_observed_dominating_rate: 0.0, first_observed_non_dominating_rate: 0.02}
+      lifecycle_missing: {last_observed_dominating_rate: 0.5}
+      policy_false_allow: {last_observed_dominating_rate: 0.3, first_observed_non_dominating_rate: 0.4}
+      policy_false_deny: {last_observed_dominating_rate: 0.0, first_observed_non_dominating_rate: 0.02}
+      policy_missing: {last_observed_dominating_rate: 0.3, first_observed_non_dominating_rate: 0.4}
+      query_intent_flip: {last_observed_dominating_rate: 0.5}
+      namespace_false_allow: {last_observed_dominating_rate: 0.5}
+      namespace_swap: {last_observed_dominating_rate: 0.1, first_observed_non_dominating_rate: 0.2}
+      false_allow_at_0_5:
+        evidence_recall: 0.7578012077005267
+        feasible_rate: 0.5891131561016897
+        penalized_admissibility_upper_risk: 0.5769199057360483
+        matched_prefix_wrong_scope_exposure_rate: 0.16721074429732483
+        candidates_scored: 45836.30615078757
+      namespace_swap_at_0_2:
+        evidence_recall: 0.7090531000222329
+        feasible_rate: 0.4917290458867437
+        penalized_admissibility_upper_risk: 0.5908267514639224
+        matched_prefix_wrong_scope_exposure_rate: 0.026387548135904
+        candidates_scored: 1531.6005152621813
+    confidence_intervals:
+      - {metric: "policy_only_evidence_recall_delta", estimate: 0.026547423326091616, lower: 0.022348524278320656, upper: 0.030818132766988457}
+      - {metric: "policy_only_feasible_rate_delta", estimate: 0.057644882860665846, lower: 0.048150268589199886, upper: 0.06747297469929674}
+      - {metric: "policy_only_penalized_admissibility_upper_risk_delta", estimate: -0.14672349588930514, lower: -0.15476915257566598, upper: -0.13876722035339698}
+      - {metric: "lifecycle_only_evidence_recall_delta", estimate: -0.015782983970406887, lower: -0.019317486951876482, upper: -0.01234889280538859}
+      - {metric: "lifecycle_only_feasible_rate_delta", estimate: -0.037916152897657214, lower: -0.04619423147656303, upper: -0.029823284921375485}
+      - {metric: "lifecycle_only_penalized_admissibility_upper_risk_delta", estimate: 0.017592488030749552, lower: 0.012126050434668908, upper: 0.023269147965288468}
+      - {metric: "governance_v2_evidence_recall_delta", estimate: 0.010489205957763334, lower: 0.004474272535172441, upper: 0.01651220262651765}
+      - {metric: "governance_v2_feasible_rate_delta", estimate: 0.016954377311960544, lower: 0.0030246360193830865, upper: 0.030466116995666825}
+      - {metric: "governance_v2_penalized_admissibility_upper_risk_delta", estimate: -0.12355443791299539, lower: -0.13476684700631683, upper: -0.11194958955718494}
+    allowed_wording:
+      - "Within the frozen corruption grid, false-deny errors crossed their channel-specific weak-dominance boundary earlier than the tested fail-open errors."
+      - "Corrected v2 attribution identifies released policy metadata as the source of incremental gain; the coarse two-intent lifecycle-only rule reduced recall and feasibility and increased risk."
+      - "Full-natural reranking remained weakly dominant over global dense through 50 percent query-memory namespace false allow, while source-label swap was last dominant at 10 percent and first non-dominant at 20 percent."
+    forbidden_wording:
+      - "The observed break-even points are universal deployment thresholds."
+      - "Metadata accuracy is summarized by one interchangeable scalar."
+      - "Lifecycle filtering is generally beneficial."
+      - "The tested corruption mechanisms cover all provenance failures."
+      - "False allow produced zero wrong-scope exposure."
+    known_limitations:
+      - "Break-even values are observed brackets on a discrete grid, not population thresholds."
+      - "Attribution and corruption analyses are post-hoc diagnostics on released fields and frozen settings."
+      - "Full-natural support expansion uses fixed embeddings and exact reranking with no retuning."
+      - "No failure was observed through 50 percent for some channels; behavior beyond the tested grid is unknown."
+      - "Aggregate weak dominance does not imply zero wrong-scope exposure."
+    verification_tests:
+      - "test_metadata_reliability_claim_requires_grid_boundary"
+      - "test_metadata_reliability_claim_requires_corrected_v2_semantics"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C11
+    status: public_development_inference_gap_diagnostic
+    claim: "Released governance fields expose retrieval headroom, but text-only verifiers did not recover it on fixed public-development candidates and overflipped stable controls in constructed counterfactuals."
+    estimand: "Route deltas and classification diagnostics on 72 fixed public-development cases, reported separately from focal-pair consistency and stable-control errors in 16 controlled scenarios."
+    population: "Two separate public-development populations: 72 natural fixed-candidate analysis cases and 16 controlled scenarios with 32 focal pairs and 64 stable candidate pairs."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit:
+      natural_text_inference: "c4f93cad3e55ae816cda868d6591e57b48e342da"
+      controlled_verifier: "1ff8c13911b3165773162b31954ac7601c0092ea"
+    execution_commit:
+      natural_text_inference: "c4f93cad3e55ae816cda868d6591e57b48e342da"
+      controlled_verifier: "1ff8c13911b3165773162b31954ac7601c0092ea"
+    source_artifacts:
+      - "results/inferred_admissibility/paired_route_deltas.csv"
+      - "results/inferred_admissibility/classification_metrics.csv"
+      - "results/inferred_admissibility/filter_metrics.csv"
+      - "results/inferred_admissibility/manifest.json"
+      - "results/counterfactual_admissibility/aggregate_metrics.csv"
+      - "results/counterfactual_admissibility/bootstrap_ci.csv"
+      - "results/counterfactual_admissibility/error_taxonomy.csv"
+      - "results/counterfactual_admissibility/manifest.json"
+      - "results/posthoc_robustness/verifier_operating_curve.csv"
+      - "results/posthoc_robustness/manifest.json"
+    exact_values:
+      released_oracle:
+        evidence_recall_delta: 0.0
+        feasible_rate_delta: 0.0
+        penalized_admissibility_upper_risk_delta: -0.03195737518654185
+      openai_text_inferred:
+        evidence_recall_delta: -0.041666666666666664
+        feasible_rate_delta: -0.08333333333333333
+        penalized_admissibility_upper_risk_delta: 0.05674412393162393
+        roc_auc: 0.6261786588972855
+        violation_precision: 0.350236646382691
+        violation_recall: 0.2320423700761337
+        required_anchor_false_deny_rate: 0.05882352941176471
+      gemini_text_inferred:
+        evidence_recall_delta: -0.013888888888888888
+        feasible_rate_delta: -0.027777777777777776
+        penalized_admissibility_upper_risk_delta: 0.017956349206349205
+        roc_auc: 0.5221804931668638
+        violation_precision: 0.6785714285714286
+        violation_recall: 0.048576630254882486
+        required_anchor_false_deny_rate: 0.0196078431372549
+      gpt56_controlled:
+        strict_focal_pair_consistency: 1.0
+        stable_control_overflip_rate: 0.203125
+        stable_admissible_false_deny_rate: 0.265625
+        stable_inadmissible_false_admit_rate: 0.03125
+      gemini_controlled:
+        strict_focal_pair_consistency: 1.0
+        stable_control_overflip_rate: 0.296875
+        stable_admissible_false_deny_rate: 0.53125
+        stable_inadmissible_false_admit_rate: 0.0
+      deepseek_controlled:
+        strict_focal_pair_consistency: 0.71875
+        stable_control_overflip_rate: 0.265625
+        stable_admissible_false_deny_rate: 0.59375
+        stable_inadmissible_false_admit_rate: 0.015625
+      fixed_threshold_curve:
+        threshold_grid: [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0]
+        openai_points_at_or_below_one_percent_anchor_false_deny: 1
+        openai_best_violation_recall_at_or_below_one_percent_anchor_false_deny: 0.0
+        gemini_points_at_or_below_one_percent_anchor_false_deny: 0
+    confidence_intervals:
+      - {metric: "released_oracle_evidence_recall_delta", estimate: 0.0, lower: 0.0, upper: 0.0}
+      - {metric: "released_oracle_feasible_rate_delta", estimate: 0.0, lower: 0.0, upper: 0.0}
+      - {metric: "released_oracle_penalized_admissibility_upper_risk_delta", estimate: -0.03195737518654185, lower: -0.06508247966209275, upper: -0.006706144982752583}
+      - {metric: "openai_text_inferred_evidence_recall_delta", estimate: -0.041666666666666664, lower: -0.06666666666666667, upper: -0.016666666666666666}
+      - {metric: "openai_text_inferred_feasible_rate_delta", estimate: -0.08333333333333333, lower: -0.13333333333333333, upper: -0.03333333333333333}
+      - {metric: "openai_text_inferred_penalized_admissibility_upper_risk_delta", estimate: 0.05674412393162393, lower: 0.023781653129479215, upper: 0.09156636332417581}
+      - {metric: "gemini_text_inferred_evidence_recall_delta", estimate: -0.013888888888888888, lower: -0.03333333333333333, upper: 0.0}
+      - {metric: "gemini_text_inferred_feasible_rate_delta", estimate: -0.027777777777777776, lower: -0.06666666666666667, upper: 0.0}
+      - {metric: "gemini_text_inferred_penalized_admissibility_upper_risk_delta", estimate: 0.017956349206349205, lower: 0.0, upper: 0.04321428571428571}
+      - {metric: "gpt56_controlled_strict_focal_pair_consistency", estimate: 1.0, lower: 1.0, upper: 1.0}
+      - {metric: "gpt56_controlled_stable_control_overflip_rate", estimate: 0.203125, lower: 0.109375, upper: 0.3125}
+      - {metric: "gemini_controlled_strict_focal_pair_consistency", estimate: 1.0, lower: 1.0, upper: 1.0}
+      - {metric: "gemini_controlled_stable_control_overflip_rate", estimate: 0.296875, lower: 0.21875, upper: 0.375}
+      - {metric: "deepseek_controlled_strict_focal_pair_consistency", estimate: 0.71875, lower: 0.59375, upper: 0.84375}
+      - {metric: "deepseek_controlled_stable_control_overflip_rate", estimate: 0.265625, lower: 0.1875, upper: 0.34375}
+    allowed_wording:
+      - "On fixed public-development candidates, the released-field oracle reduced post-hoc v2 admissibility risk without changing recall or feasibility, while the two text-only filters did not realize that headroom."
+      - "In controlled public-development pairs, all evaluated text verifiers exceeded the preregistered 0.05 stable-control overflip limit."
+      - "Stable-control errors were concentrated in false denial of admissible memories rather than false admission of inadmissible memories."
+      - "Across the fixed threshold grid, GPT reached at most 1 percent required-anchor false denial only by retaining every candidate and detecting no violations; Gemini had no tested point below that false-denial level."
+    forbidden_wording:
+      - "Text-only models cannot infer admissibility in any setting."
+      - "The released-field oracle is a deployable method."
+      - "Natural and controlled populations were pooled."
+      - "Provider results were pooled into one estimate."
+      - "The diagnostic is an official benchmark result."
+      - "The threshold sweep selected a new operating point on evaluation data."
+    known_limitations:
+      - "Both analyses are public-development diagnostics, not held-out confirmatory evaluations."
+      - "The natural and controlled populations are separate and are never pooled."
+      - "Model estimates are reported separately and are never pooled."
+      - "The natural diagnostic uses fixed top-20 candidates and development-selected thresholds."
+      - "The controlled diagnostic uses 16 constructed scenarios and 32 focal pairs."
+      - "The released-field oracle is an upper-bound diagnostic, not deployable inference."
+      - "The threshold curve is a post-hoc zero-call sensitivity analysis of frozen scores; the development-selected threshold remains unchanged."
+    verification_tests:
+      - "test_inference_gap_claim_requires_population_separation"
+      - "test_inference_gap_claim_requires_no_pooling_boundary"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C12
+    status: controlled_prompt_reader_replication
+    claim: "On the same fixed constructed scenarios, Claude Opus 5 separately replicated a positive relevant-admissible versus relevant-inadmissible exposure-effect gap."
+    estimand: "Within-unit exposed-minus-withheld target-disclosure effects in four construction-defined relevance-by-admissibility cells, plus their relevant-admissible minus relevant-inadmissible contrast for one separately reported Anthropic reader."
+    population: "The same sixteen controlled scenarios used by C8; 192 paired units and 384 stateless Claude Opus 5 requests."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+    execution_commit: "938320909b4c2d13e286987dc4297a7cb6ef73a7"
+    source_artifacts:
+      - "results/claude_opus5_exposure_replication/manifest.json"
+      - "results/claude_opus5_exposure_replication/cell_metrics.csv"
+      - "results/claude_opus5_exposure_replication/bootstrap_ci.csv"
+      - "results/claude_opus5_exposure_replication/provider_usage.csv"
+    exact_values:
+      claude:
+        model: "claude-opus-5"
+        relevant_admissible_effect: 0.96875
+        relevant_inadmissible_effect: 0.125
+        irrelevant_admissible_effect: 0.265625
+        irrelevant_inadmissible_effect: 0.0
+        selectivity_gap: 0.84375
+      scenarios: 16
+      paired_units: 192
+      requests: 384
+      total_provider_calls_including_fixture: 385
+      cap_accounted_cost_usd: 1.8580599999999987
+      model_pooling: false
+    confidence_intervals:
+      - metric: "claude_relevant_admissible_effect"
+        estimate: 0.96875
+        lower: 0.90625
+        upper: 1.0
+      - metric: "claude_relevant_inadmissible_effect"
+        estimate: 0.125
+        lower: 0.0
+        upper: 0.28125
+      - metric: "claude_irrelevant_admissible_effect"
+        estimate: 0.265625
+        lower: 0.140625
+        upper: 0.421875
+      - metric: "claude_irrelevant_inadmissible_effect"
+        estimate: 0.0
+        lower: 0.0
+        upper: 0.0
+      - metric: "claude_selectivity_gap"
+        estimate: 0.84375
+        lower: 0.6875
+        upper: 0.96875
+    allowed_wording:
+      - "Claude Opus 5 separately replicated a positive selectivity gap on the same controlled prompt-level construction."
+      - "The Opus 5 selectivity-gap interval excluded zero, while its relevant-inadmissible point estimate remained nonzero."
+      - "The fourth-reader replication is reported alongside, but never pooled with, the original three-reader panel."
+    forbidden_wording:
+      - "The four readers were executed as one jointly preregistered panel."
+      - "The reader estimates were pooled."
+      - "Claude Opus 5 had zero inadmissible-disclosure risk."
+      - "The replication estimates natural-corpus prevalence or production safety."
+      - "This is an official benchmark result."
+    known_limitations:
+      - "This is a separate reader replication rather than part of the original three-reader execution."
+      - "The intervention uses sixteen constructed scenarios with literal target markers rather than a natural retrieval population."
+      - "Disclosure is detected by a fixed literal scorer and does not identify the reader's internal reasoning."
+      - "The Opus 5 estimate is model-specific and is never pooled with another reader."
+      - "The result applies to the exact frozen prompt, model ID, and disabled-thinking configuration."
+    verification_tests:
+      - "test_opus_replication_claim_requires_separate_execution_boundary"
+      - "test_opus_replication_claim_requires_no_pooling_boundary"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C13
+    status: natural_same_population_route_to_reader_evaluation
+    claim: "On a frozen 1,523-case natural sample, trusted namespace support improved route utility-risk and judged answer utility relative to global dense for each of three separately reported readers; additional deletion gates did not establish a monotonic downstream benefit."
+    estimand: "Paired route-minus-reference deltas for retrieval, judged answer utility, non-answer action, and typed disclosure, with 10,000 paired namespace-group bootstrap replicates and equal-source macro aggregation."
+    population: "All 523 eligible RHELM evaluation cases plus a frozen outcome-independent simple random sample of 1,000 of 3,244 MemOps cases; 1,523 paired cases spanning 87 namespace groups, with all 80 MemOps groups represented. RHELM eligibility requires conversation-only questions with uniquely resolved supporting references; 859 of 1,305 source QA pairs meet both filters before the frozen split."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    execution_commit:
+      two_reader_source: "8432abe7a34c1b44c4a943bcdd150858ad43f6b9"
+      two_reader_judge: "561a857d21a1a7f447581247f3f8a93fff42eeea"
+      gpt_reader: "3eab4e37605595b56c4d63e7a06f387936c9c05d"
+      gpt_result_publication: "c608fa639c03eec3f9665c27ea9eb9c83dd0a22d"
+    source_artifacts:
+      - "results/natural_end_to_end_two_reader_judged/manifest.json"
+      - "results/natural_end_to_end_two_reader_judged/main_table.csv"
+      - "results/natural_end_to_end_two_reader_judged/paired_deltas.csv"
+      - "results/natural_end_to_end_two_reader_judged/execution_receipt.json"
+      - "results/natural_end_to_end_gpt_luna_judged/manifest.json"
+      - "results/natural_end_to_end_gpt_luna_judged/main_table.csv"
+      - "results/natural_end_to_end_gpt_luna_judged/paired_deltas.csv"
+      - "results/natural_end_to_end_gpt_luna_judged/execution_receipt.json"
+    exact_values:
+      deepseek_v4_pro:
+        namespace_dense_minus_global_dense:
+          answer_correct: 0.05251625239005736
+          answer_quality: 0.042591013384321225
+          evidence_recall: 0.10402099722298097
+          feasible: 0.07493307839388146
+          over_refusal: -0.04848852772466539
+          penalized_admissibility_upper_risk: -0.08474888331632655
+          protected_disclosure: -0.0063532401524777635
+          stale_disclosure: 0.008
+        namespace_policy_gate_minus_namespace_dense:
+          answer_correct: 0.0065
+          penalized_admissibility_upper_risk: -0.019200305740011622
+        namespace_text_verifier_minus_namespace_dense:
+          answer_correct: 0.009912045889101339
+          penalized_admissibility_upper_risk: 0.006754085054009838
+      gemini_3_6_flash:
+        namespace_dense_minus_global_dense:
+          answer_correct: 0.06763671128107074
+          answer_quality: 0.049923709369024856
+          evidence_recall: 0.10402099722298097
+          feasible: 0.07493307839388146
+          over_refusal: -0.04053250478011472
+          penalized_admissibility_upper_risk: -0.08474888331632655
+          protected_disclosure: 0.012706480304955527
+          stale_disclosure: 0.0
+        namespace_policy_gate_minus_namespace_dense:
+          answer_correct: -0.0045
+          penalized_admissibility_upper_risk: -0.019200305740011622
+        namespace_text_verifier_minus_namespace_dense:
+          answer_correct: -0.014868068833652008
+          penalized_admissibility_upper_risk: 0.006754085054009838
+      gpt_5_6_luna:
+        namespace_dense_minus_global_dense:
+          answer_correct: 0.06594455066921606
+          answer_quality: 0.047618355640535376
+          evidence_recall: 0.10402099722298097
+          feasible: 0.07493307839388146
+          over_refusal: -0.03813671128107075
+          penalized_admissibility_upper_risk: -0.08474888331632655
+          protected_disclosure: -0.007623888182973317
+          stale_disclosure: 0.004
+        namespace_policy_gate_minus_namespace_dense:
+          answer_correct: -0.0055
+          penalized_admissibility_upper_risk: -0.019200305740011622
+    confidence_intervals:
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__answer_correct
+        estimate: 0.05251625239005736
+        lower: 0.020302553796217655
+        upper: 0.08373816977940912
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__answer_quality
+        estimate: 0.042591013384321225
+        lower: 0.02268125753147638
+        upper: 0.06165575463488798
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__evidence_recall
+        estimate: 0.10402099722298097
+        lower: 0.08354954807258205
+        upper: 0.12427538066672583
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__feasible
+        estimate: 0.07493307839388146
+        lower: 0.055382597514562246
+        upper: 0.09632997651487461
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__over_refusal
+        estimate: -0.04848852772466539
+        lower: -0.06798477976709182
+        upper: -0.03051346908446869
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__penalized_admissibility_upper_risk
+        estimate: -0.08474888331632655
+        lower: -0.10674769062039698
+        upper: -0.0628211552725268
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__protected_disclosure
+        estimate: -0.0063532401524777635
+        lower: -0.02625
+        upper: 0.012622720897615708
+      - metric: deepseek_v4_pro__namespace_dense_minus_global_dense__stale_disclosure
+        estimate: 0.008
+        lower: -0.011549566891241578
+        upper: 0.030828516377649325
+      - metric: deepseek_v4_pro__namespace_policy_gate_minus_namespace_dense__answer_correct
+        estimate: 0.0065
+        lower: -0.00891089108910891
+        upper: 0.022035676810073453
+      - metric: deepseek_v4_pro__namespace_policy_gate_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: -0.019200305740011622
+        lower: -0.022935897976836643
+        upper: -0.015693928750944032
+      - metric: deepseek_v4_pro__namespace_text_verifier_minus_namespace_dense__answer_correct
+        estimate: 0.009912045889101339
+        lower: -0.003548954098404648
+        upper: 0.02255106198600853
+      - metric: deepseek_v4_pro__namespace_text_verifier_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: 0.006754085054009838
+        lower: 0.002383160884238606
+        upper: 0.011510807041683866
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__answer_correct
+        estimate: 0.06763671128107074
+        lower: 0.04670322741046881
+        upper: 0.09021352701258478
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__answer_quality
+        estimate: 0.049923709369024856
+        lower: 0.03629559488459981
+        upper: 0.06475457887065086
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__evidence_recall
+        estimate: 0.10402099722298097
+        lower: 0.08342454334136107
+        upper: 0.1243956022003487
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__feasible
+        estimate: 0.07493307839388146
+        lower: 0.0550117244527137
+        upper: 0.09610959866514446
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__over_refusal
+        estimate: -0.04053250478011472
+        lower: -0.05739330863956986
+        upper: -0.02489747947045475
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__penalized_admissibility_upper_risk
+        estimate: -0.08474888331632655
+        lower: -0.10663983746110495
+        upper: -0.06262257189573994
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__protected_disclosure
+        estimate: 0.012706480304955527
+        lower: -0.005076142131979695
+        upper: 0.030927835051546393
+      - metric: gemini_3_6_flash__namespace_dense_minus_global_dense__stale_disclosure
+        estimate: 0.0
+        lower: -0.011518324607329843
+        upper: 0.012084592145015106
+      - metric: gemini_3_6_flash__namespace_policy_gate_minus_namespace_dense__answer_correct
+        estimate: -0.0045
+        lower: -0.019956850053937433
+        upper: 0.011439466158245948
+      - metric: gemini_3_6_flash__namespace_policy_gate_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: -0.019200305740011622
+        lower: -0.022980833573497114
+        upper: -0.015690832511635923
+      - metric: gemini_3_6_flash__namespace_text_verifier_minus_namespace_dense__answer_correct
+        estimate: -0.014868068833652008
+        lower: -0.02826788870149825
+        upper: -0.0010581427390465691
+      - metric: gemini_3_6_flash__namespace_text_verifier_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: 0.006754085054009838
+        lower: 0.002406702503193534
+        upper: 0.011451048402700982
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__answer_correct
+        estimate: 0.06594455066921606
+        lower: 0.038953880676646895
+        upper: 0.0961025641025641
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__answer_quality
+        estimate: 0.047618355640535376
+        lower: 0.03104415584415585
+        upper: 0.06646392601163251
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__evidence_recall
+        estimate: 0.10402099722298097
+        lower: 0.0832315950259246
+        upper: 0.1245884851508086
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__feasible
+        estimate: 0.07493307839388146
+        lower: 0.05547275002844465
+        upper: 0.09596528896045804
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__over_refusal
+        estimate: -0.03813671128107075
+        lower: -0.0589171876821509
+        upper: -0.014836016696481812
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__penalized_admissibility_upper_risk
+        estimate: -0.08474888331632655
+        lower: -0.10684475523619832
+        upper: -0.062196236513653864
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__protected_disclosure
+        estimate: -0.007623888182973317
+        lower: -0.026854219948849106
+        upper: 0.012953367875647668
+      - metric: gpt_5_6_luna__namespace_dense_minus_global_dense__stale_disclosure
+        estimate: 0.004
+        lower: -0.013039117352056168
+        upper: 0.022115384615384617
+      - metric: gpt_5_6_luna__namespace_policy_gate_minus_namespace_dense__answer_correct
+        estimate: -0.0055
+        lower: -0.01780264496439471
+        upper: 0.006429277942631058
+      - metric: gpt_5_6_luna__namespace_policy_gate_minus_namespace_dense__penalized_admissibility_upper_risk
+        estimate: -0.019200305740011622
+        lower: -0.022969620190249163
+        upper: -0.015570558942042526
+    allowed_wording:
+      - "On the frozen 1,523-case natural sample, namespace support improved judged answer accuracy and answer quality and reduced the non-answer rate relative to global dense for each separately reported reader."
+      - "Namespace support improved matched route recall and penalized admissibility upper risk on the same natural cases used for downstream reading."
+      - "The released-policy gate reduced route risk beyond namespace support, but its answer-accuracy intervals included zero for all three readers."
+      - "The text-only verifier increased route risk relative to namespace dense and did not provide a consistent answer-utility gain for the two readers on which it was evaluated."
+    forbidden_wording:
+      - "Reader estimates were pooled."
+      - "The three readers and the judge constitute independent cross-model replication."
+      - "GPT-5.6 Luna was an independently preregistered replication."
+      - "Namespace support or policy gating reduced protected or stale disclosure in general."
+      - "Progressively stricter filtering monotonically improves answer utility."
+      - "This is an official RHELM or MemOps benchmark result."
+    known_limitations:
+      - "Reader estimates are reported separately and never pooled."
+      - "All three readers share one blinded Claude Haiku judge; this is not cross-judge replication."
+      - "The GPT-5.6 Luna run is a sequential reader replication added after the positive two-reader continuation gate, not an independently preregistered replication."
+      - "The 1,523-case sample includes all RHELM cases but only a frozen outcome-independent 1,000-case sample of MemOps; it is not an official benchmark submission."
+      - "Protected-disclosure and stale-disclosure namespace intervals include zero for every reader, so this result establishes no general disclosure reduction."
+      - "The GPT replication evaluated three primary routes; text-verifier and released-field-oracle diagnostics were not rerun for GPT."
+      - "The released-field policy route uses trusted metadata and does not establish deployable inference of missing governance state."
+      - "The frozen aggregate field `over_refusal` is exactly `reader_action != answer`; it is a legacy alias for non-answer rate, not a gold-action-aware over-refusal measure."
+      - "Source-specific accuracy intervals are heterogeneous: the DeepSeek RHELM interval includes zero, while its MemOps interval and both source intervals for Gemini and GPT are positive."
+    verification_tests:
+      - "test_natural_end_to_end_claim_requires_no_pooling_boundary"
+      - "test_natural_end_to_end_claim_requires_shared_judge_boundary"
+      - "test_natural_end_to_end_claim_requires_sequential_replication_boundary"
+      - "test_natural_end_to_end_claim_forbids_general_disclosure_gain"
+      - "test_confidence_intervals_contain_estimates"
+
+  - id: C14
+    status: post_hoc_outcome_independent_cross_judge_audit
+    claim: "On an outcome-independent, exact-deduplicated sample of 200 natural closure outputs, GPT-5.1 and the primary Claude Haiku judge agreed on 86.5% of answer-correctness labels; directional disagreements were nearly symmetric."
+    estimand: "Exact agreement, Cohen's kappa, Gwet's AC1, and descriptive ordinal/secondary-label agreement between the primary Claude Haiku judge and one alternate GPT-5.1 judge, with 10,000 output-level bootstrap replicates."
+    population: "A post-hoc sample of 200 unique judge payloads selected without outcomes in near-equal reader-by-source-by-common-route strata from the frozen 1,523-case natural closure."
+    source_repository: "ziwang11112/verify-agent-memory"
+    source_snapshot_commit: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+    execution_commit:
+      provider_execution: "3007717b6dc1dc038e6f79c946f533b2369caffe"
+      deterministic_analysis: "65b8a9e9fe6e931e986d0c630145886073759b5f"
+    source_artifacts:
+      - "results/natural_cross_judge_audit/manifest.json"
+      - "results/natural_cross_judge_audit/answer_correct_agreement.csv"
+      - "results/natural_cross_judge_audit/answer_correct_confusion.csv"
+      - "results/natural_cross_judge_audit/answer_quality_agreement.csv"
+      - "results/natural_cross_judge_audit/secondary_label_agreement.csv"
+      - "results/natural_cross_judge_audit/sample_profile.csv"
+      - "results/natural_cross_judge_audit/execution_receipt.json"
+      - "results/natural_cross_judge_audit/audit_summary.md"
+    exact_values:
+      sample_count: 200
+      agreement_gate: 0.85
+      agreement_gate_met: true
+      independently_preregistered_replication: false
+      reader_effects_reestimated: false
+      overall:
+        exact_agreement: 0.865
+        cohen_kappa: 0.7284794851166533
+        gwet_ac1: 0.7315102548166563
+      original_two_reader:
+        exact_agreement: 0.8805970149253731
+      sequential_gpt_reader:
+        exact_agreement: 0.8333333333333334
+      reader_deepseek:
+        exact_agreement: 0.9104477611940298
+      reader_gemini:
+        exact_agreement: 0.8507462686567164
+      answer_quality:
+        exact_agreement: 0.24
+        within_one_agreement: 0.755
+        mean_absolute_error: 1.245
+        mean_strong_minus_cheap: 0.215
+        quadratic_weighted_kappa: 0.8837257200205212
+      protected_disclosure:
+        exact_agreement: 0.975
+      stale_disclosure:
+        exact_agreement: 0.97
+      directional_disagreement:
+        cheap_correct_strong_incorrect: 14
+        cheap_incorrect_strong_correct: 13
+    confidence_intervals:
+      - metric: overall_exact_agreement
+        estimate: 0.865
+        lower: 0.815
+        upper: 0.91
+      - metric: overall_cohen_kappa
+        estimate: 0.7284794851166533
+        lower: 0.626865671641791
+        upper: 0.8200000000000001
+      - metric: overall_gwet_ac1
+        estimate: 0.7315102548166563
+        lower: 0.633309382820049
+        upper: 0.8244929797191889
+      - metric: original_two_reader_exact_agreement
+        estimate: 0.8805970149253731
+        lower: 0.8208955223880597
+        upper: 0.9328358208955224
+      - metric: sequential_gpt_reader_exact_agreement
+        estimate: 0.8333333333333334
+        lower: 0.7424242424242424
+        upper: 0.9242424242424242
+      - metric: reader_deepseek_exact_agreement
+        estimate: 0.9104477611940298
+        lower: 0.835820895522388
+        upper: 0.9701492537313433
+      - metric: reader_gemini_exact_agreement
+        estimate: 0.8507462686567164
+        lower: 0.7611940298507462
+        upper: 0.9253731343283582
+    allowed_wording:
+      - "A post-hoc, outcome-independent 200-output audit found 0.865 exact answer-correctness agreement between Claude Haiku and GPT-5.1, with a 95% bootstrap interval of [0.815, 0.910]."
+      - "The alternate-judge audit materially reduces, but does not eliminate, concern that the natural result is specific to one judge."
+      - "The original DeepSeek/Gemini reader panel had 0.881 agreement, while the sequential GPT-reader subgroup had 0.833 agreement."
+      - "Directional answer-correctness disagreements were nearly symmetric at 14 versus 13."
+    forbidden_wording:
+      - "The natural closure was independently cross-judge replicated."
+      - "The full 1,523-case population was re-scored by GPT-5.1."
+      - "Every reader subgroup met the 0.85 agreement threshold."
+      - "The two judges are interchangeable."
+      - "The audit independently reproduces the route-effect estimates."
+      - "This is an official RHELM or MemOps benchmark result."
+    known_limitations:
+      - "This is a post-hoc, outcome-independent audit and was not independently preregistered."
+      - "The audit covers 200 exact-deduplicated outputs and does not re-score the full 1,523-case natural closure."
+      - "The GPT-reader subgroup exact agreement is 0.833 with a wide [0.742, 0.924] interval, below the 0.85 point threshold."
+      - "Only one alternate judge was evaluated, and the overall exact-agreement interval extends below 0.85."
+      - "Answer-quality exact agreement is 0.240 even though within-one agreement is 0.755 and quadratic weighted kappa is 0.884."
+      - "The audit evaluates judge-label agreement only; it does not re-estimate route effects, disclosure effects, or reader utility."
+      - "Reader estimates remain separate and are never pooled."
+    verification_tests:
+      - "test_cross_judge_claim_requires_posthoc_sample_boundaries"
+      - "test_cross_judge_import_preserves_bounded_audit_scope"
+      - "test_confidence_intervals_contain_estimates"

@@ -1,0 +1,589 @@
+"""Generate the publication figure for the paired exposure intervention."""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import hashlib
+import json
+import os
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib as mpl  # noqa: E402
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+from matplotlib.lines import Line2D  # noqa: E402
+from PIL import Image  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_RESULTS = ROOT / "results" / "counterfactual_exposure"
+DEFAULT_REPLICATION_RESULTS = ROOT / "results" / "claude_opus5_exposure_replication"
+DEFAULT_OUTPUT = DEFAULT_RESULTS / "figures"
+FIGURE_BASENAME = "counterfactual_exposure"
+
+MODEL_ORDER = (
+    ("OpenAI", "gpt-5.6-sol"),
+    ("Gemini", "gemini-3.6-flash"),
+    ("DeepSeek", "deepseek-v4-pro"),
+    ("Anthropic", "claude-opus-5"),
+)
+MODEL_LABELS = {
+    "OpenAI": "GPT-5.6 Sol",
+    "Gemini": "Gemini 3.6 Flash",
+    "DeepSeek": "DeepSeek V4 Pro",
+    "Anthropic": "Claude Opus 5",
+}
+MODEL_COLORS = {
+    "OpenAI": "#195B9A",
+    "Gemini": "#D9822B",
+    "DeepSeek": "#7B5AA6",
+    "Anthropic": "#2A8C70",
+}
+CELL_ORDER = (
+    "relevant_admissible",
+    "relevant_inadmissible",
+    "irrelevant_admissible",
+    "irrelevant_inadmissible",
+)
+CELL_LABELS = {
+    "relevant_admissible": "Relevant / admissible",
+    "relevant_inadmissible": "Relevant / inadmissible",
+    "irrelevant_admissible": "Irrelevant / admissible",
+    "irrelevant_inadmissible": "Irrelevant / inadmissible",
+}
+GAP_CONTRAST = "relevant_admissible_minus_relevant_inadmissible_exposure_effect"
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def _write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp")
+    temporary.write_text(text, encoding="utf-8", newline="\n")
+    os.replace(temporary, path)
+
+
+def _write_json(path: Path, value: object) -> None:
+    _write_text(path, json.dumps(value, allow_nan=False, indent=2, sort_keys=True) + "\n")
+
+
+def _write_csv(path: Path, rows: Sequence[Mapping[str, object]]) -> None:
+    if not rows:
+        raise ValueError("source data must be nonempty")
+    fields = tuple(rows[0])
+    if any(tuple(row) != fields for row in rows):
+        raise ValueError("source-data rows have inconsistent fields")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp")
+    with temporary.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    os.replace(temporary, path)
+
+
+def _one(rows: Sequence[Mapping[str, str]], **conditions: str) -> Mapping[str, str]:
+    matches = [
+        row for row in rows if all(row.get(field) == value for field, value in conditions.items())
+    ]
+    if len(matches) != 1:
+        raise ValueError(f"expected one row for {conditions!r}, found {len(matches)}")
+    return matches[0]
+
+
+@dataclass(frozen=True)
+class Interval:
+    value: float
+    lower: float
+    upper: float
+
+    def __post_init__(self) -> None:
+        if not -1 <= self.lower <= self.value <= self.upper <= 1:
+            raise ValueError("effect interval must be ordered within [-1, 1]")
+
+
+@dataclass(frozen=True)
+class CellData:
+    exposed_disclosure: float
+    withheld_disclosure: float
+    effect: Interval
+
+
+@dataclass(frozen=True)
+class ModelData:
+    provider: str
+    model: str
+    cells: Mapping[str, CellData]
+    selectivity_gap: Interval
+
+
+def load_figure_data(
+    results_dir: Path,
+    replication_results_dir: Path = DEFAULT_REPLICATION_RESULTS,
+) -> tuple[ModelData, ...]:
+    """Load only the published, content-free aggregate result tables."""
+    manifest = json.loads((results_dir / "manifest.json").read_text(encoding="utf-8"))
+    if manifest.get("official_result") is not False:
+        raise ValueError("result boundary drifted")
+    if manifest.get("model_pooling") is not False:
+        raise ValueError("provider results must not be pooled")
+    replication_manifest = json.loads(
+        (replication_results_dir / "manifest.json").read_text(encoding="utf-8")
+    )
+    if replication_manifest.get("relation_to_frozen_panel") != (
+        "separate_fourth_reader_replication_no_pooling"
+    ):
+        raise ValueError("reader replication boundary drifted")
+    if replication_manifest.get("model_pooling") is not False:
+        raise ValueError("replication results must not be pooled")
+    cells = _read_csv(results_dir / "cell_metrics.csv") + _read_csv(
+        replication_results_dir / "cell_metrics.csv"
+    )
+    intervals = _read_csv(results_dir / "bootstrap_ci.csv") + _read_csv(
+        replication_results_dir / "bootstrap_ci.csv"
+    )
+    models = []
+    for provider, model in MODEL_ORDER:
+        cell_data = {}
+        for cell in CELL_ORDER:
+            row = _one(cells, provider=provider, model=model, scope="overall", cell=cell)
+            interval = _one(
+                intervals,
+                provider=provider,
+                model=model,
+                scope="overall",
+                contrast=cell,
+            )
+            cell_data[cell] = CellData(
+                exposed_disclosure=float(row["exposed_disclosure_rate"]),
+                withheld_disclosure=float(row["withheld_disclosure_rate"]),
+                effect=Interval(
+                    value=float(interval["estimate"]),
+                    lower=float(interval["ci_lower"]),
+                    upper=float(interval["ci_upper"]),
+                ),
+            )
+        gap = _one(
+            intervals,
+            provider=provider,
+            model=model,
+            scope="overall",
+            contrast=GAP_CONTRAST,
+        )
+        models.append(
+            ModelData(
+                provider=provider,
+                model=model,
+                cells=cell_data,
+                selectivity_gap=Interval(
+                    value=float(gap["estimate"]),
+                    lower=float(gap["ci_lower"]),
+                    upper=float(gap["ci_upper"]),
+                ),
+            )
+        )
+    return tuple(models)
+
+
+def source_data_rows(models: Sequence[ModelData]) -> tuple[dict[str, object], ...]:
+    """Return tidy source data for every plotted quantity."""
+    rows = []
+    for model in models:
+        for cell in CELL_ORDER:
+            data = model.cells[cell]
+            rows.append(
+                {
+                    "panel": "a",
+                    "provider": model.provider,
+                    "model": model.model,
+                    "cell": cell,
+                    "metric": "paired_exposure_effect",
+                    "exposure": "exposed_minus_withheld",
+                    "value": data.effect.value,
+                    "ci_lower": data.effect.lower,
+                    "ci_upper": data.effect.upper,
+                    "unit_count": 32 if cell.startswith("relevant_") else 64,
+                }
+            )
+        rows.append(
+            {
+                "panel": "b",
+                "provider": model.provider,
+                "model": model.model,
+                "cell": "relevant_admissible_minus_relevant_inadmissible",
+                "metric": "selectivity_gap",
+                "exposure": "difference_in_paired_effects",
+                "value": model.selectivity_gap.value,
+                "ci_lower": model.selectivity_gap.lower,
+                "ci_upper": model.selectivity_gap.upper,
+                "unit_count": 64,
+            }
+        )
+        residual = model.cells["relevant_inadmissible"].effect
+        rows.append(
+            {
+                "panel": "b",
+                "provider": model.provider,
+                "model": model.model,
+                "cell": "relevant_inadmissible",
+                "metric": "residual_inadmissible_exposure_effect",
+                "exposure": "exposed_minus_withheld",
+                "value": residual.value,
+                "ci_lower": residual.lower,
+                "ci_upper": residual.upper,
+                "unit_count": 32,
+            }
+        )
+    return tuple(rows)
+
+
+def apply_style() -> None:
+    mpl.rcParams.update(
+        {
+            "font.family": "sans-serif",
+            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],
+            "svg.fonttype": "none",
+            "svg.hashsalt": "counterfactual-exposure-v1",
+            "pdf.fonttype": 42,
+            "font.size": 8.8,
+            "axes.titlesize": 9.2,
+            "axes.labelsize": 8.8,
+            "xtick.labelsize": 7.8,
+            "ytick.labelsize": 7.8,
+            "axes.spines.right": False,
+            "axes.spines.top": False,
+            "axes.linewidth": 0.8,
+            "legend.frameon": False,
+            "legend.fontsize": 7.8,
+            "figure.facecolor": "white",
+            "axes.facecolor": "white",
+        }
+    )
+
+
+def _panel_label(axis: plt.Axes, label: str) -> None:
+    axis.text(
+        -0.16,
+        1.08,
+        label,
+        transform=axis.transAxes,
+        fontsize=10,
+        fontweight="bold",
+        ha="left",
+        va="top",
+    )
+
+
+def _panel_a(axis: plt.Axes, models: Sequence[ModelData]) -> None:
+    y_base = np.arange(len(CELL_ORDER))[::-1]
+    offsets = np.linspace(0.24, -0.24, len(models))
+    axis.axhspan(2.55, 3.45, color="#EAF5EE", zorder=-3)
+    axis.axhspan(1.55, 2.45, color="#FCEEEF", zorder=-3)
+    axis.axvline(0, color="#6D7379", linewidth=0.8, linestyle="--", zorder=0)
+    for offset, model in zip(offsets, models, strict=True):
+        color = MODEL_COLORS[model.provider]
+        for base, cell in zip(y_base, CELL_ORDER, strict=True):
+            interval = model.cells[cell].effect
+            axis.errorbar(
+                interval.value,
+                base + offset,
+                xerr=[
+                    [interval.value - interval.lower],
+                    [interval.upper - interval.value],
+                ],
+                fmt="o",
+                markersize=4.3,
+                capsize=2.0,
+                linewidth=1.0,
+                color=color,
+                markeredgecolor="white",
+                markeredgewidth=0.5,
+                zorder=3,
+            )
+    axis.set_yticks(y_base)
+    axis.set_yticklabels([CELL_LABELS[cell] for cell in CELL_ORDER])
+    axis.set_xlim(-0.22, 1.08)
+    axis.set_xticks((-0.2, 0, 0.4, 0.8, 1.0))
+    axis.set_xlabel("Paired exposure effect (exposed minus withheld)")
+    axis.set_title("Exposure effects by evidence cell", loc="left", fontweight="bold")
+    axis.grid(axis="x", color="#E6E8EA", linewidth=0.6)
+    handles = tuple(
+        Line2D(
+            [],
+            [],
+            marker="o",
+            linestyle="none",
+            color=MODEL_COLORS[model.provider],
+            label=(
+                f"{MODEL_LABELS[model.provider]} (replication)"
+                if model.provider == "Anthropic"
+                else MODEL_LABELS[model.provider]
+            ),
+        )
+        for model in models
+    )
+    axis.legend(
+        handles=handles,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.37),
+        ncol=2,
+        columnspacing=0.7,
+        handletextpad=0.3,
+    )
+    _panel_label(axis, "a")
+
+
+def _panel_b(axis: plt.Axes, models: Sequence[ModelData]) -> None:
+    y = np.arange(len(models))[::-1]
+    axis.axvline(0, color="#6D7379", linewidth=0.8, linestyle="--", zorder=0)
+    axis.axhline(0.5, color="#AEB4B9", linewidth=0.7, linestyle=":", zorder=0)
+    for position, model in zip(y, models, strict=True):
+        gap = model.selectivity_gap
+        risk = model.cells["relevant_inadmissible"].effect
+        color = MODEL_COLORS[model.provider]
+        axis.errorbar(
+            gap.value,
+            position + 0.13,
+            xerr=[[gap.value - gap.lower], [gap.upper - gap.value]],
+            fmt="o",
+            markersize=5.4,
+            capsize=2.3,
+            linewidth=1.2,
+            color=color,
+            markeredgecolor="white",
+            markeredgewidth=0.6,
+        )
+        axis.text(
+            min(1.01, gap.upper + 0.035),
+            position + 0.13,
+            f"{gap.value:.2f}",
+            ha="left",
+            va="center",
+            fontsize=7.2,
+            color=color,
+            fontweight="bold",
+        )
+        axis.errorbar(
+            risk.value,
+            position - 0.13,
+            xerr=[[risk.value - risk.lower], [risk.upper - risk.value]],
+            fmt="s",
+            markersize=4.2,
+            capsize=2.0,
+            linewidth=1.0,
+            color="#C44E52",
+            markerfacecolor="white",
+            markeredgewidth=1.0,
+        )
+        if risk.lower > 0:
+            axis.annotate(
+                f"{risk.value:+.3f} [{risk.lower:.3f}, {risk.upper:.3f}]",
+                xy=(risk.value, position - 0.13),
+                xytext=(0.38, position + 0.48),
+                fontsize=7.0,
+                color="#A83236",
+                fontweight="bold",
+                arrowprops={
+                    "arrowstyle": "-",
+                    "color": "#A83236",
+                    "linewidth": 0.7,
+                },
+            )
+    axis.set_yticks(y)
+    axis.set_yticklabels(
+        [
+            (
+                f"{MODEL_LABELS[model.provider]}\n(separate replication)"
+                if model.provider == "Anthropic"
+                else MODEL_LABELS[model.provider]
+            )
+            for model in models
+        ]
+    )
+    axis.set_xlim(-0.18, 1.10)
+    axis.set_ylim(-0.45, len(models) - 0.55)
+    axis.set_xticks((0, 0.25, 0.5, 0.75, 1.0))
+    axis.set_xlabel("Paired effect")
+    axis.set_title("Reader-specific exposure effects", loc="left", fontweight="bold")
+    axis.grid(axis="x", color="#E6E8EA", linewidth=0.6)
+    handles = (
+        Line2D([], [], marker="o", linestyle="none", color="#555555", label="Selectivity gap"),
+        Line2D(
+            [],
+            [],
+            marker="s",
+            linestyle="none",
+            markerfacecolor="white",
+            markeredgecolor="#C44E52",
+            color="#C44E52",
+            label="Relevant-inadmissible exposure effect",
+        ),
+    )
+    axis.legend(
+        handles=handles,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.37),
+        ncol=1,
+        handletextpad=0.35,
+    )
+    _panel_label(axis, "b")
+
+
+def render_figure(models: Sequence[ModelData], output_dir: Path) -> tuple[Path, ...]:
+    apply_style()
+    figure = plt.figure(figsize=(7.2, 3.2), constrained_layout=False)
+    grid = figure.add_gridspec(
+        1,
+        2,
+        width_ratios=(1.45, 1.0),
+        left=0.17,
+        right=0.98,
+        top=0.88,
+        bottom=0.24,
+        wspace=0.48,
+    )
+    _panel_a(figure.add_subplot(grid[0, 0]), models)
+    _panel_b(figure.add_subplot(grid[0, 1]), models)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    paths = tuple(output_dir / f"{FIGURE_BASENAME}.{suffix}" for suffix in ("svg", "pdf", "png"))
+    figure.savefig(paths[0], metadata={"Date": None})
+    svg = "\n".join(line.rstrip() for line in paths[0].read_text(encoding="utf-8").splitlines())
+    _write_text(paths[0], svg + "\n")
+    figure.savefig(paths[1], metadata={"CreationDate": None, "ModDate": None})
+    figure.savefig(paths[2], dpi=300)
+    plt.close(figure)
+    return paths
+
+
+def caption_text() -> str:
+    return """# Figure Caption
+
+**Controlled candidate exposure can enable literal-marker disclosure.** **a,** Paired
+exposed-minus-withheld disclosure effects in the four relevance-by-admissibility
+cells. Points are reader-specific estimates; whiskers are 95% scenario-bootstrap
+intervals (10,000 replicates over 16 scenarios, resampled within governing-axis
+strata). **b,** Selectivity gap between the
+relevant-admissible and relevant-inadmissible exposure effects (circles), alongside
+the relevant-inadmissible effect (open red squares). The first three readers belong
+to the original execution; the visually separated Claude Opus 5 row is an independent
+replication. Readers are reported separately and never pooled. The inadmissible
+interval is strictly positive for DeepSeek V4 Pro (+0.156 [0.031, 0.312]), showing
+that exposure can produce literal-marker disclosure under the constructed DeepSeek
+conditions. Claude Opus 5 separately replicated the positive selectivity gap (+0.844
+[0.688, 0.969]); its inadmissible-effect interval includes zero. Each reader
+completed 384 stateless requests (192 paired units), with no judge, retry, output
+repair, or selective rerun. The construction is a controlled prompt-level diagnostic,
+not a production-safety guarantee, official benchmark, or natural-corpus prevalence
+estimate.
+"""
+
+
+def _pixel_audit(path: Path) -> dict[str, object]:
+    with Image.open(path) as image:
+        rgb = np.asarray(image.convert("RGB"))
+    nonwhite = np.any(rgb < 248, axis=2)
+    return {
+        "width_px": int(rgb.shape[1]),
+        "height_px": int(rgb.shape[0]),
+        "nonwhite_fraction": float(nonwhite.mean()),
+        "channel_min": int(rgb.min()),
+        "channel_max": int(rgb.max()),
+    }
+
+
+def generate(
+    results_dir: Path,
+    output_dir: Path,
+    replication_results_dir: Path = DEFAULT_REPLICATION_RESULTS,
+) -> Mapping[str, object]:
+    """Render exports and bind them to the published content-free result bundle."""
+    models = load_figure_data(results_dir, replication_results_dir)
+    source_path = output_dir / f"{FIGURE_BASENAME}_source_data.csv"
+    _write_csv(source_path, source_data_rows(models))
+    caption_path = output_dir / f"{FIGURE_BASENAME}_caption.md"
+    _write_text(caption_path, caption_text())
+    figure_paths = render_figure(models, output_dir)
+    if "<text" not in figure_paths[0].read_text(encoding="utf-8"):
+        raise ValueError("SVG text was converted to paths")
+    if not figure_paths[1].read_bytes().startswith(b"%PDF"):
+        raise ValueError("PDF export is invalid")
+    pixel_audit = _pixel_audit(figure_paths[2])
+    if pixel_audit["nonwhite_fraction"] < 0.03:
+        raise ValueError("PNG export appears blank")
+    inputs = ("cell_metrics.csv", "bootstrap_ci.csv", "manifest.json")
+    outputs = (source_path, caption_path, *figure_paths)
+    manifest = {
+        "schema_version": 1,
+        "status": "publication_figure_from_controlled_content_free_results",
+        "core_conclusion": (
+            "controlled exposure increases admissible literal-marker disclosure selectively; "
+            "DeepSeek has a strictly positive relevant-inadmissible prompt-level effect, and "
+            "Claude Opus 5 separately replicates the positive selectivity gap"
+        ),
+        "archetype": "quantitative_grid",
+        "backend": "python_matplotlib",
+        "final_width_in": 7.2,
+        "final_height_in": 3.2,
+        "png_dpi": 300,
+        "svg_text_editable": True,
+        "bootstrap_replicates": 10000,
+        "bootstrap_unit": "scenario",
+        "bootstrap_stratification": "axis",
+        "provider_call_count": 0,
+        "model_pooling": False,
+        "inputs": [
+            {
+                "path": path.relative_to(ROOT).as_posix(),
+                "sha256": _sha256(path),
+            }
+            for path in (
+                *(results_dir / name for name in inputs),
+                *(replication_results_dir / name for name in inputs),
+            )
+        ],
+        "script_sha256": _sha256(Path(__file__)),
+        "outputs": [
+            {"path": path.name, "sha256": _sha256(path), "bytes": path.stat().st_size}
+            for path in outputs
+        ],
+        "png_pixel_audit": pixel_audit,
+        "image_integrity": "direct_vector_plot_from_published_csv_no_image_adjustment",
+        "official_result": False,
+    }
+    _write_json(output_dir / f"{FIGURE_BASENAME}_manifest.json", manifest)
+    return manifest
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--results-dir", type=Path, default=DEFAULT_RESULTS)
+    parser.add_argument(
+        "--replication-results-dir",
+        type=Path,
+        default=DEFAULT_REPLICATION_RESULTS,
+    )
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
+    args = parser.parse_args(argv)
+    manifest = generate(
+        args.results_dir.resolve(),
+        args.output_dir.resolve(),
+        args.replication_results_dir.resolve(),
+    )
+    print(json.dumps(manifest, allow_nan=False, indent=2, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

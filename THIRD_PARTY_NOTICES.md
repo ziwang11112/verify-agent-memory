@@ -29,5 +29,5 @@ outputs. See `docs/LICENSE_AUDIT.md` for the data boundary.
 
 Repository visibility, public availability, and a repository-level MIT license do
 not by themselves settle the terms of incorporated source datasets. Raw source data
-remain excluded, and `LICENSE-PENDING.md` continues to govern this repository until
-the owner selects a project license.
+remain excluded. The root `LICENSE` covers this repository's original code and
+documentation only; it does not broaden rights in upstream datasets or artifacts.

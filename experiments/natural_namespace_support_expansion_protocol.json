@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-namespace-support-expansion-v1",
+  "base_execution_commit": "8e34e3d41c56e1699696bc27be95cdac7c9528e5",
+  "base_embedding_checkpoint_sha256": "d333477116735f49b7628ee5d324e92a9f608190079a7b1d699308f5ec4f1ae6",
+  "target_recall": 0.8,
+  "top_k": 100,
+  "reference_arm": "global_dense",
+  "treatment_arm": "namespace_dense",
+  "channels": [
+    "namespace_false_allow",
+    "namespace_swap"
+  ],
+  "rates": [0.0, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5],
+  "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "corruption_units": {
+    "namespace_false_allow": "source_query_memory_gate",
+    "namespace_swap": "source_memory_observed_label"
+  },
+  "sampling": {
+    "nested_across_rates": true,
+    "query_memory_prng_order": "memory_id_ascending_with_query_bound_sha256_seed",
+    "swap_alternative": "uniform_over_other_source_namespaces_with_source_memory_bound_sha256_seed"
+  },
+  "metrics": [
+    "evidence_recall",
+    "feasible_rate",
+    "penalized_admissibility_upper_risk",
+    "infeasibility_risk_component",
+    "admissibility_conditional_risk_component",
+    "matched_prefix_wrong_scope_exposure_rate",
+    "returned_wrong_scope_rate",
+    "known_relevant_inadmissible_rate",
+    "joint_label_coverage",
+    "candidates_scored"
+  ],
+  "break_even_definition": {
+    "criteria": [
+      "treatment_feasible_rate_gte_global_dense",
+      "treatment_penalized_admissibility_upper_risk_lte_global_dense"
+    ],
+    "report": "last_observed_dominating_rate_and_first_observed_non_dominating_rate"
+  },
+  "invariants": {
+    "same_frozen_embeddings": true,
+    "same_exact_dense_ranker": true,
+    "same_top_k": true,
+    "gold_assessments_immutable": true,
+    "dev_tuning": false,
+    "evaluation_retuning": false,
+    "provider_calls": 0,
+    "reader_calls": 0,
+    "judge_calls": 0,
+    "paid_calls": 0
+  }
+}

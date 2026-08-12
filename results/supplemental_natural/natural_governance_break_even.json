@@ -1,0 +1,37 @@
+{
+  "break_even": {
+    "lifecycle_false_current": {
+      "first_observed_non_dominating_rate": null,
+      "last_observed_dominating_rate": 0.5
+    },
+    "lifecycle_false_stale": {
+      "first_observed_non_dominating_rate": 0.02,
+      "last_observed_dominating_rate": 0.0
+    },
+    "lifecycle_missing": {
+      "first_observed_non_dominating_rate": null,
+      "last_observed_dominating_rate": 0.5
+    },
+    "policy_false_allow": {
+      "first_observed_non_dominating_rate": 0.4,
+      "last_observed_dominating_rate": 0.3
+    },
+    "policy_false_deny": {
+      "first_observed_non_dominating_rate": 0.02,
+      "last_observed_dominating_rate": 0.0
+    },
+    "policy_missing": {
+      "first_observed_non_dominating_rate": 0.4,
+      "last_observed_dominating_rate": 0.3
+    },
+    "query_intent_flip": {
+      "first_observed_non_dominating_rate": null,
+      "last_observed_dominating_rate": 0.5
+    }
+  },
+  "dominance": "feasible_rate_gte_and_penalized_admissibility_upper_risk_lte",
+  "reference_arm": "namespace_dense",
+  "reference_feasible_rate": 0.7618665905934887,
+  "reference_penalized_admissibility_upper_risk": 0.3537144372628587,
+  "schema_version": 1
+}

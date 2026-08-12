@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "default_destination": "data/raw/upstream",
+  "redistribution_boundary": "Raw upstream payloads are fetched from their owners and are not redistributed by this repository.",
+  "sources": [
+    {
+      "name": "gatemem",
+      "repository": "https://github.com/rzhub/GateMem.git",
+      "revision": "603f9f4b4ba4b77f043c20f85687fa016fd720b0",
+      "tree": "1cc06ce6dfcdaf2d34d631db094ef49d3e4d8a09",
+      "role": "observational exposure and disclosure audit"
+    },
+    {
+      "name": "rhelm",
+      "repository": "https://github.com/microsoft/RHELM.git",
+      "revision": "726fc42ea0d5c11085c1a961ade10d702ba187d3",
+      "tree": "15bada413dc52f41177f5817563181243ed936d8",
+      "role": "natural retrieval and route-to-reader evaluation"
+    },
+    {
+      "name": "memops",
+      "repository": "https://github.com/MemTensor/MemOps.git",
+      "revision": "0b85a27bba856c287405a36e53a39e59e424c4e9",
+      "tree": "f9d5cf4ac3c600eecccfec008db4d487f961b5af",
+      "role": "natural retrieval and lifecycle-operation evaluation"
+    }
+  ]
+}

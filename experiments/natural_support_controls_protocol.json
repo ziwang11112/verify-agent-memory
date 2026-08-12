@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "protocol_id": "natural-support-controls-v1",
+  "status": "frozen_posthoc_zero_call_diagnostic",
+  "base_execution_commit": "8e34e3d41c56e1699696bc27be95cdac7c9528e5",
+  "base_embedding_checkpoint_sha256": "d333477116735f49b7628ee5d324e92a9f608190079a7b1d699308f5ec4f1ae6",
+  "primary_target_recall": 0.8,
+  "primary_infeasibility_cost": 1.0,
+  "route_limit": 20,
+  "post_filter_depths": [20, 100, 500],
+  "target_recall_sweep": [0.5, 0.7, 0.8, 0.9, 1.0],
+  "infeasibility_cost_sweep": [0.0, 0.25, 0.5, 0.75, 1.0],
+  "random_partition_seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "arms": [
+    "global_dense",
+    "size_matched_random_partition",
+    "namespace_pre_filter",
+    "global_post_filter_20",
+    "global_post_filter_100",
+    "global_post_filter_500"
+  ],
+  "residual_risk_definition": "released_policy_and_lifecycle_violations_after_excluding_scope",
+  "invariants": {
+    "same_frozen_embeddings": true,
+    "same_exact_dense_ranker": true,
+    "same_route_limit": true,
+    "random_partition_preserves_source_namespace_label_counts": true,
+    "gold_assessments_immutable": true,
+    "dev_tuning": false,
+    "evaluation_retuning": false,
+    "provider_calls": 0,
+    "reader_calls": 0,
+    "judge_calls": 0,
+    "paid_calls": 0
+  }
+}

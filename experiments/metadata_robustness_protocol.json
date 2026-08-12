@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "protocol_id": "metadata-robustness-v2",
+  "base_retrieval_protocol": "experiments/metadata_robustness_retrieval_protocol.json",
+  "target_recall": 0.8,
+  "selection_risk": "admissibility_upper_bound",
+  "fixed_arms": [
+    "global_dense",
+    "namespace_dense",
+    "query_agnostic_current_only",
+    "released_governance_oracle_v2"
+  ],
+  "channels": [
+    "namespace_false_allow",
+    "namespace_false_deny",
+    "namespace_missing",
+    "namespace_swap",
+    "lifecycle_false_current",
+    "lifecycle_false_stale",
+    "lifecycle_missing",
+    "policy_false_allow",
+    "policy_false_deny",
+    "policy_missing",
+    "query_intent_flip"
+  ],
+  "rates": [0.0, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5],
+  "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "break_even_definition": {
+    "treatment": "namespace_dense",
+    "reference": "global_dense",
+    "criteria": [
+      "treatment_feasible_rate_gte_reference",
+      "treatment_penalized_admissibility_upper_risk_lte_reference"
+    ],
+    "report": "last_contiguous_dominating_rate_and_first_non_dominating_rate"
+  },
+  "invariants": {
+    "gold_assessments_immutable": true,
+    "namespace_record_corruption_unit": "source_memory_for_false_deny_missing_and_swap",
+    "namespace_false_allow_corruption_unit": "source_query_memory_gate",
+    "lifecycle_corruption_unit": "source_memory",
+    "policy_corruption_unit": "source_query_memory",
+    "intent_corruption_unit": "source_query",
+    "retrieval_settings_frozen": true,
+    "evaluation_retuning": false,
+    "provider_calls": 0,
+    "reader_calls": 0,
+    "judge_calls": 0
+  }
+}

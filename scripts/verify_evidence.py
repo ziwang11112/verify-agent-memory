@@ -29,17 +29,23 @@ REQUIRED_COLUMNS = {
     "n",
     "notes",
 }
-REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 9)}
+REQUIRED_CLAIMS = {f"C{number}" for number in range(2, 15)}
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 PROHIBITED_OUTPUT_LABELS = {"ncr_threshold", "ncr_a5"}
 EXPECTED_METRIC_COUNTS = {
     "C2": 6,
     "C3": 3,
     "C4": 6,
-    "C5": 6,
-    "C6": 4,
+    "C5": 48,
+    "C6": 6,
     "C7": 4,
-    "C8": 10,
+    "C8": 15,
+    "C9": 44,
+    "C10": 37,
+    "C11": 29,
+    "C12": 5,
+    "C13": 34,
+    "C14": 16,
 }
 
 
@@ -137,7 +143,7 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
         suffix = {
             "evidence_recall": "recall",
             "wrong_scope_leakage": "wrong_namespace_leakage",
-            "measured_contamination": "measured_contamination",
+            "measured_non_usable_rate": "measured_non_usable_rate",
         }.get(metric)
         return (f"{contrast}_{suffix}",) if suffix else None
     if claim_id == "C5":
@@ -149,13 +155,77 @@ def _contract_value_path(row: Mapping[str, str]) -> tuple[str, ...] | None:
                 "wrong_scope_leakage",
             ): "namespace_wrong_scope_leakage",
         }.get((contrast, metric))
-        return (absolute or metric,) if absolute or "_delta" in metric else None
+        if absolute or "_delta" in metric:
+            return (absolute or metric,)
+        if contrast.endswith("_matched_prefix") and metric in {
+            "known_non_usable_rate",
+            "non_usable_label_coverage",
+            "non_usable_lower_bound",
+            "non_usable_upper_bound",
+        }:
+            arm = contrast.removesuffix("_matched_prefix")
+            if arm in {"global_dense", "namespace_dense"}:
+                return ("matched_prefix_diagnostics", arm, metric)
+        if contrast in {
+            "global_bm25",
+            "global_dense",
+            "global_bm25_dense_rrf",
+            "global_recency_dense",
+            "namespace_dense",
+            "namespace_current_only",
+            "released_intent_lifecycle_upper_bound",
+            "threshold_router",
+            "cluster_router",
+        } and metric in {
+            "evidence_recall",
+            "feasible_rate",
+            "penalized_non_usable_upper_risk",
+            "mean_candidates_scored",
+        }:
+            return ("arm_summary", contrast, metric)
+        return None
     if claim_id == "C6":
         method = contrast.removesuffix("_minus_namespace_dense")
         if method not in {"threshold_router", "cluster_router"}:
             return None
         return (method, metric)
     if claim_id == "C8":
+        reader = {
+            "gpt-5.6-sol": "openai",
+            "gemini-3.6-flash": "gemini",
+            "deepseek-v4-pro": "deepseek",
+        }.get(row["source"])
+        if reader and metric in {
+            "relevant_admissible_effect",
+            "relevant_inadmissible_effect",
+            "irrelevant_admissible_effect",
+            "irrelevant_inadmissible_effect",
+            "selectivity_gap",
+        }:
+            return (reader, metric)
+    if (
+        claim_id == "C12"
+        and row["source"] == "claude-opus-5"
+        and metric
+        in {
+            "relevant_admissible_effect",
+            "relevant_inadmissible_effect",
+            "irrelevant_admissible_effect",
+            "irrelevant_inadmissible_effect",
+            "selectivity_gap",
+        }
+    ):
+        return ("claude", metric)
+    if claim_id == "C13":
+        reader = {
+            "deepseek-v4-pro": "deepseek_v4_pro",
+            "gemini-3.6-flash": "gemini_3_6_flash",
+            "gpt-5.6-luna": "gpt_5_6_luna",
+        }.get(row["source"])
+        return (reader, contrast, metric) if reader else None
+    if claim_id == "C14":
+        return (contrast, metric)
+    if claim_id in {"C9", "C10", "C11"}:
         return (contrast, metric)
     return None
 
@@ -179,6 +249,26 @@ def _contract_interval_metric(row: Mapping[str, str]) -> str | None:
     if claim_id == "C6":
         method = row["contrast"].removesuffix("_minus_namespace_dense")
         return f"{method}_{metric}"
+    if claim_id == "C8":
+        reader = {
+            "gpt-5.6-sol": "openai",
+            "gemini-3.6-flash": "gemini",
+            "deepseek-v4-pro": "deepseek",
+        }.get(row["source"])
+        return f"{reader}_{metric}" if reader else None
+    if claim_id == "C12" and row["source"] == "claude-opus-5":
+        return f"claude_{metric}"
+    if claim_id == "C13":
+        reader = {
+            "deepseek-v4-pro": "deepseek_v4_pro",
+            "gemini-3.6-flash": "gemini_3_6_flash",
+            "gpt-5.6-luna": "gpt_5_6_luna",
+        }.get(row["source"])
+        return f"{reader}__{row['contrast']}__{metric}" if reader else None
+    if claim_id == "C14":
+        return f"{row['contrast']}_{metric}"
+    if claim_id in {"C9", "C10", "C11"}:
+        return f"{row['contrast']}_{metric}"
     return None
 
 
@@ -368,6 +458,74 @@ def validate_evidence(repository_root: Path) -> list[str]:
                 errors.append(f"{prefix} lacks mechanism-smoke boundary")
             if row["claim_id"] == "C7" and "released_field_upper_bound" not in row["notes"]:
                 errors.append(f"{prefix} lacks lifecycle upper-bound boundary")
+            if row["claim_id"] == "C8":
+                notes = row["notes"]
+                if (
+                    "controlled_prompt_intervention" not in notes
+                    or "providers_not_pooled" not in notes
+                ):
+                    errors.append(f"{prefix} lacks controlled-exposure boundaries")
+            if row["claim_id"] == "C9":
+                notes = row["notes"]
+                if "post_hoc_v2" not in notes or "no_retuning" not in notes:
+                    errors.append(f"{prefix} lacks post-hoc fixed-ranking boundaries")
+            if row["claim_id"] == "C10":
+                notes = row["notes"]
+                if row["contrast"] in {"policy_only", "lifecycle_only", "governance_v2"}:
+                    if "post_hoc_v2" not in notes or "corrected_governance_semantics" not in notes:
+                        errors.append(f"{prefix} lacks corrected-v2 attribution boundaries")
+                elif row["metric"] in {
+                    "last_observed_dominating_rate",
+                    "first_observed_non_dominating_rate",
+                }:
+                    if (
+                        "observed_grid_bracket" not in notes
+                        or "not_population_threshold" not in notes
+                    ):
+                        errors.append(f"{prefix} lacks observed-grid boundaries")
+                elif "full_natural_reranking" not in notes or "no_retuning" not in notes:
+                    errors.append(f"{prefix} lacks full-reranking boundaries")
+            if row["claim_id"] == "C11":
+                notes = row["notes"]
+                if "public_development" not in notes or "no_model_pooling" not in notes:
+                    errors.append(f"{prefix} lacks public-development no-pooling boundaries")
+            if row["claim_id"] == "C12":
+                notes = row["notes"]
+                if (
+                    "controlled_prompt_intervention" not in notes
+                    or "separate_fourth_reader_replication" not in notes
+                    or "providers_not_pooled" not in notes
+                ):
+                    errors.append(f"{prefix} lacks separate reader-replication boundaries")
+            if row["claim_id"] == "C13":
+                notes = row["notes"]
+                required_notes = {
+                    "natural_same_population",
+                    "reader_estimates_not_pooled",
+                    "shared_claude_haiku_judge",
+                    "nonofficial_sample",
+                    "no_general_disclosure_gain",
+                }
+                missing_notes = sorted(note for note in required_notes if note not in notes)
+                if missing_notes:
+                    errors.append(
+                        f"{prefix} lacks natural end-to-end boundaries: {missing_notes!r}"
+                    )
+                if row["source"] == "gpt-5.6-luna" and "sequential_reader_replication" not in notes:
+                    errors.append(f"{prefix} lacks sequential reader-replication boundary")
+            if row["claim_id"] == "C14":
+                notes = row["notes"]
+                required_notes = {
+                    "post_hoc_outcome_independent",
+                    "not_independently_preregistered",
+                    "full_population_not_rescored",
+                    "one_alternate_judge",
+                    "reader_effects_not_reestimated",
+                    "nonofficial_sample",
+                }
+                missing_notes = sorted(note for note in required_notes if note not in notes)
+                if missing_notes:
+                    errors.append(f"{prefix} lacks cross-judge audit boundaries: {missing_notes!r}")
 
             claim = claims.get(claim_id)
             contract_path = _contract_value_path(row)

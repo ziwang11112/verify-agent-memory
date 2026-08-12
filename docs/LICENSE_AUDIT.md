@@ -42,6 +42,9 @@ package structure and preserves source-file identities in `SOURCE_ARTIFACTS.yaml
 - Pure evaluation ideas and standard statistical formulas may be reimplemented.
 - Upstream MIT notices remain recorded in `THIRD_PARTY_NOTICES.md`.
 - Content-free aggregate evidence may be normalized after hash verification.
-- Raw benchmark text, prompts, responses, reviewer identity, embeddings, and
-  checkpoints remain prohibited.
-- The new repository's own license remains pending an explicit owner choice.
+- Raw benchmark text, prompts, responses, embeddings, and checkpoints remain
+  prohibited.
+- The repository's original code and documentation are released under the MIT
+  License in the root `LICENSE` file. That license does not broaden any upstream data
+  right: raw benchmark text, prompts, responses, embeddings, and checkpoints remain
+  excluded, and third-party notices remain controlling for incorporated material.

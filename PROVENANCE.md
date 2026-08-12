@@ -60,3 +60,34 @@ The two GateMem reader estimates are separate same-provider results:
 
 No raw response bundle is authorized for migration. The estimates must not be pooled
 or described as a cross-provider replication.
+
+## Controlled Prompt Executions
+
+The paired-exposure evidence comes from two separately hash-bound executions over the
+same constructed 16-scenario contract:
+
+| Execution | Readers | Commit | Published manifest SHA-256 |
+| --- | --- | --- | --- |
+| Original panel | `gpt-5.6-sol`, `gemini-3.6-flash`, `deepseek-v4-pro` | `82d3bce8023d1ccc97bb21b0bbb36e15a4b3c6af` | `a8574e39b2fa23a65491ead0329954251bd9cde51344330ee94e39e3c4afeda1` |
+| Reader replication | `claude-opus-5` | `938320909b4c2d13e286987dc4297a7cb6ef73a7` | `b738a330efbf4072dbba30a1a5ff879072414523053e261ec58a52500eaa0963` |
+
+Each reader completed 384 scored requests and one compatibility fixture. The original
+panel and Claude replication are reported separately and never pooled. Their public
+packages contain only content-free pair scores, aggregates, execution receipts, and
+hashes; prompts, candidate text, answer text, and raw provider responses remain
+excluded.
+
+## Frozen Post-Hoc Controls
+
+The support-control analysis is bound to natural execution commit
+`8e34e3d41c56e1699696bc27be95cdac7c9528e5`, embedding checkpoint
+`d333477116735f49b7628ee5d324e92a9f608190079a7b1d699308f5ec4f1ae6`, and the
+route-bundle hashes listed in `results/support_controls/manifest.json`. It recomputes
+exact rankings locally and makes zero provider calls.
+
+The verifier operating curves are bound to complete OpenAI and Gemini structured
+response hashes `fa25549ef10ce36408fc1c88312ab801ecd5ca0a447dac8f4a18f5ff0f8ec8ab`
+and `b56bd3a1793334cbc0ff5ec75fb7b280ade5c143b13274ca0681da9dd1ce37db`.
+Only aggregate curve points are released. The paired-exposure robustness calculation
+uses the already public content-free pair-score hash
+`855f98897b9e1963d98cd0d6da7ad043c93602febd8f3813583930b644572938`.
