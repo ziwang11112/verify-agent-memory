@@ -304,7 +304,7 @@ def _write_readme(output_dir: Path, summary: Sequence[Mapping[str, object]]) -> 
             "",
         ]
     )
-    (output_dir / OUTPUT_NAMES["readme"]).write_text("\n".join(lines), encoding="utf-8")
+    (output_dir / OUTPUT_NAMES["readme"]).write_bytes("\n".join(lines).encode("utf-8"))
 
 
 def _run(archive_root: Path, output_dir: Path) -> None:
