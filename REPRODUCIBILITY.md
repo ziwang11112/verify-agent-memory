@@ -95,6 +95,7 @@ uv run --extra dev python -m scripts.publish_counterfactual_exposure_results ver
 uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
 uv run --extra dev python -m scripts.publish_natural_case_audit verify
 uv run --extra dev python -m pytest tests/test_posthoc_robustness_results.py
+uv run --extra dev python -m pytest tests/test_policy_axis_sensitivity.py
 uv run --extra dev --extra plots python -m scripts.plot_counterfactual_selectivity_figure
 uv run --extra dev --extra plots python -m scripts.plot_counterfactual_exposure_figure
 ```
@@ -111,15 +112,19 @@ python -m scripts.run_frozen_natural_support_controls `
   --archive-root ../bomi-codex-starter `
   --output-dir tmp/support_controls
 
+python scripts/run_policy_axis_sensitivity.py `
+  --archive-root ../bomi-codex-starter `
+  --output-dir tmp/policy_axis_sensitivity
+
 python -m scripts.run_frozen_posthoc_robustness `
   --cases tmp/inferred_admissibility/cases.jsonl `
   --response-dir tmp/inferred_admissibility_canonical/primary_first_committed `
   --output-dir tmp/posthoc_robustness
 ```
 
-Both commands are zero-call post-hoc analyses. The first reads frozen embeddings and
-route bundles; the second reads frozen structured verifier responses. Neither command
-reads credentials or contacts a provider.
+The support-control and policy-sensitivity commands read frozen route bundles; the
+operating-curve command reads frozen structured verifier responses. All three are
+zero-call post-hoc analyses and none reads credentials or contacts a provider.
 
 ## 5. Acquire Exact Public Sources
 
@@ -140,31 +145,29 @@ Checkouts are placed in ignored `data/raw/upstream/` directories. The tool verif
 both exact commit and Git tree hashes and refuses to replace a non-Git path or use a
 mismatched remote.
 
-## 6. Full-Execution Boundary
+## 6. Full Re-execution
 
 The repository supports three different reproducibility claims:
 
-| Tier | Reproducible from this checkout? | Additional material |
+| Tier | Supported path | Additional material |
 | --- | --- | --- |
 | Code behavior and synthetic smoke | Yes | None |
 | Every checked-in aggregate/result/evidence hash | Yes | None |
 | Natural case-level aggregation, equal-source results, and case-weighted sensitivity | Yes | Tokenized `results/natural_end_to_end_case_audit/case_scores.csv` |
-| Raw natural-corpus and provider execution | No, not from Git alone | Upstream raw text, frozen embeddings/checkpoints, credentials, and response bundles |
+| Fresh natural-corpus and provider execution | Rebuild from pinned public sources | Model artifacts and researcher-supplied provider credentials |
 
-The exact historical natural execution used 182,908 memories, 3,767 queries, 33,903
+The exact reported natural execution used 182,908 memories, 3,767 queries, 33,903
 route rows, and 33,903 score rows. Its source revisions, config, population,
-embedding, route, and score hashes are recorded in `PROVENANCE.md`. Embedding shards
-would be several gigabytes, and provider responses include benchmark text; neither is
-appropriate for ordinary Git storage.
+embedding, route, and score hashes are recorded in `PROVENANCE.md`. A fresh run uses
+the same pinned source revisions and frozen protocols, while newly generated model
+outputs are kept in ignored local execution directories.
 
 The case-level audit exposes parsed numeric labels and SHA-256 bindings, so the public
 package can recompute source-specific intervals, the post-hoc case-weighted
-sensitivity, and every natural closure aggregate.
-It cannot independently verify how a private provider response was converted into a
-parsed score without the excluded response and benchmark payload. Provider execution
-scripts remain available for audit, but a checked-in historical receipt is not
-authorization to spend money or rerun a model. Complete-bundle, cost-cap, and
-fail-closed requirements are enforced in code and tests.
+sensitivity, and every natural closure aggregate. Provider execution scripts rebuild
+requests from the pinned sources and normalize fresh responses under the same frozen
+contracts. Complete-bundle, cost-cap, and fail-closed requirements are enforced in
+code and tests; credentials remain local to the researcher.
 
 ## 7. Directory Contract
 

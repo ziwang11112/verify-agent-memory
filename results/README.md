@@ -9,6 +9,7 @@ reader prompts, raw provider responses, embeddings, or credentials.
 | --- | --- | --- |
 | `supplemental_natural/` | Natural retrieval, top-k Pareto, released-field attribution, metadata break-even | CSV/JSON summaries and manifests |
 | `support_controls/` | Size-matched support, pre/post-filter depth, recall/cost sensitivity, few-group robustness | Aggregate CSVs, summary, manifest |
+| `policy_axis_sensitivity/` | Frozen top-20 admissibility rescore with and without the released policy predicate | Source and macro summaries, paired bootstrap deltas, manifest |
 | `inferred_admissibility/` | Natural-development text verifier | Classification, route, threshold, sensitivity, usage, and manifest files |
 | `posthoc_robustness/` | Fixed verifier operating curves and paired-exposure scenario robustness | Curve CSV, leave-one-out summary, manifest |
 | `counterfactual_admissibility/` | Controlled focal/stable verifier diagnostic | Pair scores, bootstrap intervals, error taxonomy, figures, manifest |
@@ -37,6 +38,7 @@ uv run --extra dev python -m scripts.publish_counterfactual_exposure_results ver
 uv run --extra dev python -m scripts.publish_claude_opus5_exposure_results verify
 uv run --extra dev python -m scripts.publish_natural_case_audit verify
 uv run --extra dev python -m pytest tests/test_posthoc_robustness_results.py
+uv run --extra dev python -m pytest tests/test_policy_axis_sensitivity.py
 ```
 
 Interpretation boundaries are maintained in `CLAIM_CONTRACT.md` and
@@ -52,3 +54,10 @@ namespace pre-filtering and `0.1229` for global dense. The lower primary penaliz
 residual risk therefore comes from improved feasibility under the preregistered
 infeasibility cost, not from a demonstrated policy/lifecycle improvement. Namespace
 support should not be interpreted as a substitute for those checks.
+
+The policy-axis sensitivity keeps the same rankings, anchors, scope labels,
+lifecycle labels, route limit, recall target, and infeasibility penalty. Omitting
+only the released policy-disallowed predicate leaves the namespace-minus-global
+penalized upper-risk delta at `-0.0933` (95% CI `[-0.1147, -0.0714]`). This is a
+robustness analysis of the namespace result, not evidence that policy verification
+is unnecessary.

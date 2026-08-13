@@ -297,11 +297,19 @@ at unit cost it is `-0.066178`. Leave-one-group-out recall deltas remain in
 `[0.097427, 0.107711]`; the exact seven-group RHELM sign-flip `p`-value is
 `0.015625`.
 
+The policy-axis sensitivity reuses the same frozen top-20 routes and source-required
+anchors while omitting only the released policy-disallowed predicate. Penalized upper
+risk changes from `0.786818` for global dense to `0.693498` for namespace dense, a
+paired delta of `-0.093320` (95% CI `[-0.114739, -0.071374]`). The any-known-violation
+and known-violation-count deltas are `-0.222094` and `-0.899191`, respectively, with
+intervals excluding zero.
+
 **Allowed:** On frozen rankings, trusted namespace support improved recall,
 feasibility, and post-hoc v2 penalized admissibility upper risk at all four reported
 depths. Both risk components contributed. In this exact-dense control, correct
 provenance rather than candidate count alone explains the support gain; shallow late
-filtering does not recover the pre-filtered result.
+filtering does not recover the pre-filtered result. Omitting the released policy
+predicate preserves the direction of the namespace-support result.
 
 **Forbidden:** Do not say v2 risk selected the original settings, call this a new
 held-out run, claim namespace support guarantees admissibility, generalize the random
@@ -311,7 +319,8 @@ improved.
 **Boundary:** This is a no-retuning post-hoc rescore of released trusted namespaces.
 Original selection used the v1 penalized non-usable upper risk. The random partition
 is not a semantic-cluster control, and the residual-risk advantage depends on a
-positive penalty for infeasibility.
+positive penalty for infeasibility. The policy sensitivity does not validate policy
+labels or imply that policy verification is unnecessary.
 
 ### C10: Metadata-error asymmetry
 
@@ -323,7 +332,7 @@ Corrected v2 attribution against namespace dense is:
 | --- | ---: | ---: | ---: |
 | Policy only | 0.026547 | 0.057645 | -0.146723 |
 | Lifecycle only | -0.015783 | -0.037916 | 0.017592 |
-| Policy + lifecycle (`released_governance_oracle_v2`) | 0.010489 | 0.016954 | -0.123554 |
+| Policy + lifecycle (`released_governance_oracle_v2`, label-aligned reference) | 0.010489 | 0.016954 | -0.123554 |
 
 The observed ten-seed weak-dominance brackets are mechanism-specific. Namespace
 channels use global dense as reference; policy, lifecycle, and intent channels use

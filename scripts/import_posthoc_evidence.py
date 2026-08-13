@@ -11,6 +11,7 @@ from verify_agent_memory.provenance import canonical_json_bytes, sha256_file
 
 ROOT = Path(__file__).resolve().parents[1]
 NATURAL_COMMIT = "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
+POLICY_SENSITIVITY_COMMIT = "5ffcf28f912c89d1c81b835a752943305a6f2e0c"
 INFERRED_COMMIT = "c4f93cad3e55ae816cda868d6591e57b48e342da"
 CONTROLLED_COMMIT = "1ff8c13911b3165773162b31954ac7601c0092ea"
 FIELDS = (
@@ -85,6 +86,7 @@ def _write_manifest(
     source_paths: Sequence[Path],
     *,
     source_commit: str,
+    additional_source_commits: Sequence[str] = (),
 ) -> None:
     payload = {
         "schema_version": 1,
@@ -104,11 +106,16 @@ def _write_manifest(
         "transformation_script": Path(__file__).resolve().relative_to(ROOT).as_posix(),
         "transformation_script_sha256": sha256_file(Path(__file__).resolve()),
     }
+    if additional_source_commits:
+        payload["additional_source_snapshot_commits"] = list(additional_source_commits)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(canonical_json_bytes(payload))
 
 
-def _natural_fixed_budget_rows(result_root: Path) -> list[dict[str, str]]:
+def _natural_fixed_budget_rows(
+    result_root: Path,
+    policy_result_root: Path | None = None,
+) -> list[dict[str, str]]:
     pareto = _csv_rows(result_root / "natural_top_k_pareto.csv")
     deltas = _csv_rows(result_root / "natural_top_k_paired_deltas.csv")
     output: list[dict[str, str]] = []
@@ -175,6 +182,40 @@ def _natural_fixed_budget_rows(result_root: Path) -> list[dict[str, str]]:
                     notes=notes,
                 )
             )
+
+    if policy_result_root is None:
+        return output
+
+    policy_deltas = _csv_rows(policy_result_root / "paired_deltas.csv")
+    for source_metric, metric in (
+        ("penalized_upper_risk", "penalized_upper_risk_delta_without_policy"),
+        ("any_known_violation", "any_known_violation_delta_without_policy"),
+        ("known_violation_count", "known_violation_count_delta_without_policy"),
+    ):
+        delta = _one(
+            policy_deltas,
+            axis_family="scope_lifecycle_no_policy",
+            comparison="namespace_dense_minus_global_dense",
+            metric=source_metric,
+        )
+        output.append(
+            _row(
+                "C9",
+                "fixed_budget_support",
+                population,
+                "RHELM and MemOps public sources",
+                "policy_axis_sensitivity_top_k_20",
+                metric,
+                delta["estimate"],
+                lower=delta["ci_lower"],
+                upper=delta["ci_upper"],
+                n=3767,
+                notes=(
+                    "post_hoc_v2;frozen_rankings;no_retuning;policy_axis_omitted;"
+                    "source_clustered_bootstrap"
+                ),
+            )
+        )
     return output
 
 
@@ -443,6 +484,7 @@ def build(repository_root: Path = ROOT) -> tuple[Path, ...]:
     supplemental = repository_root / "results" / "supplemental_natural"
     inferred = repository_root / "results" / "inferred_admissibility"
     controlled = repository_root / "results" / "counterfactual_admissibility"
+    policy_sensitivity = repository_root / "results" / "policy_axis_sensitivity"
     normalized = repository_root / "evidence" / "normalized"
     manifests = repository_root / "evidence" / "manifests"
 
@@ -453,7 +495,7 @@ def build(repository_root: Path = ROOT) -> tuple[Path, ...]:
         normalized / "controlled_selective_verification.csv",
     )
     rows = (
-        _natural_fixed_budget_rows(supplemental),
+        _natural_fixed_budget_rows(supplemental, policy_sensitivity),
         _metadata_reliability_rows(supplemental),
         _inferred_rows(inferred),
         _controlled_rows(controlled),
@@ -469,8 +511,12 @@ def build(repository_root: Path = ROOT) -> tuple[Path, ...]:
                 supplemental / "natural_top_k_pareto.csv",
                 supplemental / "natural_top_k_paired_deltas.csv",
                 supplemental / "natural_top_k_pareto_manifest.json",
+                policy_sensitivity / "summary.csv",
+                policy_sensitivity / "paired_deltas.csv",
+                policy_sensitivity / "manifest.json",
             ),
             NATURAL_COMMIT,
+            (POLICY_SENSITIVITY_COMMIT,),
         ),
         (
             manifests / "metadata_reliability.json",
@@ -484,6 +530,7 @@ def build(repository_root: Path = ROOT) -> tuple[Path, ...]:
                 supplemental / "manifest.json",
             ),
             NATURAL_COMMIT,
+            (),
         ),
         (
             manifests / "text_inferred_admissibility.json",
@@ -495,6 +542,7 @@ def build(repository_root: Path = ROOT) -> tuple[Path, ...]:
                 inferred / "manifest.json",
             ),
             INFERRED_COMMIT,
+            (),
         ),
         (
             manifests / "controlled_selective_verification.json",
@@ -506,14 +554,16 @@ def build(repository_root: Path = ROOT) -> tuple[Path, ...]:
                 controlled / "manifest.json",
             ),
             CONTROLLED_COMMIT,
+            (),
         ),
     )
-    for manifest_path, normalized_path, source_paths, commit in manifest_specs:
+    for manifest_path, normalized_path, source_paths, commit, additional_commits in manifest_specs:
         _write_manifest(
             manifest_path,
             normalized_path,
             source_paths,
             source_commit=commit,
+            additional_source_commits=additional_commits,
         )
     return (*outputs, *(spec[0] for spec in manifest_specs))
 

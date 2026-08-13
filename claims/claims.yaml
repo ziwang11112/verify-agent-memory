@@ -570,6 +570,10 @@ claims:
       - "results/support_controls/infeasibility_cost_sensitivity.csv"
       - "results/support_controls/few_cluster_robustness.csv"
       - "results/support_controls/manifest.json"
+      - "results/policy_axis_sensitivity/summary.csv"
+      - "results/policy_axis_sensitivity/source_metrics.csv"
+      - "results/policy_axis_sensitivity/paired_deltas.csv"
+      - "results/policy_axis_sensitivity/manifest.json"
     exact_values:
       top_k_10:
         global_evidence_recall: 0.3223367172107227
@@ -638,6 +642,12 @@ claims:
         leave_one_group_out_recall_delta_max: 0.10771108116796663
         rhelm_group_count: 7
         rhelm_exact_two_sided_sign_flip_p: 0.015625
+      policy_axis_sensitivity_top_k_20:
+        global_penalized_upper_risk_without_policy: 0.7868183171784588
+        namespace_penalized_upper_risk_without_policy: 0.6934982422209819
+        penalized_upper_risk_delta_without_policy: -0.09332007495747696
+        any_known_violation_delta_without_policy: -0.22209438973617682
+        known_violation_count_delta_without_policy: -0.8991911697618498
     confidence_intervals:
       - {metric: "top_k_10_evidence_recall_delta", estimate: 0.06713221703017538, lower: 0.05415147598649556, upper: 0.08109095232893691}
       - {metric: "top_k_10_feasible_rate_delta", estimate: 0.03179041525110043, lower: 0.02213625743295429, upper: 0.04224848468892474}
@@ -659,6 +669,9 @@ claims:
       - {metric: "top_k_100_penalized_admissibility_upper_risk_delta", estimate: -0.27393493576095884, lower: -0.30970609573192986, upper: -0.23538435309248837}
       - {metric: "top_k_100_infeasibility_risk_component_delta", estimate: -0.22299559357118776, lower: -0.2550229613185381, upper: -0.191691519764103}
       - {metric: "top_k_100_admissibility_conditional_risk_component_delta", estimate: -0.05093934218977141, lower: -0.06842618818753983, upper: -0.03367666071398375}
+      - {metric: "policy_axis_sensitivity_top_k_20_penalized_upper_risk_delta_without_policy", estimate: -0.09332007495747696, lower: -0.1147390269406861, upper: -0.07137416237938925}
+      - {metric: "policy_axis_sensitivity_top_k_20_any_known_violation_delta_without_policy", estimate: -0.22209438973617682, lower: -0.271388133355362, upper: -0.16980394389134343}
+      - {metric: "policy_axis_sensitivity_top_k_20_known_violation_count_delta_without_policy", estimate: -0.8991911697618498, lower: -1.129604598636463, upper: -0.6811731834566298}
     allowed_wording:
       - "On frozen natural-corpus rankings, trusted namespace support improved recall, feasibility, and post-hoc v2 penalized admissibility upper risk at top-k 10, 20, 50, and 100."
       - "The v2 risk reduction contains both an infeasibility reduction and a smaller feasible-prefix admissibility component at every reported depth."
@@ -666,6 +679,7 @@ claims:
       - "Global post-filtering recovered namespace-pre-filter recall only after retrieving to depth 500; filtering a global top-20 retained global recall."
       - "After removing scope violations from the numerator, conditional upper risk did not improve, and the penalized residual-risk advantage required a positive infeasibility cost."
       - "Leave-one-group-out recall deltas remained positive, and the exact seven-group RHELM sign-flip p-value was 0.015625."
+      - "Omitting only the released policy-disallowed predicate preserved the top-20 namespace-support advantage in penalized upper risk, any known violation, and known-violation count."
     forbidden_wording:
       - "The v2 admissibility metric was used for original development selection."
       - "The fixed-budget analysis is a new held-out confirmatory experiment."
@@ -680,9 +694,11 @@ claims:
       - "The support controls are post-hoc zero-call diagnostics on frozen embeddings and labels; the random partition is not a semantic-cluster control."
       - "The pre/post-filter comparison is specific to exact dense ranking and the tested depths."
       - "At zero infeasibility cost, namespace scope-excluded penalized risk is slightly higher than global dense; the primary residual advantage therefore depends on assigning positive cost to recall failure."
+      - "The policy-axis analysis is a zero-call sensitivity on the same frozen top-20 routes and source-required anchors; it does not validate policy labels or establish that policy verification is unnecessary."
     verification_tests:
       - "test_fixed_budget_claim_requires_posthoc_no_retuning_boundary"
       - "test_confidence_intervals_contain_estimates"
+      - "test_policy_omission_preserves_namespace_advantage"
 
   - id: C10
     status: post_hoc_metadata_robustness_diagnostic
