@@ -10,6 +10,7 @@ import pytest
 from verify_agent_memory.policy_axis_sensitivity import (
     admissibility_status,
     score_axis_family,
+    select_common_feasible_records,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -97,12 +98,34 @@ def test_infeasible_axis_family_uses_frozen_unit_penalty() -> None:
     assert score.known_risk is None
 
 
+def test_common_feasible_records_use_the_same_query_intersection() -> None:
+    records = (
+        {"source": "a", "query": "q1", "arm": "global", "feasible": True},
+        {"source": "a", "query": "q1", "arm": "namespace", "feasible": True},
+        {"source": "a", "query": "q2", "arm": "global", "feasible": False},
+        {"source": "a", "query": "q2", "arm": "namespace", "feasible": True},
+        {"source": "a", "query": "q3", "arm": "global", "feasible": True},
+        {"source": "a", "query": "q3", "arm": "namespace", "feasible": False},
+    )
+
+    selected = select_common_feasible_records(
+        records,
+        arms=("global", "namespace"),
+        identity_fields=("source", "query"),
+    )
+
+    assert len(selected) == 2
+    assert {row["query"] for row in selected} == {"q1"}
+    assert {row["arm"] for row in selected} == {"global", "namespace"}
+
+
 def test_policy_axis_result_bundle_is_hash_bound_and_content_free() -> None:
     result_dir = ROOT / "results" / "policy_axis_sensitivity"
     manifest = json.loads((result_dir / "manifest.json").read_text(encoding="utf-8"))
 
     assert manifest["analysis"] == "natural-policy-axis-sensitivity-v1"
     assert manifest["query_count"] == 3767
+    assert manifest["common_feasible_query_count"] > 0
     assert manifest["group_count"] == 87
     assert manifest["contains_query_memory_or_group_ids"] is False
     assert manifest["contains_raw_text_embeddings_prompts_or_responses"] is False
@@ -141,3 +164,25 @@ def test_policy_omission_preserves_namespace_advantage() -> None:
     delta = deltas[(family, "penalized_upper_risk")]
     assert float(delta["estimate"]) == pytest.approx(-0.09332007495747696)
     assert float(delta["ci_upper"]) < 0.0
+
+
+def test_common_feasible_sensitivity_preserves_namespace_risk_direction() -> None:
+    result_dir = ROOT / "results" / "policy_axis_sensitivity"
+    summary = {
+        (row["axis_family"], row["arm"]): row
+        for row in _csv_rows(result_dir / "common_feasible_summary.csv")
+    }
+    deltas = {
+        (row["axis_family"], row["metric"]): row
+        for row in _csv_rows(result_dir / "common_feasible_paired_deltas.csv")
+    }
+
+    family = "full_scope_policy_lifecycle"
+    assert (
+        summary[(family, "global_dense")]["common_feasible_query_count"]
+        == summary[(family, "namespace_dense")]["common_feasible_query_count"]
+    )
+    assert float(summary[(family, "namespace_dense")]["upper_bound"]) < float(
+        summary[(family, "global_dense")]["upper_bound"]
+    )
+    assert float(deltas[(family, "upper_bound")]["ci_upper"]) < 0.0

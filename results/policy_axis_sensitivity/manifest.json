@@ -1,7 +1,9 @@
 {
   "analysis": "natural-policy-axis-sensitivity-v1",
-  "analysis_commit": "5ffcf28f912c89d1c81b835a752943305a6f2e0c",
+  "analysis_commit": "f2fa78ef877647a39af91ec12956b79bba3070df",
   "base_execution_commit": "8e34e3d41c56e1699696bc27be95cdac7c9528e5",
+  "common_feasible_protocol_sha256": "92928024f6f3a9147e45eed3535d0968d7229744465b43bbbe504ed82e086175",
+  "common_feasible_query_count": 609,
   "contains_query_memory_or_group_ids": false,
   "contains_raw_text_embeddings_prompts_or_responses": false,
   "evaluation_retuning": false,
@@ -12,7 +14,19 @@
   "provider_calls": 0,
   "published_files": {
     "README.md": {
-      "sha256": "ba456e29ff52e95b555811a7ad45faefee3a701e41cba08adeca1cd196195d95"
+      "sha256": "3c694a30cddc6f3a834ea4ad97ae1eea658ab2eb83d0f7e86e7956fa18cb763b"
+    },
+    "common_feasible_paired_deltas.csv": {
+      "row_count": 16,
+      "sha256": "da52d5fdd7e6f3f395749689f993fb89662d551e611739615431bfd172341f69"
+    },
+    "common_feasible_source_metrics.csv": {
+      "row_count": 8,
+      "sha256": "78edbcd32bd43f2c97c17bfb698bab0743a716e6b4d40f98da8d79f8d8f199b8"
+    },
+    "common_feasible_summary.csv": {
+      "row_count": 4,
+      "sha256": "18f1dac7a93a832989418a1bd60238dcb1564986a62f78d8f2b69a036d4c2d61"
     },
     "paired_deltas.csv": {
       "row_count": 18,

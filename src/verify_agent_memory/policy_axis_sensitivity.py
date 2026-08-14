@@ -24,6 +24,46 @@ class AxisFamilyScore:
     matched_prefix_count: int | None
 
 
+def select_common_feasible_records(
+    records: Sequence[Mapping[str, object]],
+    *,
+    arms: Sequence[str],
+    identity_fields: Sequence[str],
+) -> tuple[Mapping[str, object], ...]:
+    """Return records whose paired identity is feasible for every requested arm."""
+    expected_arms = tuple(arms)
+    if not expected_arms or len(set(expected_arms)) != len(expected_arms):
+        raise ValueError("arms must be non-empty and unique")
+    if not identity_fields or len(set(identity_fields)) != len(identity_fields):
+        raise ValueError("identity fields must be non-empty and unique")
+
+    grouped: dict[tuple[object, ...], dict[str, Mapping[str, object]]] = {}
+    for row in records:
+        try:
+            identity = tuple(row[field] for field in identity_fields)
+            arm = str(row["arm"])
+            feasible = row["feasible"]
+        except KeyError as error:
+            raise ValueError(f"common-feasible record lacks {error.args[0]!r}") from error
+        if arm not in expected_arms:
+            continue
+        if feasible not in {True, False}:
+            raise ValueError("common-feasible records require boolean feasibility")
+        paired = grouped.setdefault(identity, {})
+        if arm in paired:
+            raise ValueError(f"duplicate arm {arm!r} for common-feasible identity")
+        paired[arm] = row
+
+    selected: list[Mapping[str, object]] = []
+    expected = set(expected_arms)
+    for paired in grouped.values():
+        if set(paired) != expected:
+            raise ValueError("common-feasible identity does not contain every requested arm")
+        if all(bool(paired[arm]["feasible"]) for arm in expected_arms):
+            selected.extend(paired[arm] for arm in expected_arms)
+    return tuple(selected)
+
+
 def admissibility_status(
     *,
     same_namespace: bool,

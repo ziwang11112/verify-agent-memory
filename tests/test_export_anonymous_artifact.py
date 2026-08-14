@@ -25,6 +25,9 @@ def test_anonymous_export_redacts_identity_and_repairs_manifest(tmp_path: Path) 
         path.parent.mkdir(parents=True, exist_ok=True)
     private_handle = "zi" + "wang11112"
     private_name = "zi" + " wang"
+    private_username = "zi" + "wan"
+    private_email = "zw" + "ang@ualr.edu"
+    private_institution = "University of Arkansas at Little Rock"
     script.write_text(f'SOURCE = "{private_handle}/verify-agent-memory"\n', encoding="utf-8")
     manifest.write_text(
         json.dumps(
@@ -36,7 +39,19 @@ def test_anonymous_export_redacts_identity_and_repairs_manifest(tmp_path: Path) 
         ),
         encoding="utf-8",
     )
-    readme.write_text(f"Approved-by: {private_name}\n", encoding="utf-8")
+    readme.write_text(
+        "\n".join(
+            (
+                f"Approved-by: {private_name}",
+                f"Contact: {private_email}",
+                f"Institution: {private_institution} (UALR)",
+                f"Home: C:\\Users\\{private_username}",
+                "Workspace: D:\\agent-mem\\verify-agent-memory",
+            )
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     workflow.write_text("name: ci\n", encoding="utf-8")
     env_file.write_text("TOKEN=not-exported\n", encoding="utf-8")
 
@@ -54,7 +69,13 @@ def test_anonymous_export_redacts_identity_and_repairs_manifest(tmp_path: Path) 
     )
 
     assert private_handle not in (output / "scripts" / "import_evidence.py").read_text()
-    assert private_name not in (output / "README.md").read_text().lower()
+    exported_readme = (output / "README.md").read_text(encoding="utf-8")
+    assert private_name not in exported_readme.lower()
+    assert private_username not in exported_readme.lower()
+    assert private_email not in exported_readme.lower()
+    assert private_institution not in exported_readme
+    assert "ualr" not in exported_readme.lower()
+    assert "D:\\agent-mem" not in exported_readme
     assert not (output / ".github").exists()
     assert not (output / ".env").exists()
     exported_manifest = json.loads(
@@ -81,5 +102,21 @@ def test_anonymous_export_rejects_secret_shaped_content(tmp_path: Path) -> None:
             repository,
             output,
             tracked_paths=("README.md",),
+            require_clean=False,
+        )
+
+
+def test_anonymous_export_rejects_identity_in_non_utf8_file(tmp_path: Path) -> None:
+    repository = tmp_path / "repository"
+    output = tmp_path / "artifact"
+    source = repository / "fixture.bin"
+    source.parent.mkdir(parents=True)
+    source.write_bytes(b"\xffprivate=" + ("zi" + "wang11112").encode("ascii"))
+
+    with pytest.raises(RuntimeError, match="private repository handle"):
+        export_anonymous_artifact(
+            repository,
+            output,
+            tracked_paths=("fixture.bin",),
             require_clean=False,
         )

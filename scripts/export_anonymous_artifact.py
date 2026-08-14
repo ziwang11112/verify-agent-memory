@@ -27,9 +27,39 @@ EXCLUDED_NAMES = {".env", ".DS_Store", "Thumbs.db"}
 EXCLUDED_SUFFIXES = {".key", ".pem", ".pyc"}
 PRIVATE_HANDLE = "zi" + "wang11112"
 PRIVATE_NAME_PATTERN = r"zi" + r"\s+" + "wang"
+PRIVATE_USERNAME_PATTERN = r"\bzi" + r"wan\b"
+PRIVATE_EMAIL_PATTERN = r"\bzw" + r"ang@ualr\.edu\b"
+PRIVATE_INSTITUTION_PATTERN = r"\bUniversity\s+of\s+Arkansas\s+at\s+Little\s+Rock\b"
+PRIVATE_INSTITUTION_SHORT_PATTERN = r"\bUA" + r"LR\b"
+PRIVATE_WORKSPACE_PATTERN = r"\bD:[\\/]agent-mem\b"
 IDENTITY_REPLACEMENTS = (
-    (re.compile(PRIVATE_HANDLE, re.IGNORECASE), "anonymous"),
-    (re.compile(PRIVATE_NAME_PATTERN, re.IGNORECASE), "Anonymous Owner"),
+    ("private repository handle", re.compile(PRIVATE_HANDLE, re.IGNORECASE), "anonymous"),
+    ("private owner name", re.compile(PRIVATE_NAME_PATTERN, re.IGNORECASE), "Anonymous Owner"),
+    (
+        "private workstation username",
+        re.compile(PRIVATE_USERNAME_PATTERN, re.IGNORECASE),
+        "anonymous",
+    ),
+    (
+        "private owner email",
+        re.compile(PRIVATE_EMAIL_PATTERN, re.IGNORECASE),
+        "anonymous@example.invalid",
+    ),
+    (
+        "private institution",
+        re.compile(PRIVATE_INSTITUTION_PATTERN, re.IGNORECASE),
+        "Anonymous Institution",
+    ),
+    (
+        "private institution abbreviation",
+        re.compile(PRIVATE_INSTITUTION_SHORT_PATTERN, re.IGNORECASE),
+        "Anonymous Institution",
+    ),
+    (
+        "private local workspace",
+        re.compile(PRIVATE_WORKSPACE_PATTERN, re.IGNORECASE),
+        "D:/anonymous-workspace",
+    ),
 )
 SECRET_PATTERNS = {
     "OpenAI-style API key": re.compile(rb"\bsk-[A-Za-z0-9_-]{16,}\b"),
@@ -97,7 +127,7 @@ def _redact(data: bytes) -> tuple[bytes, bool]:
     except UnicodeDecodeError:
         return data, False
     original = text
-    for pattern, replacement in IDENTITY_REPLACEMENTS:
+    for _, pattern, replacement in IDENTITY_REPLACEMENTS:
         text = pattern.sub(replacement, text)
     return text.encode("utf-8"), text != original
 
@@ -130,19 +160,13 @@ def _repair_evidence_manifest_hashes(output_root: Path) -> tuple[str, ...]:
 
 def _scan_export(output_root: Path) -> None:
     findings: list[str] = []
-    identity_patterns = tuple(pattern for pattern, _ in IDENTITY_REPLACEMENTS)
     for path in sorted(item for item in output_root.rglob("*") if item.is_file()):
         relative = path.relative_to(output_root).as_posix()
         data = path.read_bytes()
-        lowered_text: str | None
-        try:
-            lowered_text = data.decode("utf-8")
-        except UnicodeDecodeError:
-            lowered_text = None
-        if lowered_text is not None:
-            for pattern in identity_patterns:
-                if pattern.search(lowered_text):
-                    findings.append(f"{relative}: identity token")
+        scan_text = data.decode("utf-8", errors="ignore")
+        for label, pattern, _ in IDENTITY_REPLACEMENTS:
+            if pattern.search(scan_text):
+                findings.append(f"{relative}: {label}")
         for label, pattern in SECRET_PATTERNS.items():
             if pattern.search(data):
                 findings.append(f"{relative}: {label}")
