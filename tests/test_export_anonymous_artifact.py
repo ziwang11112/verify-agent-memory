@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 
@@ -122,3 +123,27 @@ def test_anonymous_export_rejects_identity_in_non_utf8_file(tmp_path: Path) -> N
             tracked_paths=("fixture.bin",),
             require_clean=False,
         )
+
+
+def test_exported_anonymizer_preserves_its_identity_rules(tmp_path: Path) -> None:
+    repository = Path(__file__).resolve().parents[1]
+    output = tmp_path / "artifact"
+    export_anonymous_artifact(
+        repository,
+        output,
+        tracked_paths=("scripts/export_anonymous_artifact.py",),
+        require_clean=False,
+    )
+
+    exported_path = output / "scripts" / "export_anonymous_artifact.py"
+    spec = importlib.util.spec_from_file_location("exported_anonymizer", exported_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("failed to load exported anonymizer")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    private_email = "zw" + "ang@" + "ua" + "lr.edu"
+
+    redacted, changed = module._redact(f"contact={private_email}".encode())
+
+    assert changed is True
+    assert private_email.encode("utf-8") not in redacted
