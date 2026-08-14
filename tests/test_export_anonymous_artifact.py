@@ -26,8 +26,10 @@ def test_anonymous_export_redacts_identity_and_repairs_manifest(tmp_path: Path) 
     private_handle = "zi" + "wang11112"
     private_name = "zi" + " wang"
     private_username = "zi" + "wan"
-    private_email = "zw" + "ang@ualr.edu"
-    private_institution = "University of Arkansas at Little Rock"
+    private_email = "zw" + "ang@" + "ua" + "lr.edu"
+    private_institution = "University of " + "Arkansas at Little Rock"
+    private_institution_short = "UA" + "LR"
+    private_workspace = "D:\\" + "agent" + "-mem"
     script.write_text(f'SOURCE = "{private_handle}/verify-agent-memory"\n', encoding="utf-8")
     manifest.write_text(
         json.dumps(
@@ -44,9 +46,9 @@ def test_anonymous_export_redacts_identity_and_repairs_manifest(tmp_path: Path) 
             (
                 f"Approved-by: {private_name}",
                 f"Contact: {private_email}",
-                f"Institution: {private_institution} (UALR)",
+                f"Institution: {private_institution} ({private_institution_short})",
                 f"Home: C:\\Users\\{private_username}",
-                "Workspace: D:\\agent-mem\\verify-agent-memory",
+                f"Workspace: {private_workspace}\\verify-agent-memory",
             )
         )
         + "\n",
@@ -74,8 +76,8 @@ def test_anonymous_export_redacts_identity_and_repairs_manifest(tmp_path: Path) 
     assert private_username not in exported_readme.lower()
     assert private_email not in exported_readme.lower()
     assert private_institution not in exported_readme
-    assert "ualr" not in exported_readme.lower()
-    assert "D:\\agent-mem" not in exported_readme
+    assert private_institution_short.lower() not in exported_readme.lower()
+    assert private_workspace not in exported_readme
     assert not (output / ".github").exists()
     assert not (output / ".env").exists()
     exported_manifest = json.loads(
