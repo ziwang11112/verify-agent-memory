@@ -116,14 +116,20 @@ python scripts/run_policy_axis_sensitivity.py `
   --archive-root ../bomi-codex-starter `
   --output-dir tmp/policy_axis_sensitivity
 
+python -m scripts.run_submission_zero_call_diagnostics `
+  --archive-root ../bomi-codex-starter `
+  --output-dir tmp/submission_zero_call_diagnostics
+
 python -m scripts.run_frozen_posthoc_robustness `
   --cases tmp/inferred_admissibility/cases.jsonl `
   --response-dir tmp/inferred_admissibility_canonical/primary_first_committed `
   --output-dir tmp/posthoc_robustness
 ```
 
-The support-control and policy-sensitivity commands read frozen route bundles; the
-operating-curve command reads frozen structured verifier responses. All three are
+The support-control, policy-sensitivity, and submission-diagnostic commands read
+frozen route bundles; the submission diagnostic additionally reuses the frozen
+embedding table for an exact gold-preserving same-size oracle control. The
+operating-curve command reads frozen structured verifier responses. All four are
 zero-call post-hoc analyses and none reads credentials or contacts a provider.
 
 ## 5. Acquire Exact Public Sources

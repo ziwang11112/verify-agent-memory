@@ -53,11 +53,14 @@ and 3,767 RHELM/MemOps queries. On frozen top-20 rankings, trusted namespace sup
 - reduces the mean known-violation count from `2.080` to `1.393`, without reaching
   zero.
 
-Correct provenance identity is necessary for this result: a size-matched random
-partition performs poorly, and global retrieval requires depth 500 before late
-namespace filtering approaches namespace pre-filter recall. The namespace result is
-therefore a benchmark-conditional candidate-support intervention, not a safety
-certificate or a demonstrated policy/lifecycle solution.
+An arbitrary size-matched random partition performs poorly, and global retrieval
+requires depth 500 before late namespace filtering approaches namespace pre-filter
+recall. A non-deployable gold-preserving same-size control instead reaches `0.840`
+recall, exposing substantial headroom when released required anchors are known.
+Trusted namespace is therefore a practical provenance constraint that improves
+anchor reachability, not proof that namespace identity is necessary or sufficient
+for optimal retrieval, a safety certificate, or a demonstrated policy/lifecycle
+solution.
 
 On a frozen 1,523-case route-to-reader subset, namespace-minus-global answer-accuracy
 effects are positive for separately reported DeepSeek, Gemini, and sequential GPT
@@ -72,6 +75,9 @@ The remaining diagnostics establish important boundaries:
 - a zero-call sensitivity that omits the low-agreement policy predicate preserves
   the namespace-support advantage: penalized upper risk changes from `0.787` to
   `0.693` (`delta = -0.093`, 95% CI `[-0.115, -0.071]`);
+- a zero-call evaluator-missingness diagnostic leaves retrieval fixed but widens the
+  matched-prefix risk interval from about `0.008` at baseline to about `0.21` after
+  hiding 20% of established judgments;
 - all four controlled readers show positive selectivity between relevant-admissible
   and relevant-inadmissible evidence, but DeepSeek retains a `+0.156`
   relevant-inadmissible disclosure effect; and

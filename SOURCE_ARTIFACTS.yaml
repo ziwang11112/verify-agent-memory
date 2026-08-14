@@ -956,3 +956,36 @@ artifacts:
     transformation_required: "Preserve route hashes, analysis commit, zero-call status, and output hashes."
     public_label: "policy-axis sensitivity provenance"
     contains_raw_text_or_private_content: false
+
+  - id: submission_label_missingness_summary
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "616d84ec3a49eade0c6cef946f741ce0ea92565e"
+    source_path: "results/submission_zero_call_diagnostics/label_missingness_summary.csv"
+    source_sha256: "cd129cd29d4432fcebe3f392da066eacc8a1defcfeba931062329628d6f92019"
+    intended_normalized_destination: "evidence/normalized/fixed_budget_support.csv"
+    transformation_required: "Preserve frozen routes while reporting evaluator-label coverage and partial-identification bounds across the fixed missingness grid."
+    public_label: "evaluator-label missingness sensitivity"
+    contains_raw_text_or_private_content: false
+
+  - id: submission_gold_preserving_summary
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "616d84ec3a49eade0c6cef946f741ce0ea92565e"
+    source_path: "results/submission_zero_call_diagnostics/gold_preserving_summary.csv"
+    source_sha256: "06b5f6c31cfab572da78972cfa42a0fa6357a46b3fa6527180ae0b581a68fddc"
+    intended_normalized_destination: "evidence/normalized/fixed_budget_support.csv"
+    transformation_required: "Preserve the ten-seed mean of the non-deployable released-gold same-size support oracle."
+    public_label: "gold-preserving same-size support oracle"
+    contains_raw_text_or_private_content: false
+
+  - id: submission_zero_call_diagnostics_manifest
+    category: GENERATED_FROM_PUBLIC_DIAGNOSTIC
+    old_repository: "ziwang11112/verify-agent-memory"
+    frozen_commit: "616d84ec3a49eade0c6cef946f741ce0ea92565e"
+    source_path: "results/submission_zero_call_diagnostics/manifest.json"
+    source_sha256: "84b50616da3ea20e12226a91cc460142303efe5bcb76d1a4651c524f8e06700f"
+    intended_normalized_destination: "evidence/normalized/fixed_budget_support.csv"
+    transformation_required: "Preserve exact route hashes, implementation commit, parity counts, and zero-call boundaries."
+    public_label: "submission diagnostic provenance"
+    contains_raw_text_or_private_content: false

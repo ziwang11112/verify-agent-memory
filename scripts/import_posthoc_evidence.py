@@ -12,6 +12,7 @@ from verify_agent_memory.provenance import canonical_json_bytes, sha256_file
 ROOT = Path(__file__).resolve().parents[1]
 NATURAL_COMMIT = "009ca3657fb9ebe2bad2f107d5f374c69a4afab3"
 POLICY_SENSITIVITY_COMMIT = "5ffcf28f912c89d1c81b835a752943305a6f2e0c"
+SUBMISSION_DIAGNOSTICS_COMMIT = "616d84ec3a49eade0c6cef946f741ce0ea92565e"
 INFERRED_COMMIT = "c4f93cad3e55ae816cda868d6591e57b48e342da"
 CONTROLLED_COMMIT = "1ff8c13911b3165773162b31954ac7601c0092ea"
 FIELDS = (
@@ -115,6 +116,7 @@ def _write_manifest(
 def _natural_fixed_budget_rows(
     result_root: Path,
     policy_result_root: Path | None = None,
+    submission_result_root: Path | None = None,
 ) -> list[dict[str, str]]:
     pareto = _csv_rows(result_root / "natural_top_k_pareto.csv")
     deltas = _csv_rows(result_root / "natural_top_k_paired_deltas.csv")
@@ -183,39 +185,93 @@ def _natural_fixed_budget_rows(
                 )
             )
 
-    if policy_result_root is None:
-        return output
-
-    policy_deltas = _csv_rows(policy_result_root / "paired_deltas.csv")
-    for source_metric, metric in (
-        ("penalized_upper_risk", "penalized_upper_risk_delta_without_policy"),
-        ("any_known_violation", "any_known_violation_delta_without_policy"),
-        ("known_violation_count", "known_violation_count_delta_without_policy"),
-    ):
-        delta = _one(
-            policy_deltas,
-            axis_family="scope_lifecycle_no_policy",
-            comparison="namespace_dense_minus_global_dense",
-            metric=source_metric,
-        )
-        output.append(
-            _row(
-                "C9",
-                "fixed_budget_support",
-                population,
-                "RHELM and MemOps public sources",
-                "policy_axis_sensitivity_top_k_20",
-                metric,
-                delta["estimate"],
-                lower=delta["ci_lower"],
-                upper=delta["ci_upper"],
-                n=3767,
-                notes=(
-                    "post_hoc_v2;frozen_rankings;no_retuning;policy_axis_omitted;"
-                    "source_clustered_bootstrap"
-                ),
+    if policy_result_root is not None:
+        policy_deltas = _csv_rows(policy_result_root / "paired_deltas.csv")
+        for source_metric, metric in (
+            ("penalized_upper_risk", "penalized_upper_risk_delta_without_policy"),
+            ("any_known_violation", "any_known_violation_delta_without_policy"),
+            ("known_violation_count", "known_violation_count_delta_without_policy"),
+        ):
+            delta = _one(
+                policy_deltas,
+                axis_family="scope_lifecycle_no_policy",
+                comparison="namespace_dense_minus_global_dense",
+                metric=source_metric,
             )
+            output.append(
+                _row(
+                    "C9",
+                    "fixed_budget_support",
+                    population,
+                    "RHELM and MemOps public sources",
+                    "policy_axis_sensitivity_top_k_20",
+                    metric,
+                    delta["estimate"],
+                    lower=delta["ci_lower"],
+                    upper=delta["ci_upper"],
+                    n=3767,
+                    notes=(
+                        "post_hoc_v2;frozen_rankings;no_retuning;policy_axis_omitted;"
+                        "source_clustered_bootstrap"
+                    ),
+                )
+            )
+
+    if submission_result_root is not None:
+        missingness = _csv_rows(submission_result_root / "label_missingness_summary.csv")
+        for arm, arm_label in (("global_dense", "global"), ("namespace_dense", "namespace")):
+            for rate, rate_label in ((0.0, "0pct"), (0.2, "20pct"), (0.5, "50pct"), (0.9, "90pct")):
+                source = _one(missingness, arm=arm, missing_rate=str(rate))
+                contrast = f"missingness_{arm_label}_{rate_label}"
+                for source_metric, metric in (
+                    ("mean_coverage", "coverage"),
+                    ("mean_lower_bound", "lower_bound"),
+                    ("mean_upper_bound", "upper_bound"),
+                    ("mean_bound_width", "bound_width"),
+                ):
+                    output.append(
+                        _row(
+                            "C9",
+                            "fixed_budget_support",
+                            population,
+                            "RHELM and MemOps public sources",
+                            contrast,
+                            metric,
+                            source[source_metric],
+                            n=3767,
+                            notes=(
+                                "post_hoc_v2;frozen_routes;no_retuning;"
+                                "evaluator_label_missingness;ten_seed_mean"
+                            ),
+                        )
+                    )
+
+        gold = _one(
+            _csv_rows(submission_result_root / "gold_preserving_summary.csv"),
+            arm="gold_preserving_same_size",
         )
+        for source_metric, metric in (
+            ("mean_evidence_recall", "evidence_recall"),
+            ("mean_feasible_rate", "feasible_rate"),
+            ("mean_penalized_upper_risk", "penalized_upper_risk"),
+            ("mean_candidates_scored", "candidates_scored"),
+        ):
+            output.append(
+                _row(
+                    "C9",
+                    "fixed_budget_support",
+                    population,
+                    "RHELM and MemOps public sources",
+                    "gold_preserving_same_size_top_k_20",
+                    metric,
+                    gold[source_metric],
+                    n=3767,
+                    notes=(
+                        "post_hoc_v2;frozen_embeddings;no_retuning;"
+                        "non_deployable_released_gold_oracle;ten_seed_mean"
+                    ),
+                )
+            )
     return output
 
 
@@ -485,6 +541,7 @@ def build(repository_root: Path = ROOT) -> tuple[Path, ...]:
     inferred = repository_root / "results" / "inferred_admissibility"
     controlled = repository_root / "results" / "counterfactual_admissibility"
     policy_sensitivity = repository_root / "results" / "policy_axis_sensitivity"
+    submission_diagnostics = repository_root / "results" / "submission_zero_call_diagnostics"
     normalized = repository_root / "evidence" / "normalized"
     manifests = repository_root / "evidence" / "manifests"
 
@@ -495,7 +552,7 @@ def build(repository_root: Path = ROOT) -> tuple[Path, ...]:
         normalized / "controlled_selective_verification.csv",
     )
     rows = (
-        _natural_fixed_budget_rows(supplemental, policy_sensitivity),
+        _natural_fixed_budget_rows(supplemental, policy_sensitivity, submission_diagnostics),
         _metadata_reliability_rows(supplemental),
         _inferred_rows(inferred),
         _controlled_rows(controlled),
@@ -514,9 +571,12 @@ def build(repository_root: Path = ROOT) -> tuple[Path, ...]:
                 policy_sensitivity / "summary.csv",
                 policy_sensitivity / "paired_deltas.csv",
                 policy_sensitivity / "manifest.json",
+                submission_diagnostics / "label_missingness_summary.csv",
+                submission_diagnostics / "gold_preserving_summary.csv",
+                submission_diagnostics / "manifest.json",
             ),
             NATURAL_COMMIT,
-            (POLICY_SENSITIVITY_COMMIT,),
+            (POLICY_SENSITIVITY_COMMIT, SUBMISSION_DIAGNOSTICS_COMMIT),
         ),
         (
             manifests / "metadata_reliability.json",
