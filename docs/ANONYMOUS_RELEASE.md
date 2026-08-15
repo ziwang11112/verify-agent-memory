@@ -20,9 +20,11 @@ The exporter:
 1. copies only `git ls-files` entries;
 2. excludes Git history, CI metadata, caches, local configuration, raw/private data,
    and provider material;
-3. redacts private owner and repository identifiers in the copied text only;
+3. redacts private owner, email, institution, repository, workstation-user, and
+   local-workspace identifiers in copied UTF-8 text;
 4. repairs evidence-manifest hashes for redacted transformation scripts;
-5. fails on common API-key and private-key shapes; and
+5. fails on residual identity tokens, including tokens in non-UTF-8 files, and on
+   common API-key and private-key shapes; and
 6. writes `ANONYMIZATION_REPORT.json` with output hashes and no source commit ID.
 
 Verify the exported package independently before publishing it:

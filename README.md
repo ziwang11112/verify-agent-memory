@@ -1,9 +1,9 @@
-# The Wrong Memory at the Right Time
+# The Right Memory in the Wrong Context
 
 **Reproducible evaluation artifact for _Verifying Retrieval Admissibility in
-Long-Term Agents_.**
+Long-Term Agent Memory_.**
 
-Long-term-memory agents can retrieve a record that is topically relevant but still
+Agents with long-term memory can retrieve a record that is topically relevant but still
 ineligible for the current principal, policy, intent, lifecycle state, or time. This
 repository provides the evaluation code, frozen protocols, derived evidence, and
 integrity checks used to trace that failure across four observable stages:
@@ -53,11 +53,14 @@ and 3,767 RHELM/MemOps queries. On frozen top-20 rankings, trusted namespace sup
 - reduces the mean known-violation count from `2.080` to `1.393`, without reaching
   zero.
 
-Correct provenance identity is necessary for this result: a size-matched random
-partition performs poorly, and global retrieval requires depth 500 before late
-namespace filtering approaches namespace pre-filter recall. The namespace result is
-therefore a benchmark-conditional candidate-support intervention, not a safety
-certificate or a demonstrated policy/lifecycle solution.
+An arbitrary size-matched random partition performs poorly, and global retrieval
+requires depth 500 before late namespace filtering approaches namespace pre-filter
+recall. A non-deployable gold-preserving same-size control instead reaches `0.840`
+recall, exposing substantial headroom when released required anchors are known.
+Trusted namespace is therefore a practical provenance constraint that improves
+anchor reachability, not proof that namespace identity is necessary or sufficient
+for optimal retrieval, a safety certificate, or a demonstrated policy/lifecycle
+solution.
 
 On a frozen 1,523-case route-to-reader subset, namespace-minus-global answer-accuracy
 effects are positive for separately reported DeepSeek, Gemini, and sequential GPT
@@ -66,16 +69,22 @@ shared blinded primary judge.
 
 The remaining diagnostics establish important boundaries:
 
-- on 72 public-development cases, a released-field oracle lowers
+- on 72 public-development cases, a label-aligned released-field reference lowers
   recall-constrained upper loss by `0.032`, while the two tested text-only gates do
   not realize that headroom;
+- a zero-call sensitivity that omits the low-agreement policy predicate preserves
+  the namespace-support advantage: penalized upper risk changes from `0.787` to
+  `0.693` (`delta = -0.093`, 95% CI `[-0.115, -0.071]`);
+- a zero-call evaluator-missingness diagnostic leaves retrieval fixed but widens the
+  matched-prefix risk interval from about `0.008` at baseline to about `0.21` after
+  hiding 20% of established judgments;
 - all four controlled readers show positive selectivity between relevant-admissible
   and relevant-inadmissible evidence, but DeepSeek retains a `+0.156`
   relevant-inadmissible disclosure effect; and
 - protected- and stale-disclosure changes are inconclusive, so the artifact makes no
   general disclosure-reduction claim.
 
-The top-100 v1 route-family evaluation is confirmatory for its historical
+The top-100 v1 route-family evaluation is the held-out evaluation of its frozen
 non-usable metric. The top-20 admissibility result above is a post-hoc v2 rescore of
 the same frozen rankings: it changes no route, ranking, setting, or hyperparameter.
 Exact estimates, intervals, and provenance are indexed in
@@ -121,14 +130,13 @@ Verify each derived result family and regenerate released plots with the command
 non-finite values, changed hashes, incomplete result families, release-excluded
 paths, and common secret patterns.
 
-## Data and Reproducibility Boundary
+## Reproduction Paths
 
 | Material | Availability |
 | --- | --- |
 | Evaluation library, protocols, prompts, and synthetic fixtures | Included |
 | Content-free aggregate, pair-level, and tokenized derived scores | Included and hash-bound |
 | GateMem, RHELM, and MemOps source repositories | Fetchable at pinned commits and tree hashes |
-| Raw benchmark text, provider requests/responses, embeddings, and credentials | Excluded |
 
 Fetch and verify redistributable public sources from their owners:
 
@@ -138,11 +146,14 @@ uv run --extra dev python -m scripts.fetch_public_sources fetch
 uv run --extra dev python -m scripts.fetch_public_sources verify
 ```
 
-The public derivative records reconstruct the released aggregates, source-specific
-contrasts, bootstrap intervals, and figures without a provider call. They cannot
-independently audit the original private payload-to-provider-to-score
-transformation. See [`data/README.md`](data/README.md),
-[`PROVENANCE.md`](PROVENANCE.md), and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+The checked-in evidence reconstructs the released aggregates, source-specific
+contrasts, bootstrap intervals, controls, and figures without a provider call. For
+fresh execution, the released scripts rebuild inputs from the pinned public sources
+and run the frozen provider contracts with researcher-supplied credentials. API keys
+remain local and are never written to result packages. See
+[`REPRODUCIBILITY.md`](REPRODUCIBILITY.md), [`data/README.md`](data/README.md),
+[`PROVENANCE.md`](PROVENANCE.md), and
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Repository Map
 
