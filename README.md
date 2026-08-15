@@ -1,9 +1,9 @@
 # The Right Memory in the Wrong Context
 
 **Reproducible evaluation artifact for _Verifying Retrieval Admissibility in
-Long-Term-Memory Agents_.**
+Long-Term Agent Memory_.**
 
-Long-term-memory agents can retrieve a record that is topically relevant but still
+Agents with long-term memory can retrieve a record that is topically relevant but still
 ineligible for the current principal, policy, intent, lifecycle state, or time. This
 repository provides the evaluation code, frozen protocols, derived evidence, and
 integrity checks used to trace that failure across four observable stages:
